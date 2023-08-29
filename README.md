@@ -22,6 +22,7 @@ for molecules and helical polymers. For molecules only, additionally
 * Grid-based HF
 * Grid-based MP2
 * OEP & TDOEP
+* Dynamic polarizability at TDHF, TDDFT or TDOEP
 
 # author
 So Hirata (sohirata@illinois.edu)
