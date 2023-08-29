@@ -43,7 +43,7 @@ Modify directory information in "debug," and then
 
 # how to submit a batch job
 
-Modify directory information in "releasescript," and then
+Modify directory information in "release" and "releasescript," and then
 
      $ cd data
      $ release input nprocs
