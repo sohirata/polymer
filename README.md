@@ -6,7 +6,7 @@ So Hirata (sohirata@illinois.edu)
 
 # how to compile
 
-Modify MPI Fortran90 compiler and compile options, and then
+Modify MPI Fortran90 compiler and compile options in "Makefile," and then
 
      $ cd src
      $ make
