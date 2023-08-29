@@ -23,11 +23,11 @@ cp $PHOME/src/polymer .
 cp $PHOME/data/$argv[1]_data/$argv[1].chk .
 cp $PHOME/data/$argv[1]_data/$argv[1].ao.* .
 
-# Execute polymer3d
+# Execute polymer
 if ($#argv == 2) then
-  mpirun -n $argv[2] ./polymer3d
+  mpirun -n $argv[2] ./polymer
 else
-  mpirun -n 1 ./polymer3d 
+  mpirun -n 1 ./polymer
 endif
 mkdir $PHOME/data/$argv[1]_data
 cp fort.* $PHOME/data/$argv[1]_data
