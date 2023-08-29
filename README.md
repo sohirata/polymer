@@ -70,17 +70,58 @@ Modify directory information in "submitscript"
 * CISQP (T = CIS-GF2 approximation)
 * QPBANDS (number of GF2 bands sought)
 * DYSONDAMP (damping parameter for iterative solution of Dyson equation)
-        'OEP       ','MP2KJOBS  ','MP2KJOBE  ','HIGHMP    ','HIGHCIS   ',& !  46 -  50
-        'HIGHCIE   ','HIGHCCS   ','HIGHCCE   ','CCDIIS    ','FROZENVIRT',& !  51 -  55
-        'HIGHCIROOT','EOMORDERS ','EOMORDERE ','EOMROOT   ','IP        ',& !  56 -  60
-        'EA        ','CCCONV    ','CCRELAX   ','CCALG     ','XCC       ',& !  61 -  65
-        'CCPTROOT  ','CICONV    ','CCPTCONV  ','SPHERICAL ','CCTHEORY  ',& !  66 -  70
-        'OEPALG    ','SLATER51  ','KLI       ','POTDUMP   ','DENDUMP   ',& !  71 -  75
-        'KERNEL_HF ','KERNEL_S  ','KERNEL_VWN','KERNEL_B88','KERNEL_LYP',& !  76 -  80
-        'RADIAL    ','ANGULAR   ','AC        ','KERNEL_OEP','LINDEP    ',& !  81 -  85
-        'POLAR     ','OMEGA     ','POLARALG  ','POLARX    ','POLARY    ',& !  86 -  90
-        'POLARZ    ','SOS       ','RELATIVITY','SINANOGLU ','SALG      ',& !  91 -  95
-        'SINGULAR  ','HIGHGF    ','TEMP      ','MODULO    ','NGRID     ',& !  96 - 100
-        'DELTAH    ','GEMINAL   ','LMAX      ','MBGFALG   ','MP2ALG    ',& ! 101 - 105
-        'DIAGONAL  ','DYSONCONV '                                       
+* OEP (T = OEP calculation)
+* MP2KJOBS (start k point in partial MP2 calculation)
+* MP2KJOBE (end k point in partial MP2 calculation)
+* HIGHMP (end perturbation order of general-order MP)
+* HIGHCIS (start CI order of general-order CI)
+* HIGHCIE (end CI order of general-order CI)
+* HIGHCCS (start CC order of general-order CC)
+* HIGHCCE (end CC order of general-order CC)
+* CCDIIS (CC DIIS order)
+* FROZENVIRT (number of frozen virtuals)
+* HIGHCIROOT (number of excited states sought in general-order CI)
+* EOMORDERS (start EOM-CC order of general-order EOMCC)
+* EOMORDERE (end EOM-CC order of general-order EOMCC)
+* EOMROOT (number of excited states sought in general-order EOM-CC)
+* IP (T = IP-EOM-CC)
+* EA (T = EA-EOM-CC)
+* CCCONV (CC convergence criterion)
+* CCRELAX (damping parameter for iterative solution of CC)
+* CCALG (1 = H exp(T) algorithm; 2 = exp(-T) H exp(T) algorithm)
+* XCC (T = expectation-value CC)
+* CCPTROOT (number of EOM-CCPT excited states sought)
+* CICONV (CI convergence criterion)
+* CCPTCONV (EOM-CCPT convergence criterion)
+* SPHERICAL (T = spherical d,f; F = Cartesian d,f)
+* CCTHEORY (CCD; LCCD; CCSD; LCCSD; QCISD; D123; D45) 
+* OEPALG (1 = V; 2 = S; 3 = Slater; 4 = KLI)
+* SLATER51 (T = Slater potential calculation)
+* KLI (T = Krieger-Li-Iafrate potential calculation)
+* RADIAL (radial grid points per atom)
+* ANGULAR (angular Lebedev grid points per atom)
+* AC (T = asymptotic correction to the xc potential) 
+* LINDEP (basis set linear dependency threshold)
+* POLAR (T = dynamic polarizability calculation)
+* OMEGA (frequency for dynamic polarizability and GF)
+* POLARALG () 
+* POLARX ()
+* POLARY ()
+* POLARZ ()
+* SOS ()
+* RELATIVITY ()
+* SINANOGLU (T = grid-based MP2 calculation)
+* SALG ()
+* SINGULAR ()
+* HIGHGF (end order of general-order GF)
+* TEMP (temperature in K)
+* MODULO (integer n in modulo-n approximation)
+* NGRID ()
+* DELTAH ()
+* GEMINAL ()
+* LMAX ()
+* MBGFALG (1 = recursion 1; 2 = recursions 1 & 2; 3 = recursions 1 & 2 & 3; -1 = recursion 1 scan; 4 = lambda variation)
+* MP2ALG (1 = fast big memory; 2 = medium speed medium memory; 3 = slow small memory)
+* DIAGONAL (T = diagonal approximation to self-energy)
+* DYSONCONV (GF convergence criterion)                                       
      
