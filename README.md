@@ -6,27 +6,32 @@ So Hirata (sohirata@illinois.edu)
 
 # how to compile
 
+Modify MPI Fortran90 compiler and compile options, and then
+
      $ cd src
      $ make
 
 # how to execute interactively
 
+Modify directory information in "debug," and then
+
      $ cd data
      $ debug input nprocs > output &
 
-Modify directory information in "debug"
-
 # how to submit a batch job
 
-     $ cd data
-     $ submit input nprocs
+Modify directory information in "releasescript," and then
 
-Modify directory information in "submitscript"
+     $ cd data
+     $ release input nprocs
 
 # input syntax
 
+Mandatory input in bold letters.
+
 * JOBNAME (checkpoint file with the same name will be read)
-* BASISSET (cc-pVDZ, 6-31Gss, etc.)
+* <b>GEOMETRY</b> (atomic symbol X, Y, Z coordinates; X 0.0 0.0 0.0 as terminating line)
+* <b>BASISSET</b> (cc-pVDZ, 6-31Gss, etc.)
 * PERIOD (X, Y, Z lattice constants)
 * HELIX (helical angle in degrees)
 * CHARGE (integer electric charge)
