@@ -1,0 +1,42 @@
+#!/bin/csh -f
+
+mkdir /Users/sohirata/Documents/Git/polymer/`uname -n`.$$.hirata
+setenv PHOME /Users/sohirata/Documents/Git/polymer
+setenv PWORK /Users/sohirata/Documents/Git/polymer/`uname -n`.$$.hirata
+
+# Printing input/output file names
+echo 'Entering polymer program'
+echo 'Input file:  '$argv[1]
+if ($#argv == 2) then
+  echo 'No. processors: '$argv[2]
+else
+  echo 'No. procesors: 1'
+endif
+
+# Make temporary directory and copy files to that directory
+cd $PWORK
+cp $PHOME/data/$argv[1] inputfile
+#cp $PHOME/data/polymerdata1 .
+#cp $PHOME/data/polymerdata2 .
+cp $PHOME/basisset/* .
+cp $PHOME/src/polymer .
+cp $PHOME/data/$argv[1]_data/$argv[1].chk .
+cp $PHOME/data/$argv[1]_data/$argv[1].ao.* .
+
+# Execute polymer3d
+if ($#argv == 2) then
+  mpirun -n $argv[2] ./polymer3d
+else
+  mpirun -n 1 ./polymer3d 
+endif
+mkdir $PHOME/data/$argv[1]_data
+cp fort.* $PHOME/data/$argv[1]_data
+cp data_* $PHOME/data/$argv[1]_data
+mv $argv[1].chk $PHOME/data/$argv[1]_data
+mv $argv[1].ao.* $PHOME/data/$argv[1]_data
+cd $HOME
+
+# Remove temporary directory and exit
+rm -r $PWORK
+echo 'Exiting from polymer program'
+exit

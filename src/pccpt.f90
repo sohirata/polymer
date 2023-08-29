@@ -1,0 +1,1407 @@
+SUBROUTINE CCPT(TORDER,PORDER)
+! COMPUTE HIGH-ORDER PERTURBATIVE CORRECTIONS TO EOM-CC ENERGIES IN A RECURSIVE ALGORITHM.
+! BASED ON A FORMALISM BY M. NOOIJEN (2000); FOR A RELATED FORMALISM, SEE S. R. GWALTNEY & M. HEAD-GORDON,
+! CHEM.PHYS.LETT. 323 (2000) 21.
+
+   USE CONSTANTS
+   USE CONTROL
+   USE GRADIENT
+   USE STRUCTURE
+   USE INTEGRAL
+   USE BASISSET
+   USE FULLCI
+
+   IMPLICIT NONE
+   INTEGER,PARAMETER :: MAXFILE = 100
+   INTEGER,PARAMETER :: MAXTRLS = 100
+   INTEGER :: TORDER
+   INTEGER :: PORDER
+   INTEGER :: IA,IB
+   INTEGER :: I,J,IFILE
+   INTEGER :: NTRLS
+   INTEGER,ALLOCATABLE :: INDX(:)
+   REAL :: MEM,ICPUS,ICPUE
+   DOUBLE PRECISION :: D
+   DOUBLE PRECISION :: EPT,DPT(0:PORDER)
+   DOUBLE PRECISION,ALLOCATABLE :: VEC1(:,:),VEC2(:,:)
+   DOUBLE PRECISION,ALLOCATABLE :: DENOM(:)
+   DOUBLE PRECISION,ALLOCATABLE :: SMALLA(:,:),SMALLB(:),SMALLAS(:,:),SMALLBS(:)
+
+   CALL PCPU_TIME(ICPUS)
+   WRITE(6,'(A,I3,A)') 'HIGH-ORDER PERTURBATIVE CORRECTIONS TO THE EOM-CC ROOT ',IOPTN(66),' WILL BE COMPUTED RECURSIVELY'
+   WRITE(6,'(A,I2)') 'THE ORDER OF COUPLED CLUSTER = ',TORDER
+   WRITE(6,'(A,I2)') 'THE ORDER OF PERTURBATION    = ',PORDER
+   WRITE(6,'(A,A,A)') 'REQUESTED ROOT IS ',CNUMBER(N_DEGENERATE_ROOTS),'-FOLD DEGENERATE'
+   MEM=16.0*2.0*NCF**2
+   IF (MEM > 1000000.0) THEN
+    WRITE(6,'(A,F7.1,A)') 'ESTIMATED MEMORY USAGE WILL BE ',MEM/1000000.0,' MB'
+   ELSE IF (MEM > 1000.0) THEN
+    WRITE(6,'(A,F7.1,A)') 'ESTIMATED MEMORY USAGE WILL BE ',MEM/1000.0,' KB'
+   ELSE
+    WRITE(6,'(A,F7.1,A)') 'ESTIMATED MEMORY USAGE WILL BE ',MEM,' B'
+   ENDIF
+   IF (MEM > DOPTN(28)*1000000.0) CALL PABORT('OUT OF MEMORY') 
+   WRITE(6,'(A)') '------------------------------------------------------'
+   WRITE(6,'(A)') 'ORDER      CORRELATION        TOTAL ENERGY   CPU / SEC'
+   ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF),DENOM(NCF))
+   OPEN(60,FILE=TRIM(COPTN(1))//'.fw0',FORM='UNFORMATTED') ! WORKING DIRECTORY
+   OPEN(61,FILE=TRIM(COPTN(1))//'.fw1',FORM='UNFORMATTED') ! WORKING DIRECTORY
+   OPEN(62,FILE=TRIM(COPTN(1))//'.fw2',FORM='UNFORMATTED') ! WORKING DIRECTORY
+   OPEN(63,FILE=TRIM(COPTN(1))//'.fw3',FORM='UNFORMATTED') ! WORKING DIRECTORY
+   OPEN(70,FILE=TRIM(COPTN(1))//'.lft',FORM='UNFORMATTED') ! LEFT-HAND EIGENVECTOR OF EOM-CC
+   OPEN(71,FILE=TRIM(COPTN(1))//'.rgt',FORM='UNFORMATTED') ! RIGHT-HAND EIGENVECTOR OF EOM-CC
+   OPEN(72,FILE=TRIM(COPTN(1))//'.lnr',FORM='UNFORMATTED') ! RIGHT-HAND VECTOR OF THE LINEAR EQUATION
+   OPEN(73,FILE=TRIM(COPTN(1))//'.cpt',FORM='UNFORMATTED') ! TRIAL VECTORS
+   OPEN(74,FILE=TRIM(COPTN(1))//'.cpp',FORM='UNFORMATTED') ! PRODUCT VECTORS
+   OPEN(75,FILE=TRIM(COPTN(1))//'.rpt',FORM='UNFORMATTED') ! PERTURBATIVE CORRECTIONS TO THE RIGHT-HAND EIGENVECTOR
+   OPEN(90,FILE=TRIM(COPTN(1))//'.fq0',FORM='UNFORMATTED') ! T-AMPLITUDES
+
+   ! RENORMALIZE LEFT-HAND AND RIGHT-HAND EIGENVECTORS APPROPRIATELY
+   REWIND(60)
+   REWIND(61)
+   REWIND(70)
+   REWIND(71)
+   DO I=1,N_DEGENERATE_ROOTS
+    READ(70) VEC1
+    READ(71) VEC2
+    D=0.0D0
+    DO IA=1,NCF
+     DO IB=1,NCF
+      D=D+VEC2(IB,IA)**2
+     ENDDO
+    ENDDO
+    VEC2=VEC2/DSQRT(D)
+    D=0.0D0
+    DO IA=1,NCF
+     DO IB=1,NCF
+      D=D+VEC1(IB,IA)*VEC2(IB,IA)
+     ENDDO
+    ENDDO
+    VEC1=VEC1/D
+    WRITE(60) VEC1
+    WRITE(61) VEC2
+    IF (IOPTN(9) == -30) THEN
+     WRITE(6,'(A)') 'NORMALIZED ZEROTH-ORDER LEFT-HAND VECTOR'
+     CALL DUMP5(VEC1,NCF)
+     WRITE(6,'(A)') 'NORMALIZED ZEROTH-ORDER RIGHT-HAND VECTOR'
+     CALL DUMP5(VEC2,NCF)
+    ENDIF
+   ENDDO
+   REWIND(60)
+   REWIND(61)
+   REWIND(70)
+   REWIND(71)
+   DO I=1,N_DEGENERATE_ROOTS
+    READ(60) VEC1
+    READ(61) VEC2
+    WRITE(70) VEC1
+    WRITE(71) VEC2
+   ENDDO
+   REWIND(71)
+   READ(71) VEC1
+   REWIND(75)
+   WRITE(75) VEC1
+
+   ! PRE-COMPUTE ORBITAL ENERGY DIFFERENCES ETC.
+   DO IA=1,NCF
+    DENOM(IA)=0.0D0
+    DO I=1,IOCC
+     DENOM(IA)=DENOM(IA)-EPSILON(I,0,0,0)
+    ENDDO
+    DO I=1,IALL(0,0,0)-IVIRTCORE
+     IF (BTEST(CFHALF(IA),I-1)) DENOM(IA)=DENOM(IA)+EPSILON(I,0,0,0)
+    ENDDO
+   ENDDO
+
+   ! DPT(0)
+   DEALLOCATE(VEC1,VEC2)
+   CALL EXPONENTIAL_OPERATOR(90,75,61,TORDER,.FALSE.,.FALSE.)
+   CALL HAMILTONIAN_PRODUCT(61,60,0,2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE))
+   CALL EXPONENTIAL_OPERATOR(90,60,61,TORDER,.TRUE.,.FALSE.)
+   ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+   REWIND(61)
+   READ(61) VEC2
+   REWIND(70)
+   READ(70) VEC1
+   DPT(0)=0.0D0
+   DO IA=1,NCF
+    DO IB=1,NCF
+     DPT(0)=DPT(0)+VEC1(IB,IA)*VEC2(IB,IA)
+    ENDDO
+   ENDDO
+   EPT=NUCLEAR_REPULSION+DPT(0)
+   CALL PCPU_TIME(ICPUE)
+   WRITE(6,'(I2,F20.10,F20.10,F12.1)') 0,DPT(0),EPT,ICPUE-ICPUS
+   CALL PCPU_TIME(ICPUS)
+
+!------------------------------ AD HOC ROUTINES
+   if (torder == 1) then
+   DO IA=ICORE+1,IOCC
+    DO IB=IOCC+1,IALL(0,0,0)-IVIRTCORE
+     WRITE(*,'(2I4,2F15.10)') IB,IA,G(IB,IA,IA,IB),G(IB,IB,IA,IA)
+    ENDDO
+   ENDDO
+! ======================= CIS-MP2
+    write(*,*) "Ad hoc CIS-MP2 implementation"
+    rewind(71)
+    read(71) vec1
+    rewind(60)
+    write(60) vec1
+    DEALLOCATE(VEC1,VEC2)
+    CALL HB_MINUS_HBNOT(90,60,61,62,63,TORDER)
+    ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+    rewind(61)
+    read(61) vec1
+    rewind(64)
+    write(64) vec1
+    d = 0.0d0
+    do ia = 1, ncf
+     do ib = 1, ncf
+      if (norder(ia)+norder(ib) == 2) d = d + vec1(ib,ia)*vec1(ib,ia) &
+      / (dpt(0) - ecc - denom(ia) - denom(ib))
+     enddo
+    enddo
+    write(*,*) 'CIS-MP2 doubles = ',d
+    d = 0.0d0
+    do ia = 1, ncf
+     do ib = 1, ncf
+      if (norder(ia)+norder(ib) == 3) d = d + vec1(ib,ia)*vec1(ib,ia) &
+      / (dpt(0) - ecc - denom(ia) - denom(ib))
+     enddo
+    enddo
+    write(*,*) 'CIS-MP2 triples = ',d
+! ====================== CIS(D)
+    rewind(71)
+    read(71) vec1
+    rewind(60)
+    write(60) vec1
+    DEALLOCATE(VEC1,VEC2)
+    CALL HB_MINUS_HBNOT_DEBUG(90,60,61,62,63,TORDER)
+    ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+    rewind(61)
+    read(61) vec1
+    rewind(64)
+    read(64) vec2
+    d = 0.0d0
+    do ia = 1, ncf
+     do ib = 1, ncf
+      if (norder(ia)+norder(ib) == 3) d = d + vec2(ib,ia)*vec1(ib,ia)
+     enddo
+    enddo
+    write(*,*) 'CIS(D) triples = ',d
+! ==================================== CIS-MP3
+    write(*,*) "Ad hoc CIS-MP3 implementation"
+    rewind(71)
+    read(71) vec1
+    rewind(60)
+    write(60) vec1
+    DEALLOCATE(VEC1,VEC2)
+    CALL HB_MINUS_HBNOT(90,60,61,62,63,TORDER)
+    ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+    rewind(61)
+    read(61) vec1
+    do ia = 1, ncf
+     do ib = 1, ncf
+      if (norder(ia)+norder(ib) == 3) then
+       vec1(ib,ia) = vec1(ib,ia) / (dpt(0) - ecc - denom(ia) - denom(ib))
+      else
+       vec1(ib,ia) = 0.0d0
+      endif
+     enddo
+    enddo
+    rewind(60)
+    write(60) vec1
+    rewind(64)
+    write(64) vec1
+    DEALLOCATE(VEC1,VEC2)
+    CALL HB_MINUS_HBNOT(90,60,61,62,63,TORDER)
+    ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+    rewind(64)
+    read(64) vec1
+    rewind(61)
+    read(61) vec2
+    d = 0.0d0
+    do ia = 1, ncf
+     do ib = 1, ncf
+      if (norder(ia)+norder(ib) == 3) d = d + vec1(ib,ia)*vec2(ib,ia)
+     enddo
+    enddo
+    write(*,*) 'CIS-MP3 tt = ',d
+! -------
+    rewind(71)
+    read(71) vec1
+    rewind(60)
+    write(60) vec1
+    DEALLOCATE(VEC1,VEC2)
+    CALL HB_MINUS_HBNOT(90,60,61,62,63,TORDER)
+    ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+    rewind(61)
+    read(61) vec1
+    do ia = 1, ncf
+     do ib = 1, ncf
+      if (norder(ia)+norder(ib) == 2) then
+       vec1(ib,ia) = vec1(ib,ia) / (dpt(0) - ecc - denom(ia) - denom(ib))
+      else
+       vec1(ib,ia) = 0.0d0
+      endif
+     enddo
+    enddo
+    rewind(60)
+    write(60) vec1
+    rewind(65)
+    write(65) vec1
+    DEALLOCATE(VEC1,VEC2)
+    CALL HB_MINUS_HBNOT(90,60,61,62,63,TORDER)
+    ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+    rewind(61)
+    read(61) vec1
+    rewind(64)
+    read(64) vec2
+    d = 0.0d0
+    do ia = 1, ncf
+     do ib = 1, ncf
+      if (norder(ia)+norder(ib) == 3) d = d + 2.0d0*vec1(ib,ia)*vec2(ib,ia)
+     enddo
+    enddo
+    write(*,*) 'CIS-MP3 dt = ',d
+! -------
+    rewind(71)
+    read(71) vec1
+    rewind(60)
+    write(60) vec1
+    DEALLOCATE(VEC1,VEC2)
+    CALL HB_MINUS_HBNOT(90,60,61,62,63,TORDER)
+    ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+    rewind(61)
+    read(61) vec1
+    do ia = 1, ncf
+     do ib = 1, ncf
+      if (norder(ia)+norder(ib) == 2) then
+       vec1(ib,ia) = vec1(ib,ia) / (dpt(0) - ecc - denom(ia) - denom(ib))
+      else
+       vec1(ib,ia) = 0.0d0
+      endif
+     enddo
+    enddo
+    rewind(60)
+    write(60) vec1
+    DEALLOCATE(VEC1,VEC2)
+    CALL HB_MINUS_HBNOT(90,60,61,62,63,TORDER)
+    ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+    rewind(61)
+    read(61) vec1
+    rewind(65)
+    read(65) vec2
+    d = 0.0d0
+    do ia = 1, ncf
+     do ib = 1, ncf
+      if (norder(ia)+norder(ib) == 2) d = d + vec1(ib,ia)*vec2(ib,ia)
+     enddo
+    enddo
+    write(*,*) 'CIS-MP3 dd = ',d
+! ============ CIS(3)
+    rewind(71)
+    read(71) vec1
+    rewind(60)
+    write(60) vec1
+    DEALLOCATE(VEC1,VEC2)
+!   CALL HB_MINUS_HBNOT_DEBUG(90,60,61,62,63,TORDER)
+    CALL HAMILTONIAN_P_DEBUG(60,61,0,2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE))
+    ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+    rewind(61)
+    read(61) vec1
+    d = 0.0d0
+    do ia = 1, ncf
+     do ib = 1, ncf
+      if (norder(ia)+norder(ib) /= 3) then
+       vec1(ib,ia) = 0.0d0
+      else
+       d = d - (ecc + denom(ia)+denom(ib))*vec1(ib,ia)**2
+      endif
+     enddo
+    enddo
+    write(*,*) 'CIS(3) QQ disconnected = ',d
+    rewind(60)
+    write(60) vec1
+    rewind(64)
+    write(64) vec1
+    DEALLOCATE(VEC1,VEC2)
+    CALL HB_MINUS_HBNOT(90,60,61,62,63,TORDER)
+!   CALL HAMILTONIAN_PRODUCT(60,61,0,2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE))
+    ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+    rewind(61)
+    read(61) vec1
+    rewind(64)
+    read(64) vec2
+    d = 0.0d0
+    do ia = 1, ncf
+     do ib = 1, ncf
+      if (norder(ia)+norder(ib) == 3) d = d + vec1(ib,ia)*vec2(ib,ia)
+     enddo
+    enddo
+    write(*,*) 'CIS(3)  tt = ',d
+    rewind(65)
+    read(65) vec2
+    d = 0.0d0
+    do ia = 1, ncf
+     do ib = 1, ncf
+      if (norder(ia)+norder(ib) == 2) d = d + 2.0d0*vec1(ib,ia)*vec2(ib,ia)
+     enddo
+    enddo
+    write(*,*) 'CIS(3)  dt = ',d
+! ============ CIS(3) tt linked
+    rewind(71)
+    read(71) vec1
+    rewind(60)
+    write(60) vec1
+    DEALLOCATE(VEC1,VEC2)
+!   CALL HB_MINUS_HBNOT_DEBUG(90,60,61,62,63,TORDER)
+    CALL HAMILTONIAN_P_DEBUG(60,61,0,2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE))
+    ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+    rewind(61)
+    read(61) vec1
+    do ia = 1, ncf
+     do ib = 1, ncf
+      if (norder(ia)+norder(ib) /= 3) then
+       vec1(ib,ia) = 0.0d0
+      endif
+     enddo
+    enddo
+    rewind(60)
+    write(60) vec1
+    DEALLOCATE(VEC1,VEC2)
+    CALL HB_MINUS_HBNOT(90,60,61,62,63,TORDER)
+!   CALL HAMILTONIAN_PRODUCT(60,61,0,2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE))
+    ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+    rewind(61)
+    read(61) vec1
+    do ia = 1, ncf
+     do ib = 1, ncf
+      if (norder(ia)+norder(ib) /= 3) then
+       vec1(ib,ia) = 0.0d0
+      endif
+     enddo
+    enddo
+    rewind(60)
+    write(60) vec1
+    rewind(71)
+    read(71) vec2
+    rewind(64)
+    write(64) vec2
+    call EXPONENTIAL_OPERATOR(64,60,65,1,.false.,.true.)
+! --- unlinked part
+    vec1 = 0.0d0
+    vec1(1,1) = 1.0d0
+    rewind(60)
+    write(60) vec1
+    DEALLOCATE(VEC1,VEC2)
+!   CALL HB_MINUS_HBNOT_DEBUG(90,60,61,62,63,TORDER)
+    CALL HAMILTONIAN_P_DEBUG(60,61,0,2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE))
+    ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+    rewind(61)
+    read(61) vec1
+    do ia = 1, ncf
+     do ib = 1, ncf
+      if (norder(ia)+norder(ib) /= 2) vec1(ib,ia) = 0.0d0
+     enddo
+    enddo
+    rewind(60)
+    write(60) vec1
+    DEALLOCATE(VEC1,VEC2)
+    CALL HB_MINUS_HBNOT(90,60,61,62,63,TORDER)
+!   CALL HAMILTONIAN_PRODUCT(60,61,0,2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE))
+    ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+    rewind(61)
+    read(61) vec2
+    rewind(65)
+    read(65) vec1
+    do ia = 1, ncf
+     do ib = 1, ncf
+      if (norder(ia)+norder(ib) /= 2) then
+       vec1(ib,ia) = 0.0d0
+      else
+       vec1(ib,ia) = vec1(ib,ia) - vec2(ib,ia)
+      endif
+     enddo
+    enddo
+    rewind(60)
+    write(60) vec1
+    DEALLOCATE(VEC1,VEC2)
+!   CALL HB_MINUS_HBNOT_DEBUG(90,60,61,62,63,TORDER)
+    CALL HAMILTONIAN_P_DEBUG(60,61,0,2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE))
+    ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+    rewind(61)
+    read(61) vec1
+    write(*,*) 'CIS(3)  tt = ',vec1(1,1)
+! ============ CIS(3) disconnected part
+    vec1 = 0.0d0
+    vec1(1,1) = 1.0d0
+    rewind(60)
+    write(60) vec1
+    DEALLOCATE(VEC1,VEC2)
+!   CALL HB_MINUS_HBNOT_DEBUG(90,60,61,62,63,TORDER)
+    CALL HAMILTONIAN_P_DEBUG(60,61,0,2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE))
+    ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+    rewind(61)
+    read(61) vec1
+    do ia = 1, ncf
+     do ib = 1, ncf
+      if (norder(ia)+norder(ib) /= 2) vec1(ib,ia) = 0.0d0
+     enddo
+    enddo
+    rewind(60)
+    write(60) vec1
+    DEALLOCATE(VEC1,VEC2)
+    CALL HB_MINUS_HBNOT(90,60,61,62,63,TORDER)
+!   CALL HAMILTONIAN_PRODUCT(60,61,0,2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE))
+    ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+    rewind(61)
+    read(61) vec1
+    do ia = 1, ncf
+     do ib = 1, ncf
+      if (norder(ia)+norder(ib) /= 2) vec1(ib,ia) = 0.0d0
+     enddo
+    enddo
+    rewind(60)
+    write(60) vec1
+    DEALLOCATE(VEC1,VEC2)
+!   CALL HB_MINUS_HBNOT_DEBUG(90,60,61,62,63,TORDER)
+    CALL HAMILTONIAN_P_DEBUG(60,61,0,2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE))
+    ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+    rewind(61)
+    read(61) vec1
+    write(*,*) 'CIS(3) disconnected MP3 = ',vec1(1,1)
+! --------
+    rewind(71)
+    read(71) vec1
+    rewind(60)
+    write(60) vec1
+    DEALLOCATE(VEC1,VEC2)
+    CALL HB_MINUS_HBNOT(90,60,61,62,63,TORDER)
+!   CALL HAMILTONIAN_PRODUCT(60,61,0,2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE))
+    ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+    rewind(61)
+    read(61) vec1
+    rewind(71)
+    read(71) vec2
+    d = 0.0d0
+    do ia = 1, ncf
+     do ib = 1, ncf
+      if (norder(ia)+norder(ib) == 1) d = d + vec1(ib,ia)*vec2(ib,ia)
+     enddo
+    enddo
+    vec1 = 0.0d0
+    vec1(1,1) = 1.0d0
+    rewind(60)
+    write(60) vec1
+    DEALLOCATE(VEC1,VEC2)
+!   CALL HB_MINUS_HBNOT_DEBUG(90,60,61,62,63,TORDER)
+    CALL HAMILTONIAN_P_DEBUG(60,61,0,2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE))
+    ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+    rewind(61)
+    read(61) vec1
+    do ia = 1, ncf
+     do ib = 1, ncf
+      if (norder(ia)+norder(ib) /= 2) vec1(ib,ia) = 0.0d0
+     enddo
+    enddo
+    rewind(60)
+    write(60) vec1
+    DEALLOCATE(VEC1,VEC2)
+!   CALL HB_MINUS_HBNOT_DEBUG(90,60,61,62,63,TORDER)
+    CALL HAMILTONIAN_P_DEBUG(60,61,0,2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE))
+    ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+    rewind(61)
+    read(61) vec1
+    write(*,*) d,vec1(1,1)
+    write(*,*) 'CIS(3) disconnected (Funny MP3) = ',d * vec1(1,1)
+   endif
+!------------------------------ EOMCCSD2
+   if (torder == 2) then
+     write(*,*) 'Now entering EOM-CCSD(2)'
+     write(*,*) 'ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))'
+     write(*,*) 'rewind(71)'
+     write(*,*) 'read(71) vec1 <- reading RHS EOM-CC vector'
+     write(*,*) 'do the same for LHS vector (maybe later?)'
+     write(*,*) 'see lines 2729 - 2765 of pfci.f90 to find out'
+     write(*,*) 'how to form exp(-T) H exp(T) R |0>'
+     write(*,*) 'To effect <triples| exp(-T) H exp(T) R |0>,'
+     write(*,*) 'do ia=1,ncf;do ib=1,ncf; if (norder(ia)+norder(ib) /= 3) vec1(ib,ia) = 0.0d0'
+     write(*,*) 'PLEASE WORRY IF THIS IS THE SAME AS <triples|((H exp(T))c R)c |0> maybe different?'
+     write(*,*) 'this depends on whether unlinked, disconnected etc. are removed - relates back to'
+     write(*,*) 'our previous discussion - note this determinant based algorithm canNOT recognize'
+     write(*,*) 'individual diagrammatic contribution - it is based on actual determinantal wfn'
+     write(*,*) 'repeat for <0|L exp(-T) H exp(T)|triples>'
+     write(*,*) 'I guess you need to do <triples| exp(T^dagger) H exp(-T^dagger) L^dagger|0>'
+     write(*,*) 'probably L^dagger is what you find in file 70'
+     write(*,*) 'you can act exp(+/- T^dagger) on this - see lines 2729 - 2765 of pfci.f90 with'
+     write(*,*) 'particular attention to logical LLEFT - if this is T then LHS of EOMCC is solved'
+     write(*,*) 'you might find a much easier way to get EOM-CCSD(2) by modifying a few lines'
+     write(*,*) 'in the following general EOM-CC(n)PT(m) code; if so, that would be fine, too'
+     write(*,*) 'any question please ask - I might be able to answer right away but you might'
+     write(*,*) 'find this code useful in the future as CC, EOM-CC, MBPT etc at any order can be'
+     write(*,*) 'performed'
+   endif
+!------------------------------ END
+
+   ! DPT(1) ONWARD
+   DO IFILE=0,PORDER-1
+
+    ! COMPUTE DPT(IFILE+1) USING (IFILE)-TH ORDER RIGHT-HAND WAVEFUNCTION
+    REWIND(75)
+    DO I=0,IFILE
+     READ(75) VEC1
+    ENDDO
+    REWIND(60)
+    WRITE(60) VEC1
+    DEALLOCATE(VEC1,VEC2)
+    CALL HB_MINUS_HBNOT(90,60,61,62,63,TORDER)
+    ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+    REWIND(61)
+    READ(61) VEC2
+    REWIND(70)
+    READ(70) VEC1
+    DPT(IFILE+1)=0.0D0
+    DO IA=1,NCF
+     DO IB=1,NCF
+      DPT(IFILE+1)=DPT(IFILE+1)+VEC1(IB,IA)*VEC2(IB,IA)
+     ENDDO
+    ENDDO
+    EPT=EPT+DPT(IFILE+1)
+    CALL PCPU_TIME(ICPUE)
+    WRITE(6,'(I2,F20.10,F20.10,F12.1)') IFILE+1,DPT(IFILE+1),EPT,ICPUE-ICPUS
+    IF (IFILE == PORDER-1) EXIT
+    IF (IOPTN(9) >= 2) WRITE(6,'(A)') 'TRIALS    RESIDUAL'
+    CALL PCPU_TIME(ICPUS)
+
+    ! GENERATE THE RIGHT-HAND SIDE OF THE LINEAR EQUATION
+    REWIND(75)
+    DO I=0,IFILE
+     READ(75) VEC1
+     VEC2=VEC2-DPT(IFILE-I+1)*VEC1
+    ENDDO
+    REWIND(72)
+    WRITE(72) VEC2
+    REWIND(73)
+    WRITE(73) VEC2
+    IF (IOPTN(9) == -30) THEN
+     WRITE(6,'(A)') 'RIGHT-HAND VECTOR OF THE LINEAR EQUATIONS'
+     CALL DUMP5(VEC2,NCF)
+    ENDIF
+    
+    ! LINEAR EQUATIONS SOLVER
+    NTRLS=0
+    DO
+
+     ! GENERATE A NEW TRIAL VECTOR
+     REWIND(73)
+     DO I=0,NTRLS
+      READ(73) VEC1
+     ENDDO
+     IF (IOPTN(9) == -30) THEN
+      WRITE(6,'(I3,A)') NTRLS,'TH TRIAL VECTOR (BEFORE BIORTHOGONALIZATION)'
+      CALL DUMP5(VEC1,NCF)
+     ENDIF
+
+     ! BIORTHOGONALIZE THE NEW TRIAL VECTOR AGAINST THE LEFT-HAND ZEROTH-ORDER WAVEFUNCTION(S)
+     REWIND(70)
+     REWIND(71)
+     DO I=1,N_DEGENERATE_ROOTS
+      READ(70) VEC2
+      D=0.0D0
+      DO IA=1,NCF
+       DO IB=1,NCF
+        D=D+VEC1(IB,IA)*VEC2(IB,IA)
+       ENDDO
+      ENDDO
+      READ(71) VEC2
+      VEC1=VEC1-D*VEC2
+     ENDDO
+     IF (IOPTN(9) == -30) THEN
+      WRITE(6,'(I3,A)') NTRLS,'TH TRIAL VECTOR (AFTER BIORTHOGONALIZATION)'
+      CALL DUMP5(VEC1,NCF)
+     ENDIF
+
+     ! NORMALIZE THE NEW TRIAL VECTOR
+     D=0.0D0
+     DO IA=1,NCF
+      DO IB=1,NCF
+       D=D+VEC1(IB,IA)**2
+      ENDDO
+     ENDDO
+     IF (DSQRT(D) < DOPTN(68)*1.0D-2) CALL PABORT('FAILURE IN GENERATING A NEW TRIAL VECTOR')
+     VEC1=VEC1/DSQRT(D)
+     REWIND(73)
+     IF (NTRLS > 0) THEN
+      DO I=0,NTRLS-1
+       READ(73) VEC2 ! DUMMY READING
+      ENDDO
+     ENDIF
+     WRITE(73) VEC1
+     IF (IOPTN(9) == -30) THEN
+      WRITE(6,'(I3,A)') NTRLS,'TH TRIAL VECTOR (AFTER NORMALIZATION)'
+      CALL DUMP5(VEC1,NCF)
+     ENDIF
+
+     ! GENERATE THE PRODUCT VECTOR
+     REWIND(60)
+     WRITE(60) VEC1
+     DEALLOCATE(VEC1,VEC2)
+     CALL ENOT_MINUS_HBNOT(90,60,61,62,63,TORDER,DPT(0))
+     ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+     REWIND(61)
+     READ(61) VEC1
+     REWIND(74)
+     IF (NTRLS > 0) THEN
+      DO I=0,NTRLS-1
+       READ(74) VEC2 ! DUMMY READING
+      ENDDO
+     ENDIF
+     WRITE(74) VEC1
+     IF (IOPTN(9) == -30) THEN
+      WRITE(6,'(I3,A)') NTRLS,'TH PRODUCT VECTOR'
+      CALL DUMP5(VEC1,NCF)
+     ENDIF
+     NTRLS=NTRLS+1
+
+     ! FORM A SUBSPACE REPRESENTATION OF THE LINEAR EQUATIONS
+     ALLOCATE(SMALLA(NTRLS,NTRLS),SMALLB(NTRLS),SMALLAS(NTRLS,NTRLS),SMALLBS(NTRLS),INDX(NTRLS))
+     REWIND(72)
+     READ(72) VEC2
+     REWIND(74)
+     DO I=1,NTRLS
+      READ(74) VEC1
+      SMALLB(I)=0.0D0
+      DO IA=1,NCF
+       DO IB=1,NCF
+        SMALLB(I)=SMALLB(I)+VEC1(IB,IA)*VEC2(IB,IA)
+       ENDDO
+      ENDDO
+     ENDDO
+     DO I=1,NTRLS
+      REWIND(74)
+      DO J=1,I
+       READ(74) VEC1
+      ENDDO
+      REWIND(74)
+      DO J=1,NTRLS
+       READ(74) VEC2
+       SMALLA(J,I)=0.0D0
+       DO IA=1,NCF
+        DO IB=1,NCF
+         SMALLA(J,I)=SMALLA(J,I)+VEC1(IB,IA)*VEC2(IB,IA)
+        ENDDO
+       ENDDO
+      ENDDO
+     ENDDO
+     SMALLAS=SMALLA
+     SMALLBS=SMALLB
+     IF (IOPTN(9) == -30) THEN
+      WRITE(6,'(A)') 'SUBSPACE A'
+      CALL DUMP5(SMALLA,NTRLS)
+      WRITE(6,'(A)') 'SUBSPACE B'
+      WRITE(6,'(100F10.5:)') (SMALLB(I),I=1,NTRLS)
+     ENDIF
+      
+     ! SOLVE THE SUBSPACE LINEAR EQUATIONS
+     IF (NTRLS == 1) THEN
+      SMALLB(1)=SMALLB(1)/SMALLA(1,1)
+     ELSE
+      CALL LUDCMP(SMALLA,NTRLS,NTRLS,INDX,D)
+      CALL LUBKSB(SMALLA,NTRLS,NTRLS,INDX,SMALLB)
+      CALL MPROVE(SMALLAS,SMALLA,NTRLS,NTRLS,INDX,SMALLBS,SMALLB)
+     ENDIF
+     IF (IOPTN(9) == -30) THEN
+      WRITE(6,'(A)') 'SUBSPACE X'
+      WRITE(6,'(100F10.5:)') (SMALLB(I),I=1,NTRLS)
+     ENDIF
+
+     ! RECONSTRUCT RIGHT-HAND VECTOR OF LINEAR EQUATION AND SEE IF THE CONVERGENCE IS ACHIEVED
+     VEC1=0.0D0
+     REWIND(74)
+     DO I=1,NTRLS
+      READ(74) VEC2
+      VEC1=VEC1+SMALLB(I)*VEC2
+     ENDDO
+     IF (IOPTN(9) == -30) THEN
+      WRITE(6,'(A)') 'APPROXIMATE RIGHT-HAND VECTOR'
+      CALL DUMP5(VEC1,NCF)
+     ENDIF
+     REWIND(72)
+     READ(72) VEC2
+     VEC1=VEC1-VEC2
+     IF (IOPTN(9) == -30) THEN
+      WRITE(6,'(A)') 'RESIDUAL VECTOR'
+      CALL DUMP5(VEC1,NCF)
+     ENDIF
+     D=0.0D0
+     DO IA=1,NCF
+      DO IB=1,NCF
+       D=D+VEC1(IB,IA)**2
+      ENDDO
+     ENDDO
+     IF (IOPTN(9) >= 2) WRITE(6,'(I3,F15.10)') NTRLS,DSQRT(D)
+   
+     ! CASE 1: CONVERGED
+     IF (DSQRT(D) < DOPTN(68)) THEN
+      IF (IOPTN(9) >= 2) WRITE(6,'(A)') 'CONVERGENCE IS ACHIEVED'
+      VEC1=0.0D0
+      REWIND(73)
+      DO I=1,NTRLS
+       READ(73) VEC2
+       VEC1=VEC1+SMALLB(I)*VEC2
+      ENDDO
+!-----------------------------
+!     write(*,*) 'P space removed!!!'
+!   do ia = 1, ncf
+!    do ib = 1, ncf
+!     if (norder(ia)+norder(ib) <= 1) vec1(ib,ia) = 0.0d0
+!    enddo
+!   enddo
+!-----------------------------
+      REWIND(75)
+      DO I=0,IFILE
+       READ(75) VEC2 ! DUMMY READING
+      ENDDO
+      WRITE(75) VEC1
+      DEALLOCATE(SMALLA,SMALLB,SMALLAS,SMALLBS,INDX)
+      EXIT
+
+     ! CASE 2: NOT CONVERGED
+     ELSE
+      IF (NTRLS > MAXTRLS) CALL PABORT('TOO MANY TRIAL VECTORS')
+      REWIND(73)
+      DO I=1,NTRLS
+       READ(73) VEC2 ! DUMMY READING
+      ENDDO
+      WRITE(73) VEC1
+     ENDIF
+
+     DEALLOCATE(SMALLA,SMALLB,SMALLAS,SMALLBS,INDX)
+      
+    ENDDO
+   ENDDO
+
+   WRITE(6,'(A)') '------------------------------------------------------'
+   DEALLOCATE(VEC1,VEC2,DENOM)
+   CLOSE(60)
+   CLOSE(61)
+   CLOSE(70)
+   CLOSE(71)
+   CLOSE(72)
+   CLOSE(73)
+   CLOSE(74)
+   CLOSE(75)
+   CLOSE(90)
+   RETURN
+END SUBROUTINE
+
+
+
+SUBROUTINE HB_MINUS_HBNOT(TFILE,INFILE,OUTFILE,WORKFILE1,WORKFILE2,ORDER)
+! OPERATE WITH FLUCTUATION POTENTIAL FOR SIMILARITY-TRANSFORMED HAMILTONIAN,
+! WHICH IS H BAR MINUS H BAR NOT.  SEE M. MOOIJEN (NOTE, 2000) FOR DETAILS.
+! USES EXPONENTIAL_OPERATOR AND HAMILTONIAN_PRODUCT.
+! E IS THE ENERGY ASSOCIATED WITH THE ZEROTH-ORDER WAVEFUNCTION.
+
+   USE CONTROL
+   USE GRADIENT
+   USE STRUCTURE
+   USE INTEGRAL
+   USE BASISSET
+   USE FULLCI
+
+   IMPLICIT NONE
+   INTEGER :: TFILE,INFILE,OUTFILE
+   INTEGER :: WORKFILE1,WORKFILE2
+   INTEGER :: ORDER
+   INTEGER :: I,IA,IB
+   DOUBLE PRECISION,ALLOCATABLE :: VEC1(:,:),VEC2(:,:)
+   DOUBLE PRECISION,ALLOCATABLE :: DENOM(:)
+
+   ! PRE-COMPUTE ORBITAL ENERGY DIFFERENCES ETC.
+   ALLOCATE(DENOM(NCF))
+   DO IA=1,NCF
+    DENOM(IA)=0.0D0
+    DO I=1,IOCC
+     DENOM(IA)=DENOM(IA)-EPSILON(I,0,0,0)
+    ENDDO
+    DO I=1,IALL(0,0,0)-IVIRTCORE
+     IF (BTEST(CFHALF(IA),I-1)) DENOM(IA)=DENOM(IA)+EPSILON(I,0,0,0)
+    ENDDO
+   ENDDO
+
+   ! GENERATE SIMILARITY-TRANSFORMED HAMILTONIAN TIMES THE INPUT VECTOR IN INFILE
+   CALL EXPONENTIAL_OPERATOR(TFILE,INFILE,WORKFILE1,ORDER,.FALSE.,.FALSE.)
+   CALL HAMILTONIAN_PRODUCT(WORKFILE1,WORKFILE2,0,2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE))
+   CALL EXPONENTIAL_OPERATOR(TFILE,WORKFILE2,OUTFILE,ORDER,.TRUE.,.FALSE.)
+
+   ! GENERATE SIMILARITY-TRANSFORMED HAMILTONIAN TIMES THE INPUT VECTOR WITHIN THE P SPACE
+   ALLOCATE(VEC1(NCF,NCF))
+   REWIND(INFILE)
+   READ(INFILE) VEC1
+   DO IA=1,NCF
+    DO IB=1,NCF
+     IF (NORDER(IA)+NORDER(IB) > ORDER) VEC1(IB,IA)=0.0D0
+    ENDDO
+   ENDDO
+   REWIND(WORKFILE2)
+   WRITE(WORKFILE2) VEC1
+   DEALLOCATE(VEC1)
+   CALL EXPONENTIAL_OPERATOR(TFILE,WORKFILE2,WORKFILE1,ORDER,.FALSE.,.FALSE.)
+   CALL HAMILTONIAN_PRODUCT(WORKFILE1,WORKFILE2,0,2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE))
+   CALL EXPONENTIAL_OPERATOR(TFILE,WORKFILE2,WORKFILE1,ORDER,.TRUE.,.FALSE.)
+   ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+   REWIND(WORKFILE1)
+   READ(WORKFILE1) VEC1
+   REWIND(OUTFILE)
+   READ(OUTFILE) VEC2
+   DO IA=1,NCF
+    DO IB=1,NCF
+     IF (NORDER(IA)+NORDER(IB) <= ORDER) VEC2(IB,IA)=VEC2(IB,IA)-VEC1(IB,IA)
+    ENDDO
+   ENDDO
+   REWIND(OUTFILE)
+   WRITE(OUTFILE) VEC2
+
+   ! GENERATE ZEROTH-ORDER HAMILTONIAN TIMES THE INPUT VECTOR WITHIN THE Q SPACE
+   REWIND(INFILE)
+   READ(INFILE) VEC1
+   DO IA=1,NCF
+    DO IB=1,NCF
+     IF (NORDER(IA)+NORDER(IB) <= ORDER) THEN
+      VEC1(IB,IA)=0.0D0
+     ELSE
+      VEC1(IB,IA)=VEC1(IB,IA)*(ECC+DENOM(IB)+DENOM(IA))
+     ENDIF
+    ENDDO
+   ENDDO
+   REWIND(OUTFILE)
+   READ(OUTFILE) VEC2
+   VEC2=VEC2-VEC1
+   REWIND(OUTFILE)
+   WRITE(OUTFILE) VEC2
+   DEALLOCATE(VEC1,VEC2,DENOM)
+
+   RETURN
+END SUBROUTINE
+
+
+
+SUBROUTINE ENOT_MINUS_HBNOT(TFILE,INFILE,OUTFILE,WORKFILE1,WORKFILE2,ORDER,E)
+! OPERATE WITH ZEROTH-ORDER ENERGY MINUS ZEROTH-ORDER SIMILARITY-TRANSFORMED HAMILTONIAN,
+! WHICH IS E NOT MINUS H BAR NOT.  SEE M. MOOIJEN (NOTE, 2000) FOR DETAILS.
+! USES EXPONENTIAL_OPERATOR AND HAMILTONIAN_PRODUCT.
+! E IS THE ENERGY ASSOCIATED WITH THE ZEROTH-ORDER WAVEFUNCTION.
+
+   USE CONTROL
+   USE GRADIENT
+   USE STRUCTURE
+   USE INTEGRAL
+   USE BASISSET
+   USE FULLCI
+
+   IMPLICIT NONE
+   INTEGER :: TFILE,INFILE,OUTFILE
+   INTEGER :: WORKFILE1,WORKFILE2
+   INTEGER :: ORDER
+   INTEGER :: I,IA,IB
+   DOUBLE PRECISION :: E
+   DOUBLE PRECISION,ALLOCATABLE :: VEC1(:,:),VEC2(:,:)
+   DOUBLE PRECISION,ALLOCATABLE :: DENOM(:)
+
+   ! PRE-COMPUTE ORBITAL ENERGY DIFFERENCES ETC.
+   ALLOCATE(DENOM(NCF))
+   DO IA=1,NCF
+    DENOM(IA)=0.0D0
+    DO I=1,IOCC
+     DENOM(IA)=DENOM(IA)-EPSILON(I,0,0,0)
+    ENDDO
+    DO I=1,IALL(0,0,0)-IVIRTCORE
+     IF (BTEST(CFHALF(IA),I-1)) DENOM(IA)=DENOM(IA)+EPSILON(I,0,0,0)
+    ENDDO
+   ENDDO
+
+   ! GENERATE E NOT TIMES THE INPUT VECTOR IN INFILE
+   ALLOCATE(VEC1(NCF,NCF))
+   REWIND(INFILE)
+   READ(INFILE) VEC1
+   VEC1=VEC1*E
+   REWIND(OUTFILE)
+   WRITE(OUTFILE) VEC1
+
+   ! GENERATE SIMILARITY-TRANSFORMED HAMILTONIAN TIMES THE INPUT VECTOR WITHIN THE P SPACE
+   REWIND(INFILE)
+   READ(INFILE) VEC1
+   DO IA=1,NCF
+    DO IB=1,NCF
+     IF (NORDER(IA)+NORDER(IB) > ORDER) VEC1(IB,IA)=0.0D0
+    ENDDO
+   ENDDO
+   REWIND(WORKFILE2)
+   WRITE(WORKFILE2) VEC1
+   DEALLOCATE(VEC1)
+   CALL EXPONENTIAL_OPERATOR(TFILE,WORKFILE2,WORKFILE1,ORDER,.FALSE.,.FALSE.)
+   CALL HAMILTONIAN_PRODUCT(WORKFILE1,WORKFILE2,0,2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE))
+   CALL EXPONENTIAL_OPERATOR(TFILE,WORKFILE2,WORKFILE1,ORDER,.TRUE.,.FALSE.)
+   ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+   REWIND(WORKFILE1)
+   READ(WORKFILE1) VEC1
+   REWIND(OUTFILE)
+   READ(OUTFILE) VEC2
+   DO IA=1,NCF
+    DO IB=1,NCF
+     IF (NORDER(IA)+NORDER(IB) <= ORDER) VEC2(IB,IA)=VEC2(IB,IA)-VEC1(IB,IA)
+    ENDDO
+   ENDDO
+   REWIND(OUTFILE)
+   WRITE(OUTFILE) VEC2
+
+   ! GENERATE ZEROTH-ORDER HAMILTONIAN TIMES THE INPUT VECTOR WITHIN THE Q SPACE
+   REWIND(INFILE)
+   READ(INFILE) VEC1
+   DO IA=1,NCF
+    DO IB=1,NCF
+     IF (NORDER(IA)+NORDER(IB) <= ORDER) THEN
+      VEC1(IB,IA)=0.0D0
+     ELSE
+      VEC1(IB,IA)=VEC1(IB,IA)*(ECC+DENOM(IB)+DENOM(IA))
+     ENDIF
+    ENDDO
+   ENDDO
+   REWIND(OUTFILE)
+   READ(OUTFILE) VEC2
+   VEC2=VEC2-VEC1
+   REWIND(OUTFILE)
+   WRITE(OUTFILE) VEC2
+   DEALLOCATE(VEC1,VEC2,DENOM)
+
+   RETURN
+END SUBROUTINE
+
+
+
+SUBROUTINE FULL_EFF_H_PERTURBATION(TORDER,PORDER)
+! FORM FULL EFFECTIVE HAMILTONIAN EXP(-T)HEXP(T) AND DIAGONALIZE IT BY LINPACK/LAPACK/BLAS SUBROUTINES.
+! PERFORM PERTURBATIVE CORRECTION CALCULATIONS BY DIAGONALIZING THE ZEROTH-ORDER PART OF THE EFFECTIVE HAMILTONIAN.
+! CAUTION, DO NOT USE THIS FOR PRODUCTION RUN.  THE ORDER OF CLUSTER EXPANSION SHOULD BE GIVEN BY TORDER
+! AND THE CORRESPONDING T-AMPLITUDES MUST BE PROVIDED IN FILE 90.  THE HIGHEST ORDER OF PERTURBATION SERIES SHOULD BE
+! GIVEN BY PORDER.
+
+   USE CONTROL
+   USE GRADIENT
+   USE STRUCTURE
+   USE INTEGRAL
+   USE BASISSET
+   USE FULLCI
+
+   IMPLICIT NONE
+   INTEGER :: PORDER,TORDER
+   INTEGER :: IA,IB,IC,ID
+   INTEGER :: I,J
+   INTEGER :: INFO
+   REAL :: MEM
+   DOUBLE PRECISION :: DEV,EPT,LB
+   DOUBLE PRECISION,ALLOCATABLE :: H_1(:,:),H_0(:,:),VL(:,:),VR(:,:),ER(:),EI(:),WK(:)
+   DOUBLE PRECISION,ALLOCATABLE :: VL_PT(:),VR_PT(:,:),ER_PT(:)
+   DOUBLE PRECISION,ALLOCATABLE :: TRL(:,:)
+
+   WRITE(6,'(A)') 'EQUATION-OF-MOTION COUPLED CLUSTER CALCULATION FOR ALL STATES FOLLOWED BY PERTURBATIVE CORRECTIONS'
+   WRITE(6,'(A,I2)') 'THE ORDER OF COUPLED CLUSTER = ',TORDER
+   WRITE(6,'(A,I2)') 'THE ORDER OF PERTURBATION    = ',PORDER
+   WRITE(6,'(A,I3,A)') 'HIGH-ORDER PERTURBATIVE CORRECTIONS TO THE EOM-CC ROOT ',IOPTN(66),' WILL BE COMPUTED RECURSIVELY'
+   MEM=16.0*(3.0D0*NCF**4+7.0*NCF**2)
+   IF (MEM > 1000000.0) THEN
+    WRITE(6,'(A,F7.1,A)') 'ESTIMATED MEMORY USAGE WILL BE ',MEM/1000000.0,' MB'
+   ELSE IF (MEM > 1000.0) THEN
+    WRITE(6,'(A,F7.1,A)') 'ESTIMATED MEMORY USAGE WILL BE ',MEM/1000.0,' KB'
+   ELSE
+    WRITE(6,'(A,F7.1,A)') 'ESTIMATED MEMORY USAGE WILL BE ',MEM,' B'
+   ENDIF
+   IF (MEM > DOPTN(28)*1000000.0) CALL PABORT('OUT OF MEMORY')
+   ALLOCATE(H_1(NCF**2,NCF**2),H_0(NCF**2,NCF**2),ER(NCF**2),EI(NCF**2),WK(4*NCF**2))
+   ALLOCATE(VR(NCF**2,NCF**2),VL(NCF**2,NCF**2))
+   ALLOCATE(VR_PT(NCF**2,0:PORDER),VL_PT(NCF**2),ER_PT(0:PORDER))
+   ALLOCATE(TRL(NCF,NCF))
+
+   OPEN(50,FILE=TRIM(COPTN(1))//'.fi0',FORM='UNFORMATTED')
+   OPEN(60,FILE=TRIM(COPTN(1))//'.fo0',FORM='UNFORMATTED')
+   OPEN(90,FILE=TRIM(COPTN(1))//'.fq0',FORM='UNFORMATTED')
+
+   ! FORM HAMILTONIAN AND KEEP IT IN MEMORY
+   H_1=0.0D0
+   DO IA=1,NCF
+    DO IB=1,NCF
+     TRL=0.0D0
+     TRL(IA,IB)=1.0D0
+     ! |B>=EXP(T)|A>
+     REWIND(50)
+     WRITE(50) TRL
+     CALL EXPONENTIAL_OPERATOR(90,50,60,TORDER,.FALSE.,.FALSE.)
+     REWIND(60)
+     READ(60) TRL
+     ! |C>=H|B>
+     REWIND(50)
+     WRITE(50) TRL
+     CALL HAMILTONIAN_PRODUCT(50,60,0,2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE))
+     REWIND(60)
+     READ(60) TRL
+     ! |D>=EXP(-T)|C>
+     REWIND(50)
+     WRITE(50) TRL
+     CALL EXPONENTIAL_OPERATOR(90,50,60,TORDER,.TRUE.,.FALSE.)
+     REWIND(60)
+     READ(60) TRL
+     DO IC=1,NCF
+      DO ID=1,NCF
+       H_0((IC-1)*NCF+ID,(IA-1)*NCF+IB)=TRL(IC,ID)
+      ENDDO
+     ENDDO
+    ENDDO
+   ENDDO
+   H_1=H_0
+   I=0
+   DO IA=1,NCF
+    DO IB=1,NCF
+     IF (NORDER(IA)+NORDER(IB) > TORDER) THEN
+      I=I+1
+      DO IC=1,NCF**2
+       H_1((IA-1)*NCF+IB,IC)=0.0D0
+       H_1(IC,(IA-1)*NCF+IB)=0.0D0
+      ENDDO
+     ENDIF
+    ENDDO
+   ENDDO
+   WRITE(6,'(A,I8)') 'DIMENSION OF THE P SPACE IS    ',NCF**2-I
+   WRITE(6,'(A,I8)') 'DIMENSION OF THE Q SPACE IS    ',I
+   IF (NCF**2 <= 49) CALL DUMP5(H_1,NCF**2)
+
+   ! CHECK IF THE TRANSFORMED HAMILTONIAN HAS ZERO FIRST COLUMN
+   DEV=0.0D0
+   DO IA=1,NCF
+    DO IB=1,NCF
+     IF ((IA == 1).AND.(IB == 1)) CYCLE
+     IF (NORDER(IA)+NORDER(IB) > TORDER) CYCLE
+     DEV=DEV+H_1((IA-1)*NCF+IB,1)**2
+    ENDDO
+   ENDDO
+   IF (DEV > 1.0E-5) THEN
+    CALL WARNING('THE FIRST COLUMN IN THE H BAR DEVIATES FROM ZERO')
+    WRITE(6,'(A,F20.10)') 'DEVIATION = ',DEV
+    CALL DUMP5(H_1,NCF**2)
+   ENDIF
+
+   DEALLOCATE(TRL)
+   CLOSE(50)
+   CLOSE(60)
+   CLOSE(90)
+
+   ! DIAGONALIZE HAMILTONIAN
+   CALL DGEEV('V','V',NCF**2,H_1,NCF**2,ER,EI,VL,NCF**2,VR,NCF**2,WK,4*NCF**2,INFO)
+   IF (INFO /= 0) CALL PABORT('DGEEV FAILED TO DIAGONALIZE A MATRIX')
+   DEV=0.0D0
+   DO IA=1,NCF**2
+    DEV=DEV+EI(IA)**2
+   ENDDO
+   IF (DEV > 1.0E-5) THEN
+    CALL WARNING('THE IMAGINARY PART OF THE EIGENVALUES IS NOT ZERO')
+    WRITE(6,'(A,F20.10)') 'DEVIATION = ',DEV
+   ENDIF
+   EI=ER
+   CALL PIKSRT(NCF**2,NCF**2,ER,VR,WK)
+   CALL PIKSRT(NCF**2,NCF**2,EI,VL,WK)
+!  DO IA=1,MIN(10,NCF**2)
+!   WRITE(6,'(A,I3,A,F20.15,A)') 'STATE ',IA,' ENERGY = ', ER(IA)+NUCLEAR_REPULSION,' HARTREE'
+!   WRITE(6,'(A)') '             RIGHT-HAND VECTOR    LEFT-HAND VECTOR'
+!   DO IB=1,NCF**2
+!    WRITE(6,'(I10,2F20.15)') IB,VR(IB,IA),VL(IB,IA)
+!   ENDDO
+!  ENDDO
+
+   ! BIORTHOGONALIZATION
+   DO IA=1,NCF**2
+    IF (IA > 1) THEN
+     DO IB=1,IA-1
+      DEV=0.0D0
+      DO IC=1,NCF**2
+       DEV=DEV+VR(IC,IA)*VL(IC,IB)
+      ENDDO
+      DO IC=1,NCF**2
+       VR(IC,IA)=VR(IC,IA)-DEV*VR(IC,IB)
+      ENDDO
+     ENDDO
+    ENDIF
+    DEV=0.0D0
+    DO IB=1,NCF**2
+     DEV=DEV+VR(IB,IA)**2
+    ENDDO
+    DO IB=1,NCF**2
+     VR(IB,IA)=VR(IB,IA)/DSQRT(DEV)
+    ENDDO
+    DEV=0.0D0
+    DO IB=1,NCF**2
+     DEV=DEV+VR(IB,IA)*VL(IB,IA)
+    ENDDO
+    DO IB=1,NCF**2
+     VL(IB,IA)=VL(IB,IA)/DEV
+    ENDDO
+   ENDDO
+     
+   ! ZEROTH ORDER
+   DO IA=1,NCF
+    DO IB=1,NCF
+     IF (NORDER(IA)+NORDER(IB) <= TORDER) THEN
+      VL_PT((IA-1)*NCF+IB)=VL((IA-1)*NCF+IB,IOPTN(66))
+      VR_PT((IA-1)*NCF+IB,0)=VR((IA-1)*NCF+IB,IOPTN(66))
+     ELSE
+      VL_PT((IA-1)*NCF+IB)=0.0D0
+      VR_PT((IA-1)*NCF+IB,0)=0.0D0
+     ENDIF
+    ENDDO
+   ENDDO
+   ER_PT(0)=ER(IOPTN(66))
+
+   ! FORM ZEROTH-ORDER PART OF THE SIMILARITY-TRANFORMED HAMILTONIAN H_0
+   H_1=H_0
+   DO IA=1,NCF
+    DO IB=1,NCF
+     IF (NORDER(IA)+NORDER(IB) > TORDER) THEN
+      DO IC=1,NCF**2 
+       H_0((IA-1)*NCF+IB,IC)=0.0D0
+       H_0(IC,(IA-1)*NCF+IB)=0.0D0
+      ENDDO
+     ENDIF
+    ENDDO
+   ENDDO
+   DO IA=1,NCF
+    DO IB=1,NCF
+     IF (NORDER(IA)+NORDER(IB) > TORDER) THEN
+      H_0((IA-1)*NCF+IB,(IA-1)*NCF+IB)=ER(1)
+      DO I=1,IOCC
+       H_0((IA-1)*NCF+IB,(IA-1)*NCF+IB)=H_0((IA-1)*NCF+IB,(IA-1)*NCF+IB)-2.0D0*EPSILON(I,0,0,0)
+      ENDDO
+      DO I=1,IALL(0,0,0)-IVIRTCORE
+       IF (BTEST(CFHALF(IA),I-1)) H_0((IA-1)*NCF+IB,(IA-1)*NCF+IB)=H_0((IA-1)*NCF+IB,(IA-1)*NCF+IB)+EPSILON(I,0,0,0)
+      ENDDO
+      DO I=1,IALL(0,0,0)-IVIRTCORE
+       IF (BTEST(CFHALF(IB),I-1)) H_0((IA-1)*NCF+IB,(IA-1)*NCF+IB)=H_0((IA-1)*NCF+IB,(IA-1)*NCF+IB)+EPSILON(I,0,0,0)
+      ENDDO
+     ENDIF
+    ENDDO
+   ENDDO
+
+   ! FORM V
+   H_1=H_1-H_0
+   IF (NCF**2 <= 49) CALL DUMP5(H_1,NCF**2)
+
+   ! FORM (E_K-H_0)
+   DO IA=1,NCF**2
+    DO IB=1,NCF**2
+     IF (IA /= IB) THEN
+      H_0(IB,IA)=-H_0(IB,IA)
+     ELSE
+      H_0(IB,IA)=ER(IOPTN(66))-H_0(IB,IA)
+     ENDIF
+    ENDDO
+   ENDDO
+   IF (NCF**2 <= 49) CALL DUMP5(H_0,NCF**2)
+
+   ! DIAGONALIZE (E_K-H_0)
+   CALL DGEEV('V','V',NCF**2,H_0,NCF**2,ER,EI,VL,NCF**2,VR,NCF**2,WK,4*NCF**2,INFO)
+   IF (INFO /= 0) CALL PABORT('DGEEV FAILED TO DIAGONALIZE A MATRIX')
+   DEV=0.0D0
+   DO IA=1,NCF**2
+    DEV=DEV+EI(IA)**2
+   ENDDO
+   IF (DEV > 1.0E-5) THEN
+    CALL WARNING('THE IMAGINARY PART OF THE EIGENVALUES IS NOT ZERO')
+    WRITE(6,'(A,F20.10)') 'DEVIATION = ',DEV
+   ENDIF
+   EI=ER
+   CALL PIKSRT(NCF**2,NCF**2,ER,VR,WK)
+   CALL PIKSRT(NCF**2,NCF**2,EI,VL,WK)
+   I=0
+   DO IA=1,NCF**2
+    IF (DABS(ER(IA)) < 1.0D-8) I=I+1
+   ENDDO
+   WRITE(6,'(A,I8)') 'DIMENSION OF THE NULL SPACE IS ',I
+!  DO IA=1,MIN(10,NCF**2)
+!   WRITE(6,'(A,I3,A,F20.15,A)') 'STATE ',IA,' ENERGY = ', ER(IA)+NUCLEAR_REPULSION,' HARTREE'
+!   WRITE(6,'(A)') '             RIGHT-HAND VECTOR    LEFT-HAND VECTOR'
+!   DO IB=1,NCF**2
+!    WRITE(6,'(I10,2F20.15)') IB,VR(IB,IA),VL(IB,IA)
+!   ENDDO
+!  ENDDO
+
+   ! BIORTHOGONALIZATION
+   DO IA=1,NCF**2
+    IF (IA > 1) THEN
+     DO IB=1,IA-1
+      DEV=0.0D0
+      DO IC=1,NCF**2
+       DEV=DEV+VR(IC,IA)*VL(IC,IB)
+      ENDDO
+      DO IC=1,NCF**2
+       VR(IC,IA)=VR(IC,IA)-DEV*VR(IC,IB)
+      ENDDO
+     ENDDO
+    ENDIF
+    DEV=0.0D0
+    DO IB=1,NCF**2
+     DEV=DEV+VR(IB,IA)**2
+    ENDDO
+    DO IB=1,NCF**2
+     VR(IB,IA)=VR(IB,IA)/DSQRT(DEV)
+    ENDDO
+    DEV=0.0D0
+    DO IB=1,NCF**2
+     DEV=DEV+VR(IB,IA)*VL(IB,IA)
+    ENDDO
+    DO IB=1,NCF**2
+     VL(IB,IA)=VL(IB,IA)/DEV
+    ENDDO
+   ENDDO
+     
+   ! ZEROTH ORDER
+   EPT=NUCLEAR_REPULSION
+   EPT=EPT+ER_PT(0)
+   WRITE(6,'(A)') '------------------------------------------'
+   WRITE(6,'(A)') 'ORDER      CORRELATION        TOTAL ENERGY'
+   WRITE(6,'(I2,F20.10,F20.10)') 0,ER_PT(0),EPT
+
+   ! LOOP OVER PERTURBATION ORDER
+   DO I=1,PORDER
+    
+    ! COMPUTE I-TH ENERGY
+    DO IA=1,NCF**2
+     WK(IA)=0.0D0
+     DO IB=1,NCF**2
+      WK(IA)=WK(IA)+H_1(IA,IB)*VR_PT(IB,I-1)
+     ENDDO
+    ENDDO
+    ER_PT(I)=0.0D0
+    DO IA=1,NCF**2
+     ER_PT(I)=ER_PT(I)+VL_PT(IA)*WK(IA)
+    ENDDO
+    EPT=EPT+ER_PT(I)
+    WRITE(6,'(I2,F20.10,F20.10)') I,ER_PT(I),EPT
+
+    ! GENERATE I-TH WAVEFUNCTION
+    IF (I == PORDER) EXIT
+    DO J=1,I
+     DO IA=1,NCF**2
+      WK(IA)=WK(IA)-ER_PT(J)*VR_PT(IA,I-J)
+     ENDDO
+    ENDDO
+    DO IA=1,NCF**2
+     VR_PT(IA,I)=0.0D0
+    ENDDO
+    DO IA=1,NCF**2
+     IF (DABS(ER(IA)) > 1.0D-8) THEN
+      LB=0.0D0
+      DO IB=1,NCF**2
+       LB=LB+VL(IB,IA)*WK(IB)
+      ENDDO
+      DO IB=1,NCF**2
+       VR_PT(IB,I)=VR_PT(IB,I)+VR(IB,IA)*LB/ER(IA)
+      ENDDO
+     ENDIF
+    ENDDO
+  
+   ENDDO
+
+   WRITE(6,'(A)') '------------------------------------------'
+   DEALLOCATE(H_1,H_0,ER,EI,VL,VR,WK,VL_PT,VR_PT,ER_PT)
+
+   RETURN
+END SUBROUTINE
+
+
+
+SUBROUTINE HB_MINUS_HBNOT_DEBUG(TFILE,INFILE,OUTFILE,WORKFILE1,WORKFILE2,ORDER)
+! OPERATE WITH FLUCTUATION POTENTIAL FOR SIMILARITY-TRANSFORMED HAMILTONIAN,
+! WHICH IS H BAR MINUS H BAR NOT.  SEE M. MOOIJEN (NOTE, 2000) FOR DETAILS.
+! USES EXPONENTIAL_OPERATOR AND HAMILTONIAN_PRODUCT.
+! E IS THE ENERGY ASSOCIATED WITH THE ZEROTH-ORDER WAVEFUNCTION.
+
+   USE CONTROL
+   USE GRADIENT
+   USE STRUCTURE
+   USE INTEGRAL
+   USE BASISSET
+   USE FULLCI
+
+   IMPLICIT NONE
+   INTEGER :: TFILE,INFILE,OUTFILE
+   INTEGER :: WORKFILE1,WORKFILE2
+   INTEGER :: ORDER
+   INTEGER :: I,IA,IB
+   DOUBLE PRECISION,ALLOCATABLE :: VEC1(:,:),VEC2(:,:)
+   DOUBLE PRECISION,ALLOCATABLE :: DENOM(:)
+
+   ! PRE-COMPUTE ORBITAL ENERGY DIFFERENCES ETC.
+   ALLOCATE(DENOM(NCF))
+   DO IA=1,NCF
+    DENOM(IA)=0.0D0
+    DO I=1,IOCC
+     DENOM(IA)=DENOM(IA)-EPSILON(I,0,0,0)
+    ENDDO
+    DO I=1,IALL(0,0,0)-IVIRTCORE
+     IF (BTEST(CFHALF(IA),I-1)) DENOM(IA)=DENOM(IA)+EPSILON(I,0,0,0)
+    ENDDO
+   ENDDO
+
+   ! GENERATE SIMILARITY-TRANSFORMED HAMILTONIAN TIMES THE INPUT VECTOR IN INFILE
+   CALL EXPONENTIAL_OPERATOR(TFILE,INFILE,WORKFILE1,ORDER,.FALSE.,.FALSE.)
+   CALL HAMILTONIAN_P_DEBUG(WORKFILE1,WORKFILE2,0,2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE))
+   CALL EXPONENTIAL_OPERATOR(TFILE,WORKFILE2,OUTFILE,ORDER,.TRUE.,.FALSE.)
+
+   ! GENERATE SIMILARITY-TRANSFORMED HAMILTONIAN TIMES THE INPUT VECTOR WITHIN THE P SPACE
+   ALLOCATE(VEC1(NCF,NCF))
+   REWIND(INFILE)
+   READ(INFILE) VEC1
+   DO IA=1,NCF
+    DO IB=1,NCF
+     IF (NORDER(IA)+NORDER(IB) > ORDER) VEC1(IB,IA)=0.0D0
+    ENDDO
+   ENDDO
+   REWIND(WORKFILE2)
+   WRITE(WORKFILE2) VEC1
+   DEALLOCATE(VEC1)
+   CALL EXPONENTIAL_OPERATOR(TFILE,WORKFILE2,WORKFILE1,ORDER,.FALSE.,.FALSE.)
+   CALL HAMILTONIAN_P_DEBUG(WORKFILE1,WORKFILE2,0,2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE))
+   CALL EXPONENTIAL_OPERATOR(TFILE,WORKFILE2,WORKFILE1,ORDER,.TRUE.,.FALSE.)
+   ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
+   REWIND(WORKFILE1)
+   READ(WORKFILE1) VEC1
+   REWIND(OUTFILE)
+   READ(OUTFILE) VEC2
+   DO IA=1,NCF
+    DO IB=1,NCF
+     IF (NORDER(IA)+NORDER(IB) <= ORDER) VEC2(IB,IA)=VEC2(IB,IA)-VEC1(IB,IA)
+    ENDDO
+   ENDDO
+   REWIND(OUTFILE)
+   WRITE(OUTFILE) VEC2
+
+   ! GENERATE ZEROTH-ORDER HAMILTONIAN TIMES THE INPUT VECTOR WITHIN THE Q SPACE
+   REWIND(INFILE)
+   READ(INFILE) VEC1
+   DO IA=1,NCF
+    DO IB=1,NCF
+     IF (NORDER(IA)+NORDER(IB) <= ORDER) THEN
+      VEC1(IB,IA)=0.0D0
+     ELSE
+      VEC1(IB,IA)=VEC1(IB,IA)*(ECC+DENOM(IB)+DENOM(IA))
+     ENDIF
+    ENDDO
+   ENDDO
+   REWIND(OUTFILE)
+   READ(OUTFILE) VEC2
+   VEC2=VEC2-VEC1
+   REWIND(OUTFILE)
+   WRITE(OUTFILE) VEC2
+   DEALLOCATE(VEC1,VEC2,DENOM)
+
+   RETURN
+END SUBROUTINE
