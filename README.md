@@ -1,5 +1,27 @@
 # polymer
-Gaussian-basis-set <i>ab initio</i> molecular-orbital and density-functional methods for molecules and crystals of one-, two-, or three-dimensional periodicity.
+Gaussian-basis-set <i>ab initio</i> molecular-orbital and density-functional methods for molecules and crystals of one-, two-, or three-dimensional periodicity (two- and three-dimensional capabilities are untested). Supported methods include
+
+* HF energy and gradients at zero & nonzero temperature
+* DFT energy and gradients at zero & nonzero temperature
+* MP2
+* GF2
+* CCSD
+* CIS & CIS-GF2
+* TDHF
+* TDDFT
+
+for molecules and helical polymers. For molecules only, additionally
+
+* General-order MP at zero & nonzero temperature
+* General-order CI
+* General-order CC
+* General-order EOM-CC
+* General-order IP/EA EOM-CC
+* General-order hole/particle CI
+* General-order GF
+* Grid-based HF
+* Grid-based MP2
+* OEP & TDOEP
 
 # author
 So Hirata (sohirata@illinois.edu)
