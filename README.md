@@ -25,7 +25,7 @@ For molecules only, additionally
 * Dynamic polarizability at TDHF, TDDFT or TDOEP
 
 # author
-So Hirata (sohirata@illinois.edu)
+This software has been developed by So Hirata (sohirata@illinois.edu) with financial support from National Science Foundation and Department of Energy, Office of Science.
 
 # how to compile
 
