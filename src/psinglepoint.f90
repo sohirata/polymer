@@ -275,13 +275,13 @@ SUBROUTINE SINGLEPOINT
    ! SELF-CONSISTENT FIELD
    IF (.NOT.LOPTN(33)) THEN
     IF ((DOPTN(98) > 0.0D0).AND.(MYID == 0)) THEN
-     WRITE(6,'(A)') '******************************************'
-     WRITE(6,'(A,E22.15,A)') '* TEMPERATURE = ',DOPTN(98),' K *'
-     WRITE(6,'(A)') '******************************************'
+     WRITE(6,'(A)') '*********************************************'
+     WRITE(6,'(A,E22.15,A)') '* HF TEMPERATURE = ',DOPTN(108),' K *'
+     WRITE(6,'(A)') '*********************************************'
     ENDIF
     CALL SELF_CONSISTENT_FIELD(.FALSE.,.FALSE.,.FALSE.,.FALSE.)
     IF (LOPTN(83)) THEN
-     IF (DOPTN(98) > 0.0D0) CALL PABORT('NONZERO TEMPERATURE NOT YET TESTED FOR ASYMP KS-DFT')
+     IF (DOPTN(108) > 0.0D0) CALL PABORT('NONZERO TEMPERATURE NOT YET TESTED FOR ASYMP KS-DFT')
      IF (MYID == 0) WRITE(6,'(A)') 'ASYMPTOTICALLY CORRECTED KS-DFT CALCULATION WILL BE PERFORMED'
      CALL SELF_CONSISTENT_FIELD(.FALSE.,.FALSE.,.FALSE.,.TRUE.)
     ENDIF
@@ -438,7 +438,7 @@ SUBROUTINE SINGLEPOINT
        CALL PABORT('UNKNOWN MP2 ALGORITHM')
       ENDIF
      ELSE
-!3    CALL FINITE_MP2_ENERGY
+      CALL FINITE_MP2_ENERGY
      ENDIF
      IF (IOPTN(44) > 0) THEN
       IF ((KVCX > 0).OR.(KVCY > 0).OR.(KVCZ > 0)) THEN

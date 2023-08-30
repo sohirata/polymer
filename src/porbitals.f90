@@ -168,6 +168,12 @@ SUBROUTINE PRINT_ENERGYBANDS(IALG)
     IF ((MYID == 0).AND.(.NOT.LOPTN(106))) WRITE(6,'(A)') 'GF2 QUASI-PARTICLE ENERGY BANDS (NONDIAGONAL, FREQ-DEP)'
    ENDIF
 
+   IF ((DOPTN(98) > 0.0D0).AND.(MYID == 0)) THEN
+    WRITE(6,'(A)') '*********************************************'
+    WRITE(6,'(A,E22.15,A)') '* MP TEMPERATURE = ',DOPTN(98),' K *'
+    WRITE(6,'(A)') '*********************************************'
+   ENDIF
+
 !  COUNT THE NUMBER OF ELECTRONS IN A UNIT CELL.  IF THE NUMBER IS ODD, THEN THE PROGRAM PABORTS.
    N=0
    DO I=1,NATOM

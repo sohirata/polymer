@@ -1528,6 +1528,8 @@ SUBROUTINE FINITE_MP2_ENERGY
 
    WRITE(6,'(A)') '*************************************************************'
    WRITE(6,'(A)') '* FIRST & SECOND-ORDER CORRECTIONS AT A NONZERO TEMPERATURE *'
+   WRITE(6,'(A)') '* modify this subroutine to agree with general-order finite *'
+   WRITE(6,'(A)') '* T MPn results for molecules and zero T MP2 for polymers   *'
    WRITE(6,'(A)') '*************************************************************'
    WRITE(6,'(A,E20.6,A)') 'TEMP      = ',DOPTN(98),' K'
    WRITE(6,'(A,F20.6,A)') 'FERMI     = ',FERMI,' HARTREE'

@@ -1373,9 +1373,7 @@ double precision :: tmp1,tmp2,tmp3,tmp4
    ENDDO
    IIJJ=0.0D0
    DO I=1,IALL(0,0,0)-IVIRTCORE
-    DO J=1,IOCC
-     IIJJ(I)=IIJJ(I)+2.0D0*G(I,I,J,J)-G(I,J,J,I)
-    ENDDO
+    IIJJ(I)=IIJJ(I)+EPSILON(I,0,0,0)-H(I,I)
    ENDDO
 
    ! SPIN-ORBITAL & ANTISYMMETRIZED INTEGRALS IN PHYSICIST NOTATION
@@ -1685,7 +1683,7 @@ goto 999
    ENDDO
 !write(*,'(3x,2f20.15)') NUMER,DENOM
 
-   WRITE(6,'(A,F20.10,A)')          'MU(1)                         =',MU1,' HARTREE'
+   WRITE(6,'(A,F20.10,A)')          'MU(1) AGAIN                   =',MU1,' HARTREE'
    WRITE(6,'(A,F20.10,A)')          'OMEGA(1)                      =',OOO1,' HARTREE'
    WRITE(6,'(A,F20.10,A)')          'U(1)                          =',UUU1,' HARTREE'
    WRITE(6,'(A,F20.10,A)')          'U(1) AGAIN                    =',UUU1_2,' HARTREE'

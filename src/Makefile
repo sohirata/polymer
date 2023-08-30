@@ -29,7 +29,7 @@ polymer: $(OBJS)
 	$(FC) $(CFLAGS1) $*.f
 
 veryclean:
-	rm -f *.o *.mod polymer3d lapack/*.o linpack/*.o blas/*.o lapack/*.a linpack/*.a blas/*.a
+	rm -f *.o *.mod polymer lapack/*.o linpack/*.o blas/*.o lapack/*.a linpack/*.a blas/*.a
 
 clean:
-	rm -f *.o *.mod polymer3d
+	rm -f *.o *.mod polymer
