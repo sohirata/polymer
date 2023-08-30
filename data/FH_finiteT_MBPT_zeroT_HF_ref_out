@@ -1,0 +1,647 @@
+Entering polymer program
+Input file:  FH_finiteT_MBPT
+No. procesors: 1
+PROCESSOR =      0 /      1
+ 
+**************************
+* POLYMER 3D Version 1.0 *
+**************************
+ 
+(c) So Hirata, University of Illinois at Urbana-Champaign
+ 
+NUMBER OF ATOMS =  2
+F    1.732500786329157   0.000000000000000   0.000000000000000 BOHR
+H    0.000000000000000   0.000000000000000   0.000000000000000 BOHR
+JOBNAME    = NONE                                                                                                
+JOBTYPE    =    0
+THEORY     = MP2FULL                                                                                             
+BASISSET   = STO-3G                                                                                              
+AUXILIARY  = NONE                                                                                                
+SPHERICAL  = .FALSE.
+CHARGE     =    0
+PERIOD     =    0.000000000000000   0.000000000000000   0.000000000000000 BOHR (0D CRYSTAL)
+HELIX      =    0.000000000000000 RADIAN
+UNITS      = ANGSTROM                                                                                            
+PRINT      =    1
+KPOINTS    =                    0                   0                   0
+MODULO     =    1
+CUTOFF1    =    0
+CUTOFF2    =    0
+CUTOFF3    =    0
+HFEXCHANGE =    1.000000000000000
+SLATER     =    0.000000000000000
+VWN        =    0.000000000000000
+BECKE88    =    0.000000000000000
+LYP        =    0.000000000000000
+KERNEL_HF  =    1.000000000000000
+KERNEL_S   =    0.000000000000000
+KERNEL_VWN =    0.000000000000000
+KERNEL_B88 =    0.000000000000000
+KERNEL_LYP =    0.000000000000000
+KERNEL_OEP =    0.000000000000000
+MP2        =    1.000000000000000
+INTTOL     =    0.000000000000000E+00
+LINDEP     =    0.100000000000000E-05
+SCFCONV    =    0.100000000000000E-11
+SCFRELAX   =    1.000000000000000
+OPTCONV    =    0.400000000000000E-03
+DAVIDSON   =    0.100000000000000E-05
+SCFCYCLES  =   50
+DIIS       =    5
+GDIIS      =    4
+MULTIPOLE  =    0
+CIS_ROOTS  =    0
+RPA_ROOTS  =    0
+MAXMEMORY  = 2000.000000000000000
+MAXDISK    = ********************
+DIRECT     = .FALSE.
+FROZENCORE =    0
+FROZENVIRT =    0
+RI_SCF     = .FALSE.
+RI_MP2     = .FALSE.
+VAPPROX    = .FALSE.
+SAPPROX    = .FALSE.
+DYSON      = .FALSE.
+SINGLET    = .TRUE.
+TRIPLET    = .TRUE.
+CISQP      = .FALSE.
+QPBANDS    =    0
+DYSONDAMP  =    0.000000000000000
+OEP        = .FALSE.
+HIGHMP     =    3
+HIGHCIS    =    1
+HIGHCIE    =   10
+HIGHCCS    =    2
+HIGHCCE    =    0
+CCDIIS     =    3
+CCRELAX    =    1.000000000000000
+CCALG      =    1
+XCC        = .FALSE.
+CCPTROOT   =    0
+HIGHCIROOT =    1
+EOMORDERS  =    0
+EOMORDERE  =    0
+EOMROOT    =    0
+IP         = .FALSE.
+EA         = .FALSE.
+MP2KJOBS   = ****
+MP2KJOBE   = ****
+CICONV     =    0.100000000000000E-12
+CCCONV     =    0.100000000000000E-05
+CCPTCONV   =    0.100000000000000E-07
+CCTHEORY   = NONE                                                                                                
+OEPALG     =    1
+SLATER51   = .FALSE.
+KLI        = .FALSE.
+POTDUMP    =    0
+DENDUMP    =    0
+RADIAL     =    0
+ANGULAR    =    0
+AC         = .FALSE.
+POLAR      = .FALSE.
+OMEGA      =    0.000000000000000E+00
+POLARALG   =    1
+POLARX     = .TRUE.
+POLARY     = .TRUE.
+POLARZ     = .TRUE.
+SOS        = .FALSE.
+RELATIVITY = .FALSE.
+SINANOGLU  = .FALSE.
+SALG       =    3
+SINGULAR   =    0.100000000000000E-06
+HIGHGF     =    0
+TEMPHF     =    0.000000000000000E+00
+TEMP       =    0.100000000000000E+06
+NGRID      =    3
+DELTAH     =    0.300000000000000E+00
+GEMINAL    = F12                                                                                                 
+LMAX       =   -1
+MBGFALG    =    4
+MP2ALG     =    1
+DIAGONAL   = .TRUE.
+DYSONCONV  =    0.100000000000000E-03
+A SINGLE-POINT ENERGY CALCULATION WILL BE PERFORMED
+OPTMSG: BOND LENGTHS
+OPTMSG:   1(0,0,0)  -  2(0,0,0) =   0.9168000000 ANGSTROM
+OPTMSG: BOND ANGLES
+OPTMSG: DIHEDRAL ANGLES
+GEOMETRY IN UNITS OF BOHR
+--------------------------------------------------
+ ATOM         X              Y              Z     
+  1F    1.7325007863   0.0000000000   0.0000000000
+  2H    0.0000000000   0.0000000000   0.0000000000
+--------------------------------------------------
+X TRANSLATIONAL PERIOD                0.0000000000
+Y TRANSLATIONAL PERIOD                0.0000000000
+Z TRANSLATIONAL PERIOD                0.0000000000
+--------------------------------------------------
+NUMBER OF PRIMITIVE GAUSSIANS  =    18
+NUMBER OF CONTRACTED GAUSSIANS =     6
+BASIS SET SHELL STRUCTURE
+  1  S  1
+  2  S  2
+  3  S  3
+  4  S  4  P  5  6  7
+  5  S  8  P  9 10 11
+  6  S 12  P 13 14 15
+  7  S 16
+  8  S 17
+  9  S 18
+NUMBER OF PRIMITIVE GAUSSIANS  (INCLUDING GHOST FUNCTIONS) =    18
+NUMBER OF CONTRACTED GAUSSIANS (INCLUDING GHOST FUNCTIONS) =     6
+NUMBER OF SHELLS               (INCLUDING GHOST FUNCTIONS) =     9
+***** WARNING : GAMMA APPROXIMATION IS INVOKED
+CALCULATE OVERLAP AND KINETIC ENERGY INTEGRALS
+---------------------
+  X   MAXIMUM OVERLAP
+  0   1.0000000001052
+---------------------
+---------------------
+  Y   MAXIMUM OVERLAP
+  0   1.0000000001052
+---------------------
+---------------------
+  Z   MAXIMUM OVERLAP
+  0   1.0000000001052
+---------------------
+------------------------------------------------------------------------------------------------
+KX =           0
+------------------------------------------------------------------------------------------------
+LNDEP          0
+FCORE          0
+FVIRT          0
+OCC            5
+VIRT           1
+AOCC           5
+AVIRT          1
+------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
+KY =           0
+------------------------------------------------------------------------------------------------
+LNDEP          0
+FCORE          0
+FVIRT          0
+OCC            5
+VIRT           1
+AOCC           5
+AVIRT          1
+------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
+KZ =           0
+------------------------------------------------------------------------------------------------
+LNDEP          0
+FCORE          0
+FVIRT          0
+OCC            5
+VIRT           1
+AOCC           5
+AVIRT          1
+------------------------------------------------------------------------------------------------
+MEMORY REQUIRED (INTEGRALS)      20.7 KB
+DISK   REQUIRED (INTEGRALS)      20.7 KB X A FEW PERCENTS
+MEMORY REQUIRED (MP2/DYSON)       6.9 KB
+CPU / SEC (OVERLAP & KINETIC INTEGRALS) =        0.0
+NO DENSITY MATRIX FOUND IN .chk FILE
+CPU / SEC (RESTORE DENSITY MATRICES) =        0.0
+CPU / SEC (DECONTRACT DENSITY MATRICES) =        0.0
+CPU / SEC (ROTATE DENSITY MATRICES) =        0.0
+NUCLEAR REPULSION ENERGY =         5.194802837041885 HARTREE
+CALCULATE NUCLEAR ATTRACTION ENERGY INTEGRALS
+CPU / SEC (NUCLEAR ATTRACTION INTEGRALS) =        0.0
+CALCULATE FOUR-INDEX TWO-ELECTRON INTEGRALS ONCE AND STORE THEM ON DISK
+ ... 100.00 % OF ERI GENERATION (CPU / SEC =        0.0)
+                456. ERIS ( 35.185% OF TOTAL ERIS) HAVE BEEN STORED BY PROCESS      0
+                456. ERIS ( 35.185% OF TOTAL ERIS) HAVE BEEN STORED BY ALL PROCESSES
+CPU / SEC (FOUR-INDEX TWO-ELECTRON INTEGRALS) =        0.0
+*********************************************
+* HF TEMPERATURE =  0.000000000000000E+00 K *
+*********************************************
+SELF-CONSISTENT FIELD ITERATION
+-----------------------------------------------------------------------------------------------
+ITR DIIS ASSYMETRY  DENSITY CHANGE      TOTAL ENERGY   ENERGY CHANGE    FERMI ENERGY  CPU / SEC
+  1   0  0.444E-15  0.252594216447    -99.8039035080   -------------   -0.3631741686        0.0
+  2   0  0.888E-15  0.100201194997    -98.0027110230    1.8011924850   -0.1998220064        0.0
+  3   0  0.888E-15  0.016249251582    -98.5004062333   -0.4976952103   -0.1992830421        0.0
+  4   0  0.888E-15  0.002955923734    -98.5630857252   -0.0626794920   -0.1999206756        0.0
+  5   5  0.888E-15  0.000616735752    -98.5696845383   -0.0065988131   -0.1998551938        0.0
+  6   0  0.888E-15  0.000001507488    -98.5707612436   -0.0010767053   -0.1998000767        0.0
+  7   7  0.888E-15  0.000000218446    -98.5707566772    0.0000045665   -0.1998008538        0.0
+  8   0  0.888E-15  0.000000082267    -98.5707571713   -0.0000004942   -0.1998008768        0.0
+  9   8  0.888E-15  0.000000016986    -98.5707576683   -0.0000004970   -0.1998008778        0.0
+ 10   0  0.888E-15  0.000000000030    -98.5707576563    0.0000000120   -0.1998008799        0.0
+ 11   8  0.444E-15  0.000000000006    -98.5707576561    0.0000000002   -0.1998008799        0.0
+ 12   0  0.888E-15  0.000000000000    -98.5707576561   -0.0000000000   -0.1998008799        0.0
+-----------------------------------------------------------------------------------------------
+SCF CONVERGED
+NUCLEAR REPULSION ENERGY    =          5.19480283704188 HARTREE
+KINETIC ENERGY              =         97.78257134499178 HARTREE
+NUCLEAR ATTRACTION ENERGY   =       -247.54398837677394 HARTREE
+COULOMB ENERGY              =         56.64299351617625 HARTREE
+HF-EXCHANGE ENERGY          =        -10.64713697750600 HARTREE
+TOTAL SCF ENERGY            =        -98.57075765607001 HARTREE
+HF/DFT ENERGY BANDS
+*********************************************
+* MP TEMPERATURE =  0.100000000000000E+06 K *
+*********************************************
+NUMBER OF ELECTRONS =  10
+DETERMINING THE FERMI LEVEL
+------------------------------------------------------------------------------------------------
+KX =         0
+------------------------------------------------------------------------------------------------
+    6     0.6292
+         (0.489) (
+    5    -0.4642
+         (1.822) (
+    4    -0.4642
+         (1.822) (
+    3    -0.5852
+         (1.875) (
+    2    -1.4713
+         (1.992) (
+    1   -25.9000
+         (2.000) (
+------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
+KY =         0
+------------------------------------------------------------------------------------------------
+    6     0.6292
+         (0.489) (
+    5    -0.4642
+         (1.822) (
+    4    -0.4642
+         (1.822) (
+    3    -0.5852
+         (1.875) (
+    2    -1.4713
+         (1.992) (
+    1   -25.9000
+         (2.000) (
+------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
+KZ =         0
+------------------------------------------------------------------------------------------------
+    6     0.6292
+         (0.489) (
+    5    -0.4642
+         (1.822) (
+    4    -0.4642
+         (1.822) (
+    3    -0.5852
+         (1.875) (
+    2    -1.4713
+         (1.992) (
+    1   -25.9000
+         (2.000) (
+------------------------------------------------------------------------------------------------
+FERMI ENERGY      =  0.2722353 HARTREE (  7.4079035 EV )
+BAND GAP          =  1.0934084 HARTREE ( 29.7531678 EV )
+*************************************************************
+* FIRST & SECOND-ORDER CORRECTIONS AT A NONZERO TEMPERATURE *
+* modify this subroutine to agree with general-order finite *
+* T MPn results for molecules and zero T MP2 for polymers   *
+*************************************************************
+TEMP      =         0.100000E+06 K
+FERMI     =             0.272235 HARTREE
+MP0_OMEGA =           -55.636558 HARTREE
+MP0_U     =           -52.016594 HARTREE
+MP1_OMEGA =             0.000000 HARTREE
+MP2_N1    =             0.000000 HARTREE
+MP2_N2    =             0.000000 HARTREE
+MP2_A1    =             0.000000 HARTREE
+MP2_A2    =             0.000000 HARTREE
+MP2_R1    =             0.000000 HARTREE
+MP2_R2    =             0.000000 HARTREE
+INTEGRAL TRANSFORMATION OF ONE-ELECTRON INTEGRALS WILL BE PERFORMED
+INTEGRAL TRANSFORMATION OF TWO-ELECTRON INTEGRALS WILL BE PERFORMED
+ZERO-TEMPERATURE MP2 ENERGY =   -0.017335594984611 HARTREE
+GENERATE AND ORDER CONFIGURATIONS FOR ALPHA (BETA) ELECTRONS UP TO EXCITATION   1
+THERE ARE   5 ACTIVE ALPHA (BETA) ELECTRONS IN   6 ACTIVE ORBITALS
+   0 EXCITATION CONFIGURATIONS       1
+   1 EXCITATION CONFIGURATIONS       5
+    TOTAL ALPHA (BETA) CONFIGURATIONS       6
+     1 ORDER =   0 CF(NUM) =     31 CF(BIT) =        11111
+     2 ORDER =   1 CF(NUM) =     47 CF(BIT) =       101111
+     3 ORDER =   1 CF(NUM) =     55 CF(BIT) =       110111
+     4 ORDER =   1 CF(NUM) =     59 CF(BIT) =       111011
+     5 ORDER =   1 CF(NUM) =     61 CF(BIT) =       111101
+     6 ORDER =   1 CF(NUM) =     62 CF(BIT) =       111110
+RECURSIVE HIGH-ORDER MOELLER-PLESSET PERTURBATION CALCULATIONS WILL BE PERFORMED
+ESTIMATED MEMORY USAGE WILL BE     1.2 KB
+------------------------------------------------------
+ORDER      CORRELATION        TOTAL ENERGY   CPU / SEC
+ 0      -57.7697039544      -52.5749011174         0.0
+ 1      -45.9958565387      -98.5707576561         0.0
+ 2       -0.0173355950      -98.5880932511         0.0
+ 3       -0.0055208964      -98.5936141475         0.0
+------------------------------------------------------
+
+***********************************
+* THERMAL FULL CI GRAND CANONICAL *
+***********************************
+LAMBDA    =             1.000000
+TEMP      =         0.100000E+06 K
+FERMI     =             0.272235 HARTREE
+
+----------------------------------------------------------------------------
+  TREND         N   (  MU MIN  )      N   (  MU MID  )      N   (  MU MAX  )
+----------------------------------------------------------------------------
+INCREASING  6.522189( -2.890042)  9.974106(  0.272235) 11.995979(  3.434513)
+INCREASING  9.974106(  0.272235) 11.609451(  1.853374) 11.995979(  3.434513)
+INCREASING  9.974106(  0.272235) 10.845196(  1.062805) 11.609451(  1.853374)
+INCREASING  9.974106(  0.272235) 10.414572(  0.667520) 10.845196(  1.062805)
+INCREASING  9.974106(  0.272235) 10.192659(  0.469878) 10.414572(  0.667520)
+INCREASING  9.974106(  0.272235) 10.083168(  0.371057) 10.192659(  0.469878)
+INCREASING  9.974106(  0.272235) 10.028647(  0.321646) 10.083168(  0.371057)
+INCREASING  9.974106(  0.272235) 10.001388(  0.296941) 10.028647(  0.321646)
+INCREASING  9.974106(  0.272235)  9.987751(  0.284588) 10.001388(  0.296941)
+INCREASING  9.987751(  0.284588)  9.994570(  0.290764) 10.001388(  0.296941)
+INCREASING  9.994570(  0.290764)  9.997979(  0.293852) 10.001388(  0.296941)
+INCREASING  9.997979(  0.293852)  9.999684(  0.295397) 10.001388(  0.296941)
+INCREASING  9.999684(  0.295397) 10.000536(  0.296169) 10.001388(  0.296941)
+INCREASING  9.999684(  0.295397) 10.000110(  0.295783) 10.000536(  0.296169)
+INCREASING  9.999684(  0.295397)  9.999897(  0.295590) 10.000110(  0.295783)
+INCREASING  9.999897(  0.295590) 10.000003(  0.295686) 10.000110(  0.295783)
+INCREASING  9.999897(  0.295590)  9.999950(  0.295638) 10.000003(  0.295686)
+INCREASING  9.999950(  0.295638)  9.999977(  0.295662) 10.000003(  0.295686)
+INCREASING  9.999977(  0.295662)  9.999990(  0.295674) 10.000003(  0.295686)
+INCREASING  9.999990(  0.295674)  9.999997(  0.295680) 10.000003(  0.295686)
+INCREASING  9.999997(  0.295680) 10.000000(  0.295683) 10.000003(  0.295686)
+INCREASING  9.999997(  0.295680)  9.999998(  0.295682) 10.000000(  0.295683)
+INCREASING  9.999998(  0.295682)  9.999999(  0.295682) 10.000000(  0.295683)
+INCREASING  9.999999(  0.295682) 10.000000(  0.295683) 10.000000(  0.295683)
+INCREASING 10.000000(  0.295683) 10.000000(  0.295683) 10.000000(  0.295683)
+INCREASING 10.000000(  0.295683) 10.000000(  0.295683) 10.000000(  0.295683)
+INCREASING 10.000000(  0.295683) 10.000000(  0.295683) 10.000000(  0.295683)
+INCREASING 10.000000(  0.295683) 10.000000(  0.295683) 10.000000(  0.295683)
+INCREASING 10.000000(  0.295683) 10.000000(  0.295683) 10.000000(  0.295683)
+INCREASING 10.000000(  0.295683) 10.000000(  0.295683) 10.000000(  0.295683)
+INCREASING 10.000000(  0.295683) 10.000000(  0.295683) 10.000000(  0.295683)
+INCREASING 10.000000(  0.295683) 10.000000(  0.295683) 10.000000(  0.295683)
+INCREASING 10.000000(  0.295683) 10.000000(  0.295683) 10.000000(  0.295683)
+INCREASING 10.000000(  0.295683) 10.000000(  0.295683) 10.000000(  0.295683)
+INCREASING 10.000000(  0.295683) 10.000000(  0.295683) 10.000000(  0.295683)
+----------------------------------------------------------------------------
+
+LAMBDA                        =        1.0000000000
+TEMPERATURE                   =    0.1000000000E+06 K
+BETA                          =        3.1577464000 HARTREE**(-1)
+CONVERGED MU                  =        0.2956830072 HARTREE
+ESHIFT                        =      -98.5965866411 HARTREE
+XI (GRAND PARTITION FUNCTION) =    0.6510200448E+05 x EXP( 311.3430165183)
+OMEGA (GRAND POTENTIAL)       =     -102.1065932137 HARTREE
+U (INTERNAL ENERGY)           =      -98.0493834540 HARTREE
+S (ENTROPY)                   =        3.4747199965 kB
+
+/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+
+LAMBDA-VARIATION FOR THERMODYNAMIC QUANTITIES IN GRAND CANONICAL ENSEMBLE 
+
+CENTRAL SEVEN-POINT FORMULA 
+
+MU (CHEMICAL POTENTIAL)
+ 0        0.2722353363
+ 1       -0.0751891507
+ 2        0.2319838004
+ 3       -0.4217974573
+ 4        0.9283969387
+ 5       -2.1244606028
+OMEGA (GRAND POTENTIAL)
+ 0      -55.6365581393
+ 1      -45.2684262594
+ 2       -2.5814709727
+ 3        4.4135369717
+ 4       -9.7392756181
+ 5       22.2193368889
+U (INTERNAL ENERGY)
+ 0      -52.0165937520
+ 1      -45.9478577921
+ 2        0.0984142902
+ 3       -0.1460260126
+ 4       -0.1720035867
+ 5        0.7222157687
+S (ENTROPY)
+ 0        2.8344279806
+ 1        0.2288102218
+ 2        1.1369379349
+ 3       -1.0786495452
+ 4        0.8946007160
+ 5       -0.7974092682
+
+FORWARD SEVEN- THROUGH NINE-POINT FORMULA
+
+MU (CHEMICAL POTENTIAL)
+ 0        0.2722353363
+ 1       -0.0751891293
+ 2        0.2319831127
+ 3       -0.4224432371
+ 4        0.9658819531
+OMEGA (GRAND POTENTIAL)
+ 0      -55.6365581393
+ 1      -45.2684264751
+ 2       -2.5814640313
+ 3        4.4200002639
+ 4      -10.1142277960
+U (INTERNAL ENERGY)
+ 0      -52.0165937520
+ 1      -45.9478578070
+ 2        0.0984149668
+ 3       -0.1456205112
+ 4       -0.1957978668
+S (ENTROPY)
+ 0        2.8344279806
+ 1        0.2288101825
+ 2        1.1369398898
+ 3       -1.0773875102
+ 4        0.8197841591
+
+\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+
+=============================
+= THERMAL FULL CI CANONICAL =
+=============================
+LAMBDA    =             1.000000
+TEMP      =         0.100000E+06 K
+FERMI     =             0.272235 HARTREE
+
+LAMBDA                        =        1.0000000000
+TEMPERATURE                   =    0.1000000000E+06 K
+BETA                          =        3.1577464000 HARTREE**(-1)
+ESHIFT                        =      -98.5965866411 HARTREE
+Z (PARTITION FUNCTION)        =    0.3812841242E+01 x EXP( 311.3430165183)
+F (HELMHOLTZ ENERGY)          =      -99.0204251875 HARTREE
+U (INTERNAL ENERGY)           =      -98.1783600389 HARTREE
+S (ENTROPY)                   =        2.6590281918 kB
+
+===================================================================
+
+LAMBDA-VARIATION FOR THERMODYNAMIC QUANTITIES IN CANONICAL ENSEMBLE
+
+CENTRAL SEVEN-POINT FORMULA 
+
+F (HERMHOLTZ ENERGY)
+ 0      -52.6716584124
+ 1      -46.1631481686
+ 2       -0.1465708694
+ 3       -0.0523939507
+ 4        0.0016145455
+ 5        0.0112114762
+U (INTERNAL ENERGY)
+ 0      -52.2645199893
+ 1      -45.6944153380
+ 2       -0.0215083808
+ 3       -0.1664806328
+ 4       -0.0882644772
+ 5        0.0203126405
+S (ENTROPY)
+ 0        1.2856398898
+ 1        1.4801394083
+ 2        0.3949156268
+ 3       -0.3602568129
+ 4       -0.2838242078
+ 5        0.0287406302
+
+FORWARD SEVEN- THROUGH NINE-POINT FORMULA
+
+F (HERMHOLTZ ENERGY)
+ 0      -52.6716584124
+ 1      -46.1631481685
+ 2       -0.1465709141
+ 3       -0.0523871933
+ 4        0.0013076355
+U (INTERNAL ENERGY)
+ 0      -52.2645199893
+ 1      -45.6944153378
+ 2       -0.0215084494
+ 3       -0.1664703196
+ 4       -0.0887081815
+S (ENTROPY)
+ 0        1.2856398898
+ 1        1.4801394086
+ 2        0.3949155322
+ 3       -0.3602438568
+ 4       -0.2843716966
+
+===================================================================
+
+/\/\/\/\/\/\/\
+| ANALYTICAL |
+\/\/\/\/\/\/\/
+TEMPERATURE                   =    0.1000000000E+06 K
+BETA                          =        3.1577464000 HARTREE**(-1)
+
+*********************************
+* MU IS PERTURBATIVELY EXPANDED *
+*********************************
+
+MU(0)                         =        0.2722353363 HARTREE
+OMEGA(0)                      =      -55.6365581393 HARTREE
+U(0)                          =      -52.0165937520 HARTREE
+OMEGA(0)                      =      -55.6365581393 HARTREE
+U(0)                          =      -52.0165937520 HARTREE
+SUM F-                        =       10.0000000000 HARTREE
+
+MU(1)                         =       -0.0751891539 HARTREE
+MU(1) AGAIN                   =       -0.0751891539 HARTREE
+OMEGA(1)                      =      -45.2684262270 HARTREE
+U(1)                          =      -45.9478577899 HARTREE
+U(1) AGAIN                    =      -45.9478577899 HARTREE
+OMEGA(1) AGAIN                =      -45.2684262270 HARTREE
+
+MU(2)                         =        0.2319843558 HARTREE
+MU(2) AGAIN                   =        0.2319843558 HARTREE
+OMEGA(2)                      =       -2.5814765263 HARTREE
+U(2)                          =        0.0984138963 HARTREE
+U(2) AGAIN                    =        0.0984138963 HARTREE
+
+MU(3)                         =       -0.4217749018 HARTREE
+OMEGA(3)                      =        4.4133140895 HARTREE
+U(3)                          =       -0.1460404788 HARTREE
+S(3)                          =       -1.0787036966 kB
+
+PREDICTED ZERO-T   MU(0)=        0.0825339969
+PREDICTED ZERO-T   MU(1)=        0.0000000000
+PREDICTED ZERO-T   MU(2)=        0.0418008046
+                 SIGMA_H=        0.0686038027
+                 SIGMA_L=        0.0149978065
+
+************************************************
+* GENERAL-ORDER THERMAL MBPT (GRAND CANONICAL) *
+************************************************
+TEMP      =         0.100000E+06 K
+FERMI     =             0.272235 HARTREE
+ORDER     = 3
+
+GENERATING HCPT EFFECTIVE HAMILTONIAN MATRIX
+ORDER:  1 CPU/SEC =      0.64
+ORDER:  2 CPU/SEC =      2.69
+ORDER:  3 CPU/SEC =      6.87
+ORDER:  0 COMPRESSION =  4096 /  16777216
+ORDER:  1 COMPRESSION = 12287 /  16777216
+ORDER:  2 COMPRESSION = 12170 /  16777216
+ORDER:  3 COMPRESSION = 14068 /  16777216
+
+-----------------------------------------------------
+ORDER       DELTA MU(n)          SUM MU(n)    CPU/SEC
+  0        0.2722353363        0.2722353363       0.0
+  1       -0.0751891539        0.1970461824       0.2
+  2        0.2319843554        0.4290305378       1.3
+  3       -0.4217748840        0.0072556538       4.2
+
+-----------------------------------------------------
+ORDER    DELTA OMEGA(n)        SUM OMEGA(n)   CPU/SEC
+  0      -55.6365581393      -55.6365581393       0.0
+  1      -45.2684262271     -100.9049843664       0.6
+  2       -2.5814765225     -103.4864608889       1.8
+  3        4.4133139109      -99.0731469780       4.7
+
+-----------------------------------------------------
+ORDER       DELTA U(n)           SUM U(n)     CPU/SEC
+  0      -52.0165937520      -52.0165937520       0.0
+  1      -45.9478577899      -97.9644515419       1.3
+  2        0.0984138966      -97.8660376453       4.1
+  3       -0.1460404731      -98.0120781184      10.8
+
+-----------------------------------------------------
+ORDER     DELTA S(n)/kB         SUM S(n)/kB   CPU/SEC
+  0        2.8344279806        2.8344279806       0.0
+  1        0.2288102295        3.0632382101       0.0
+  2        1.1369366919        4.2001749020       0.0
+  3       -1.0787036781        3.1214712239       0.0
+
+==========================================
+= GENERAL-ORDER THERMAL MBPT (CANONICAL) =
+==========================================
+TEMP      =         0.100000E+06 K
+FERMI     =             0.272235 HARTREE
+ORDER     = 3
+
+GENERATING HCPT EFFECTIVE HAMILTONIAN MATRIX
+ORDER:  1 CPU/SEC =      0.01
+ORDER:  2 CPU/SEC =      0.01
+ORDER:  3 CPU/SEC =      0.02
+ORDER:  0 COMPRESSION =    66 /      4356
+ORDER:  1 COMPRESSION =    98 /      4356
+ORDER:  2 COMPRESSION =    92 /      4356
+ORDER:  3 COMPRESSION =    92 /      4356
+
+====================== CANONICAL ====================
+ORDER       DELTA F(n)           SUM F(n)     CPU/SEC
+  0      -52.6716584124      -52.6716584124       0.0
+  1      -46.1631481686      -98.8348065810       0.0
+  2       -0.1465708701      -98.9813774511       0.0
+  3       -0.0523939031      -99.0337713541       0.0
+
+====================== CANONICAL ====================
+ORDER       DELTA U(n)           SUM U(n)     CPU/SEC
+  0      -52.2645199893      -52.2645199893       0.0
+  1      -45.6944153380      -97.9589353273       0.0
+  2       -0.0215083811      -97.9804437084       0.0
+  3       -0.1664805897      -98.1469242981       0.0
+
+====================== CANONICAL ====================
+ORDER     DELTA S(n)/kB         SUM S(n)/kB   CPU/SEC
+  0        1.2856398898        1.2856398898       0.0
+  1        1.4801394083        2.7657792981       0.0
+  2        0.3949156243        3.1606949225       0.0
+  3       -0.3602568238        2.8004380986       0.0
+Exiting from polymer program
