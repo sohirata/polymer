@@ -155,7 +155,7 @@ Mandatory input in bold letters.
 * DELTAH ()
 * GEMINAL ()
 * LMAX ()
-* MBGFALG (1 = recursion 1; 2 = recursions 1 & 2; 3 = recursions 1 & 2 & 3; -1 = recursion 1 scan; 4 = $\lambda$ variation)
+* MBGFALG (1 = recursion 1 & $\lambda$ variation; 2 = recursions 1 & 2; 3 = recursions 1 & 2 & 3; -1 = recursion 1 $\omega$ scan; 4 = recursions 1 & 2 & 3 & $\lambda$ variation)
 * MP2ALG (1 = fast big memory; 2 = medium speed medium memory; 3 = slow small memory)
 * DIAGONAL (T = diagonal approximation to self-energy)
 * DYSONCONV (GF convergence criterion)                                       
