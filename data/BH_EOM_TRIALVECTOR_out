@@ -1,0 +1,984 @@
+Entering polymer program
+Input file:  BH_EOM_TRIALVECTOR
+No. procesors: 1
+PROCESSOR =      0 /      1
+ 
+**************************
+* POLYMER 3D Version 1.0 *
+**************************
+ 
+(c) So Hirata, University of Illinois at Urbana-Champaign
+ 
+NUMBER OF ATOMS =  2
+B    2.328142417929234   0.000000000000000   0.000000000000000 BOHR
+H    0.000000000000000   0.000000000000000   0.000000000000000 BOHR
+JOBNAME    = NONE                                                                                                
+JOBTYPE    =    0
+THEORY     = MP2FC                                                                                               
+BASISSET   = STO-3G                                                                                              
+AUXILIARY  = NONE                                                                                                
+SPHERICAL  = .FALSE.
+CHARGE     =    0
+PERIOD     =    0.000000000000000   0.000000000000000   0.000000000000000 BOHR (0D CRYSTAL)
+HELIX      =    0.000000000000000 RADIAN
+UNITS      = BOHR                                                                                                
+PRINT      =    1
+KPOINTS    =                    0                   0                   0
+MODULO     =    1
+CUTOFF1    =    0
+CUTOFF2    =    0
+CUTOFF3    =    0
+HFEXCHANGE =    1.000000000000000
+SLATER     =    0.000000000000000
+VWN        =    0.000000000000000
+BECKE88    =    0.000000000000000
+LYP        =    0.000000000000000
+KERNEL_HF  =    1.000000000000000
+KERNEL_S   =    0.000000000000000
+KERNEL_VWN =    0.000000000000000
+KERNEL_B88 =    0.000000000000000
+KERNEL_LYP =    0.000000000000000
+KERNEL_OEP =    0.000000000000000
+MP2        =    1.000000000000000
+INTTOL     =    0.000000000000000E+00
+LINDEP     =    0.100000000000000E-05
+SCFCONV    =    0.100000000000000E-10
+SCFRELAX   =    1.000000000000000
+OPTCONV    =    0.400000000000000E-03
+DAVIDSON   =    0.100000000000000E-05
+SCFCYCLES  =   50
+DIIS       =    5
+GDIIS      =    4
+MULTIPOLE  =    0
+CIS_ROOTS  =    0
+RPA_ROOTS  =    0
+MAXMEMORY  = 2000.000000000000000
+MAXDISK    = ********************
+DIRECT     = .FALSE.
+FROZENCORE =   -1
+FROZENVIRT =    0
+RI_SCF     = .FALSE.
+RI_MP2     = .FALSE.
+VAPPROX    = .FALSE.
+SAPPROX    = .FALSE.
+DYSON      = .FALSE.
+SINGLET    = .TRUE.
+TRIPLET    = .TRUE.
+CISQP      = .FALSE.
+QPBANDS    =    2
+DYSONDAMP  =    0.000000000000000
+OEP        = .FALSE.
+HIGHMP     =   10
+HIGHCIS    =    1
+HIGHCIE    =   10
+HIGHCCS    =    2
+HIGHCCE    =    2
+CCDIIS     =    3
+CCRELAX    =    1.000000000000000
+CCALG      =    1
+XCC        = .FALSE.
+CCPTROOT   =    0
+HIGHCIROOT =    3
+EOMORDERS  =    1
+EOMORDERE  =   10
+EOMROOT    =    3
+IP         = .FALSE.
+EA         = .FALSE.
+MP2KJOBS   = ****
+MP2KJOBE   = ****
+CICONV     =    0.100000000000000E-11
+CCCONV     =    0.100000000000000E-05
+CCPTCONV   =    0.100000000000000E-07
+CCTHEORY   = NONE                                                                                                
+OEPALG     =    1
+SLATER51   = .FALSE.
+KLI        = .FALSE.
+POTDUMP    =    0
+DENDUMP    =    0
+RADIAL     =    0
+ANGULAR    =    0
+AC         = .FALSE.
+POLAR      = .FALSE.
+OMEGA      =   -0.200000000000000E+00
+POLARALG   =    1
+POLARX     = .TRUE.
+POLARY     = .TRUE.
+POLARZ     = .TRUE.
+SOS        = .FALSE.
+RELATIVITY = .FALSE.
+SINANOGLU  = .FALSE.
+SALG       =    3
+SINGULAR   =    0.100000000000000E-06
+HIGHGF     =    0
+TEMPHF     =    0.000000000000000E+00
+TEMP       =    0.000000000000000E+00
+NGRID      =    3
+DELTAH     =    0.300000000000000E+00
+GEMINAL    = F12                                                                                                 
+LMAX       =   -1
+MBGFALG    =    1
+MP2ALG     =    1
+DIAGONAL   = .TRUE.
+DYSONCONV  =    0.100000000000000E-03
+A SINGLE-POINT ENERGY CALCULATION WILL BE PERFORMED
+OPTMSG: BOND LENGTHS
+OPTMSG:   1(0,0,0)  -  2(0,0,0) =   1.2320000000 ANGSTROM
+OPTMSG: BOND ANGLES
+OPTMSG: DIHEDRAL ANGLES
+GEOMETRY IN UNITS OF BOHR
+--------------------------------------------------
+ ATOM         X              Y              Z     
+  1B    2.3281424179   0.0000000000   0.0000000000
+  2H    0.0000000000   0.0000000000   0.0000000000
+--------------------------------------------------
+X TRANSLATIONAL PERIOD                0.0000000000
+Y TRANSLATIONAL PERIOD                0.0000000000
+Z TRANSLATIONAL PERIOD                0.0000000000
+--------------------------------------------------
+NUMBER OF PRIMITIVE GAUSSIANS  =    18
+NUMBER OF CONTRACTED GAUSSIANS =     6
+BASIS SET SHELL STRUCTURE
+  1  S  1
+  2  S  2
+  3  S  3
+  4  S  4  P  5  6  7
+  5  S  8  P  9 10 11
+  6  S 12  P 13 14 15
+  7  S 16
+  8  S 17
+  9  S 18
+NUMBER OF PRIMITIVE GAUSSIANS  (INCLUDING GHOST FUNCTIONS) =    18
+NUMBER OF CONTRACTED GAUSSIANS (INCLUDING GHOST FUNCTIONS) =     6
+NUMBER OF SHELLS               (INCLUDING GHOST FUNCTIONS) =     9
+***** WARNING : GAMMA APPROXIMATION IS INVOKED
+CALCULATE OVERLAP AND KINETIC ENERGY INTEGRALS
+---------------------
+  X   MAXIMUM OVERLAP
+  0   1.0000000000761
+---------------------
+---------------------
+  Y   MAXIMUM OVERLAP
+  0   1.0000000000761
+---------------------
+---------------------
+  Z   MAXIMUM OVERLAP
+  0   1.0000000000761
+---------------------
+------------------------------------------------------------------------------------------------
+KX =           0
+------------------------------------------------------------------------------------------------
+LNDEP          0
+FCORE          1
+FVIRT          0
+OCC            3
+VIRT           3
+AOCC           2
+AVIRT          3
+------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
+KY =           0
+------------------------------------------------------------------------------------------------
+LNDEP          0
+FCORE          1
+FVIRT          0
+OCC            3
+VIRT           3
+AOCC           2
+AVIRT          3
+------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
+KZ =           0
+------------------------------------------------------------------------------------------------
+LNDEP          0
+FCORE          1
+FVIRT          0
+OCC            3
+VIRT           3
+AOCC           2
+AVIRT          3
+------------------------------------------------------------------------------------------------
+MEMORY REQUIRED (INTEGRALS)      20.7 KB
+DISK   REQUIRED (INTEGRALS)      20.7 KB X A FEW PERCENTS
+MEMORY REQUIRED (MP2/DYSON)       6.9 KB
+CPU / SEC (OVERLAP & KINETIC INTEGRALS) =        0.0
+NO DENSITY MATRIX FOUND IN .chk FILE
+CPU / SEC (RESTORE DENSITY MATRICES) =        0.0
+CPU / SEC (DECONTRACT DENSITY MATRICES) =        0.0
+CPU / SEC (ROTATE DENSITY MATRICES) =        0.0
+NUCLEAR REPULSION ENERGY =         2.147634939123376 HARTREE
+CALCULATE NUCLEAR ATTRACTION ENERGY INTEGRALS
+CPU / SEC (NUCLEAR ATTRACTION INTEGRALS) =        0.0
+CALCULATE FOUR-INDEX TWO-ELECTRON INTEGRALS ONCE AND STORE THEM ON DISK
+ ... 100.00 % OF ERI GENERATION (CPU / SEC =        0.0)
+                456. ERIS ( 35.185% OF TOTAL ERIS) HAVE BEEN STORED BY PROCESS      0
+                456. ERIS ( 35.185% OF TOTAL ERIS) HAVE BEEN STORED BY ALL PROCESSES
+CPU / SEC (FOUR-INDEX TWO-ELECTRON INTEGRALS) =        0.0
+SELF-CONSISTENT FIELD ITERATION
+-------------------------------------------------------------------------------
+ITR DIIS ASSYMETRY  DENSITY CHANGE      TOTAL ENERGY   ENERGY CHANGE  CPU / SEC
+  1   0  0.444E-15  0.418501652877    -25.4888273701   -------------        0.0
+  2   0  0.444E-15  0.073586630700    -24.6416741980    0.8471531721        0.0
+  3   0  0.333E-15  0.009412820502    -24.7424030101   -0.1007288121        0.0
+  4   0  0.500E-15  0.001675499396    -24.7518071118   -0.0094041017        0.0
+  5   5  0.444E-15  0.000415736153    -24.7527089065   -0.0009017947        0.0
+  6   0  0.444E-15  0.000006096239    -24.7527911130   -0.0000822065        0.0
+  7   7  0.444E-15  0.000000480862    -24.7527884215    0.0000026915        0.0
+  8   0  0.444E-15  0.000000320057    -24.7527884239   -0.0000000024        0.0
+  9   8  0.444E-15  0.000000096582    -24.7527884238    0.0000000001        0.0
+ 10   0  0.222E-15  0.000000000374    -24.7527884258   -0.0000000020        0.0
+ 11   8  0.444E-15  0.000000000119    -24.7527884257    0.0000000000        0.0
+ 12   0  0.444E-15  0.000000000000    -24.7527884257    0.0000000000        0.0
+-------------------------------------------------------------------------------
+SCF CONVERGED
+NUCLEAR REPULSION ENERGY    =          2.14763493912338 HARTREE
+KINETIC ENERGY              =         25.64181812415156 HARTREE
+NUCLEAR ATTRACTION ENERGY   =        -63.12380635307456 HARTREE
+COULOMB ENERGY              =         14.87935925985459 HARTREE
+HF-EXCHANGE ENERGY          =         -4.29779439579515 HARTREE
+TOTAL SCF ENERGY            =        -24.75278842574019 HARTREE
+HF/DFT ENERGY BANDS
+NUMBER OF ELECTRONS =   6
+------------------------------------------------------------------------------------------------
+KX =         0
+------------------------------------------------------------------------------------------------
+    6     0.7015
+    5     0.2699
+ LUMO     0.2699
+ HOMO    -0.2465
+    2    -0.5735
+    1    -7.3394
+------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
+KY =         0
+------------------------------------------------------------------------------------------------
+    6     0.7015
+    5     0.2699
+ LUMO     0.2699
+ HOMO    -0.2465
+    2    -0.5735
+    1    -7.3394
+------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
+KZ =         0
+------------------------------------------------------------------------------------------------
+    6     0.7015
+    5     0.2699
+ LUMO     0.2699
+ HOMO    -0.2465
+    2    -0.5735
+    1    -7.3394
+------------------------------------------------------------------------------------------------
+DIRECT BAND GAP   =  0.5164805 HARTREE ( 14.0541547 EV )
+INDIRECT BAND GAP =  0.5164805 HARTREE ( 14.0541547 EV )
+CALCULATE MP2 ENERGY (ALGORITHM 1)
+***** WARNING : FROZEN CORE APPROXIMATION WILL BE USED
+MP2 QUASI-PARTICLE ENERGY CALCULATIONS FOR  2 OCCUPIED AND   2 VIRTUAL BANDS WILL BE PERFORMED
+NONE.ao.00000 IS FOUND
+                  0. K WORDS (TNNNKK)
+                  0. K WORDS (TOK)
+                  0. K WORDS (TVOKK)
+                  0. K WORDS (TOVOKK)
+ ...  33.33 % OF MP2 ENERGY EVALUATION (CPU / SEC =        0.0)
+ ...  66.67 % OF MP2 ENERGY EVALUATION (CPU / SEC =        0.0)
+ ... 100.00 % OF MP2 ENERGY EVALUATION (CPU / SEC =        0.0)
+E(2) SINGLET =   -0.029002338697298 HARTREE
+E(2) TRIPLET =    0.000000000000000 HARTREE
+E(2)         =   -0.029002338697298 HARTREE
+EMP2         =  -24.781790764437481 HARTREE
+CPU / SEC (TOTAL MP2 TIME) =        0.0
+MP2 QUASI-PARTICLE ENERGY BANDS (DIAGONAL, FREQ-INDEP)
+NUMBER OF ELECTRONS =   6
+------------------------------------------------------------------------------------------------
+KX =         0
+------------------------------------------------------------------------------------------------
+    5     0.2633
+ LUMO     0.2633
+ HOMO    -0.2440
+    2    -0.5766
+------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
+KY =         0
+------------------------------------------------------------------------------------------------
+    5     0.2633
+ LUMO     0.2633
+ HOMO    -0.2440
+    2    -0.5766
+------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
+KZ =         0
+------------------------------------------------------------------------------------------------
+    5     0.2633
+ LUMO     0.2633
+ HOMO    -0.2440
+    2    -0.5766
+------------------------------------------------------------------------------------------------
+DIRECT BAND GAP   =  0.5072990 HARTREE ( 13.8043127 EV )
+INDIRECT BAND GAP =  0.5072990 HARTREE ( 13.8043127 EV )
+INTEGRAL TRANSFORMATION OF ONE-ELECTRON INTEGRALS WILL BE PERFORMED
+INTEGRAL TRANSFORMATION OF TWO-ELECTRON INTEGRALS WILL BE PERFORMED
+ZERO-TEMPERATURE MP2 ENERGY =   -0.029002338697298 HARTREE
+GENERATE AND ORDER CONFIGURATIONS FOR ALPHA (BETA) ELECTRONS UP TO EXCITATION   2
+***** WARNING :   1 CORE ALPHA (BETA) ORBITALS ARE ALWAYS OCCUPIED
+THERE ARE   2 ACTIVE ALPHA (BETA) ELECTRONS IN   5 ACTIVE ORBITALS
+   0 EXCITATION CONFIGURATIONS       1
+   1 EXCITATION CONFIGURATIONS       6
+   2 EXCITATION CONFIGURATIONS       3
+    TOTAL ALPHA (BETA) CONFIGURATIONS      10
+     1 ORDER =   0 CF(NUM) =      7 CF(BIT) =          111
+     2 ORDER =   1 CF(NUM) =     11 CF(BIT) =         1011
+     3 ORDER =   1 CF(NUM) =     19 CF(BIT) =        10011
+     4 ORDER =   1 CF(NUM) =     35 CF(BIT) =       100011
+     5 ORDER =   1 CF(NUM) =     13 CF(BIT) =         1101
+     6 ORDER =   1 CF(NUM) =     21 CF(BIT) =        10101
+     7 ORDER =   1 CF(NUM) =     37 CF(BIT) =       100101
+     8 ORDER =   2 CF(NUM) =     25 CF(BIT) =        11001
+     9 ORDER =   2 CF(NUM) =     41 CF(BIT) =       101001
+    10 ORDER =   2 CF(NUM) =     49 CF(BIT) =       110001
+RECURSIVE HIGH-ORDER MOELLER-PLESSET PERTURBATION CALCULATIONS WILL BE PERFORMED
+ESTIMATED MEMORY USAGE WILL BE     3.2 KB
+------------------------------------------------------
+ORDER      CORRELATION        TOTAL ENERGY   CPU / SEC
+ 0      -16.3188585008      -14.1712235617         0.0
+ 1      -10.5815648641      -24.7527884257         0.0
+ 2       -0.0290023387      -24.7817907644         0.0
+ 3       -0.0135156723      -24.7953064367         0.0
+ 4       -0.0069116803      -24.8022181171         0.0
+ 5       -0.0036710773      -24.8058891944         0.0
+ 6       -0.0019477172      -24.8078369116         0.0
+ 7       -0.0010055527      -24.8088424643         0.0
+ 8       -0.0004937286      -24.8093361929         0.0
+ 9       -0.0002235312      -24.8095597240         0.0
+10       -0.0000876169      -24.8096473409         0.0
+------------------------------------------------------
+HIGH-ORDER CONFIGURATION INTERACTION CALCULATIONS WILL BE PERFORMED
+CI ORDER IS  1
+THE NUMBER OF CI ROOTS SOUGHT    3
+THE NUMBER OF INITIAL TRIAL VECTORS    5
+ESTIMATED MEMORY USAGE WILL BE     3.2 KB
+-----------------------------------------------------------------------
+             DEVIATION        OMEGA / EV       TOTAL ENERGY   CPU / SEC
+ ITER   1
+ ROOT   1   0.0000000000        0.00000      -24.7527884257         0.0
+ ROOT   2   0.0462156147        0.33454      -24.7404941908         0.0
+ ROOT   3   0.0462156147        0.33454      -24.7404941908         0.0
+  2 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   2
+ ROOT   1   0.0000000000        0.00000      -24.7527884257         0.0
+ ROOT   2   0.0000000000        0.18056      -24.7461528731         0.0
+ ROOT   3   0.0000000000        0.18056      -24.7461528731         0.0
+-----------------------------------------------------------------------
+ROOT   1   0.0000000000 EV
+ %SINGLES =   0.00
+ %DOUBLES =   0.00
+ < S**2 > =   0.0000
+ DETERMINANT (     1     1 )   1.0000
+ROOT   2   0.1805626474 EV
+ %SINGLES = 100.00
+ %DOUBLES =   0.00
+ < S**2 > =   2.0000
+ DETERMINANT (     1     3 )   0.7013
+ DETERMINANT (     3     1 )  -0.7013
+ROOT   3   0.1805626474 EV
+ %SINGLES = 100.00
+ %DOUBLES =   0.00
+ < S**2 > =   2.0000
+ DETERMINANT (     1     2 )  -0.7013
+ DETERMINANT (     2     1 )   0.7013
+HIGH-ORDER CONFIGURATION INTERACTION CALCULATIONS WILL BE PERFORMED
+CI ORDER IS  2
+THE NUMBER OF CI ROOTS SOUGHT    3
+THE NUMBER OF INITIAL TRIAL VECTORS    9
+ESTIMATED MEMORY USAGE WILL BE     3.2 KB
+-----------------------------------------------------------------------
+             DEVIATION        OMEGA / EV       TOTAL ENERGY   CPU / SEC
+ ITER   1
+ ROOT   1   0.1859707194        0.00000      -24.7756100885         0.0
+ ROOT   2   0.1024428701        0.95555      -24.7404941908         0.0
+ ROOT   3   0.1024428701        0.95555      -24.7404941908         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   2
+ ROOT   1   0.0291701255        0.00000      -24.8070325305         0.0
+ ROOT   2   0.0167501952        1.48043      -24.7526276512         0.0
+ ROOT   3   0.0167501952        1.48043      -24.7526276512         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   3
+ ROOT   1   0.0070211917        0.00000      -24.8078147204         0.0
+ ROOT   2   0.0028696406        1.48976      -24.7530671436         0.0
+ ROOT   3   0.0028696406        1.48976      -24.7530671436         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   4
+ ROOT   1   0.0007788038        0.00000      -24.8078515039         0.0
+ ROOT   2   0.0003486286        1.49043      -24.7530793772         0.0
+ ROOT   3   0.0003486286        1.49043      -24.7530793772         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   5
+ ROOT   1   0.0000987889        0.00000      -24.8078521916         0.0
+ ROOT   2   0.0000213885        1.49044      -24.7530795206         0.0
+ ROOT   3   0.0000213885        1.49044      -24.7530795206         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   6
+ ROOT   1   0.0000075362        0.00000      -24.8078521996         0.0
+ ROOT   2   0.0000000602        1.49044      -24.7530795211         0.0
+ ROOT   3   0.0000000602        1.49044      -24.7530795211         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   7
+ ROOT   1   0.0000003927        0.00000      -24.8078521996         0.0
+ ROOT   2   0.0000000000        1.49044      -24.7530795211         0.0
+ ROOT   3   0.0000000000        1.49044      -24.7530795211         0.0
+  1 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   8
+ ROOT   1   0.0000000000        0.00000      -24.8078521996         0.0
+ ROOT   2   0.0000000000        1.49044      -24.7530795211         0.0
+ ROOT   3   0.0000000000        1.49044      -24.7530795211         0.0
+-----------------------------------------------------------------------
+ROOT   1   0.0000000000 EV
+ %SINGLES =   0.08
+ %DOUBLES =   7.79
+ < S**2 > =   0.0000
+ DETERMINANT (     1     1 )  -0.9599
+ DETERMINANT (     2     2 )   0.1463
+ DETERMINANT (     3     3 )   0.1463
+ROOT   2   1.4904410295 EV
+ %SINGLES =  99.20
+ %DOUBLES =   0.80
+ < S**2 > =   2.0000
+ DETERMINANT (     1     2 )   0.6930
+ DETERMINANT (     1     3 )   0.1015
+ DETERMINANT (     2     1 )  -0.6930
+ DETERMINANT (     3     1 )  -0.1015
+ROOT   3   1.4904410295 EV
+ %SINGLES =  99.20
+ %DOUBLES =   0.80
+ < S**2 > =   2.0000
+ DETERMINANT (     1     2 )  -0.1015
+ DETERMINANT (     1     3 )   0.6930
+ DETERMINANT (     2     1 )   0.1015
+ DETERMINANT (     3     1 )  -0.6930
+HIGH-ORDER CONFIGURATION INTERACTION CALCULATIONS WILL BE PERFORMED
+CI ORDER IS  3
+THE NUMBER OF CI ROOTS SOUGHT    3
+THE NUMBER OF INITIAL TRIAL VECTORS    9
+ESTIMATED MEMORY USAGE WILL BE     3.2 KB
+-----------------------------------------------------------------------
+             DEVIATION        OMEGA / EV       TOTAL ENERGY   CPU / SEC
+ ITER   1
+ ROOT   1   0.1871165706        0.00000      -24.7756100885         0.0
+ ROOT   2   0.1834514659        0.95555      -24.7404941908         0.0
+ ROOT   3   0.1834514659        0.95555      -24.7404941908         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   2
+ ROOT   1   0.0366932616        0.00000      -24.8065685672         0.0
+ ROOT   2   0.0307232282        0.99501      -24.7700026524         0.0
+ ROOT   3   0.0307232282        0.99501      -24.7700026524         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   3
+ ROOT   1   0.0073709539        0.00000      -24.8078829303         0.0
+ ROOT   2   0.0054089799        1.00761      -24.7708538787         0.0
+ ROOT   3   0.0054089799        1.00761      -24.7708538787         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   4
+ ROOT   1   0.0011705971        0.00000      -24.8079211046         0.0
+ ROOT   2   0.0011046209        1.00754      -24.7708946374         0.0
+ ROOT   3   0.0011046209        1.00754      -24.7708946374         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   5
+ ROOT   1   0.0001397310        0.00000      -24.8079222267         0.0
+ ROOT   2   0.0001733650        1.00753      -24.7708962387         0.0
+ ROOT   3   0.0001733650        1.00753      -24.7708962387         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   6
+ ROOT   1   0.0000218667        0.00000      -24.8079222443         0.0
+ ROOT   2   0.0000115984        1.00753      -24.7708962698         0.0
+ ROOT   3   0.0000115984        1.00753      -24.7708962698         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   7
+ ROOT   1   0.0000012317        0.00000      -24.8079222447         0.0
+ ROOT   2   0.0000006037        1.00753      -24.7708962700         0.0
+ ROOT   3   0.0000006037        1.00753      -24.7708962700         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   8
+ ROOT   1   0.0000001296        0.00000      -24.8079222447         0.0
+ ROOT   2   0.0000000405        1.00753      -24.7708962700         0.0
+ ROOT   3   0.0000000405        1.00753      -24.7708962700         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   9
+ ROOT   1   0.0000000051        0.00000      -24.8079222447         0.0
+ ROOT   2   0.0000000023        1.00753      -24.7708962700         0.0
+ ROOT   3   0.0000000023        1.00753      -24.7708962700         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER  10
+ ROOT   1   0.0000000000        0.00000      -24.8079222447         0.0
+ ROOT   2   0.0000000000        1.00753      -24.7708962700         0.0
+ ROOT   3   0.0000000000        1.00753      -24.7708962700         0.0
+  2 TRIAL VECTORS HAVE BEEN ADDED
+ ITER  11
+ ROOT   1   0.0000000000        0.00000      -24.8079222447         0.0
+ ROOT   2   0.0000000000        1.00753      -24.7708962700         0.0
+ ROOT   3   0.0000000000        1.00753      -24.7708962700         0.0
+-----------------------------------------------------------------------
+ROOT   1   0.0000000000 EV
+ %SINGLES =   0.08
+ %DOUBLES =   7.76
+ < S**2 > =   0.0000
+ DETERMINANT (     1     1 )  -0.9600
+ DETERMINANT (     2     2 )   0.1450
+ DETERMINANT (     3     3 )   0.1450
+ROOT   2   1.0075284505 EV
+ %SINGLES =  97.78
+ %DOUBLES =   0.83
+ < S**2 > =   2.0000
+ DETERMINANT (     1     2 )  -0.6660
+ DETERMINANT (     1     3 )   0.2005
+ DETERMINANT (     2     1 )   0.6660
+ DETERMINANT (     3     1 )  -0.2005
+ROOT   3   1.0075284505 EV
+ %SINGLES =  97.78
+ %DOUBLES =   0.83
+ < S**2 > =   2.0000
+ DETERMINANT (     1     2 )  -0.2005
+ DETERMINANT (     1     3 )  -0.6660
+ DETERMINANT (     2     1 )   0.2005
+ DETERMINANT (     3     1 )   0.6660
+HIGH-ORDER CONFIGURATION INTERACTION CALCULATIONS WILL BE PERFORMED
+CI ORDER IS  4
+THE NUMBER OF CI ROOTS SOUGHT    3
+THE NUMBER OF INITIAL TRIAL VECTORS    9
+ESTIMATED MEMORY USAGE WILL BE     3.2 KB
+-----------------------------------------------------------------------
+             DEVIATION        OMEGA / EV       TOTAL ENERGY   CPU / SEC
+ ITER   1
+ ROOT   1   0.1907118093        0.00000      -24.7756100885         0.0
+ ROOT   2   0.1834514659        0.95555      -24.7404941908         0.0
+ ROOT   3   0.1834514659        0.95555      -24.7404941908         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   2
+ ROOT   1   0.0472573562        0.00000      -24.8077735798         0.0
+ ROOT   2   0.0358044312        1.02780      -24.7700026524         0.0
+ ROOT   3   0.0358044312        1.02780      -24.7700026524         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   3
+ ROOT   1   0.0092656048        0.00000      -24.8095666809         0.0
+ ROOT   2   0.0051880960        1.04806      -24.7710510616         0.0
+ ROOT   3   0.0051880960        1.04806      -24.7710510616         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   4
+ ROOT   1   0.0018926597        0.00000      -24.8096259763         0.0
+ ROOT   2   0.0010751162        1.04887      -24.7710806716         0.0
+ ROOT   3   0.0010751162        1.04887      -24.7710806716         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   5
+ ROOT   1   0.0001789220        0.00000      -24.8096286001         0.0
+ ROOT   2   0.0002112470        1.04890      -24.7710821459         0.0
+ ROOT   3   0.0002112470        1.04890      -24.7710821459         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   6
+ ROOT   1   0.0000191767        0.00000      -24.8096286250         0.0
+ ROOT   2   0.0000145832        1.04890      -24.7710821902         0.0
+ ROOT   3   0.0000145832        1.04890      -24.7710821902         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   7
+ ROOT   1   0.0000025328        0.00000      -24.8096286253         0.0
+ ROOT   2   0.0000006406        1.04890      -24.7710821904         0.0
+ ROOT   3   0.0000006406        1.04890      -24.7710821904         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   8
+ ROOT   1   0.0000003184        0.00000      -24.8096286253         0.0
+ ROOT   2   0.0000000406        1.04890      -24.7710821904         0.0
+ ROOT   3   0.0000000406        1.04890      -24.7710821904         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   9
+ ROOT   1   0.0000000229        0.00000      -24.8096286253         0.0
+ ROOT   2   0.0000000040        1.04890      -24.7710821904         0.0
+ ROOT   3   0.0000000040        1.04890      -24.7710821904         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER  10
+ ROOT   1   0.0000000016        0.00000      -24.8096286253         0.0
+ ROOT   2   0.0000000003        1.04890      -24.7710821904         0.0
+ ROOT   3   0.0000000003        1.04890      -24.7710821904         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER  11
+ ROOT   1   0.0000000000        0.00000      -24.8096286253         0.0
+ ROOT   2   0.0000000000        1.04890      -24.7710821904         0.0
+ ROOT   3   0.0000000000        1.04890      -24.7710821904         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER  12
+ ROOT   1   0.0000000000        0.00000      -24.8096286253         0.0
+ ROOT   2   0.0000000000        1.04890      -24.7710821904         0.0
+ ROOT   3   0.0000000000        1.04890      -24.7710821904         0.0
+-----------------------------------------------------------------------
+ROOT   1   0.0000000000 EV
+ %SINGLES =   0.09
+ %DOUBLES =   8.26
+ < S**2 > =   0.0000
+ DETERMINANT (     1     1 )   0.9569
+ DETERMINANT (     2     2 )  -0.1513
+ DETERMINANT (     3     3 )  -0.1513
+ROOT   2   1.0489022923 EV
+ %SINGLES =  97.73
+ %DOUBLES =   0.83
+ < S**2 > =   2.0000
+ DETERMINANT (     1     2 )  -0.6596
+ DETERMINANT (     1     3 )   0.2203
+ DETERMINANT (     2     1 )   0.6596
+ DETERMINANT (     3     1 )  -0.2203
+ROOT   3   1.0489022923 EV
+ %SINGLES =  97.73
+ %DOUBLES =   0.83
+ < S**2 > =   2.0000
+ DETERMINANT (     1     2 )   0.2203
+ DETERMINANT (     1     3 )   0.6596
+ DETERMINANT (     2     1 )  -0.2203
+ DETERMINANT (     3     1 )  -0.6596
+HIGH-ORDER COUPLED-CLUSTER CALCULATIONS WILL BE PERFORMED
+H EXP(T) ALGORITHM WILL BE USED
+CC ORDER IS  2
+DIIS EXTRAPOLATION WILL BE PERFORMED ONCE IN  3 ITERATIONS
+ESTIMATED MEMORY USAGE WILL BE     3.2 KB
+-----------------------------------------------------------------
+ITR     DEVIATION     CORRELATION        TOTAL ENERGY   CPU / SEC
+  1   0.2216486886   0.0000000000      -24.7527884257         0.0
+  2   0.0985228022  -0.0290023387      -24.7817907644         0.0
+  3   0.0511265605  -0.0422238838      -24.7950123095         0.0
+DIIS VECTOR  2.769 -2.126  0.357  0.000
+  4   0.0140354491  -0.0552378785      -24.8080263042         0.0
+  5   0.0061373880  -0.0558438709      -24.8086322966         0.0
+  6   0.0036505722  -0.0561369140      -24.8089253397         0.0
+DIIS VECTOR  3.727 -3.213 -1.128  4.486 -3.450  0.578  0.000
+  7   0.0021026921  -0.0568344067      -24.8096228324         0.0
+  8   0.0006738048  -0.0568206669      -24.8096090926         0.0
+  9   0.0003555465  -0.0567756547      -24.8095640804         0.0
+DIIS VECTOR  1.394 -0.405  5.357-20.083 17.351 -2.576 -0.209  0.193 -0.022  0.000
+ 10   0.0002884481  -0.0566404793      -24.8094289051         0.0
+ 11   0.0001503570  -0.0566623518      -24.8094507776         0.0
+ 12   0.0000905262  -0.0566772656      -24.8094656914         0.0
+DIIS VECTOR  3.973 -4.176  0.318  1.482 -0.687  0.051  0.024  0.008  0.003 -0.001  0.006 -0.001  0.000
+ 13   0.0000074155  -0.0566976797      -24.8094861054         0.0
+ 14   0.0000034420  -0.0566979544      -24.8094863801         0.0
+ 15   0.0000020813  -0.0566982176      -24.8094866434         0.0
+DIIS VECTOR-11.012 15.452 -3.619  0.413 -0.304  0.008  0.086 -0.018 -0.002 -0.015  0.012 -0.002  0.001 -0.000 -0.000  0.000
+ 16   0.0000002243  -0.0566986083      -24.8094870341         0.0
+-----------------------------------------------------------------
+CONVERGED T-AMPLITUDES
+ T(     2-ALPHA      2-BETA ) =   -0.15876
+ T(     2-ALPHA      5-BETA ) =    0.07419
+ T(     3-ALPHA      3-BETA ) =   -0.15876
+ T(     3-ALPHA      6-BETA ) =    0.07419
+ T(     4-ALPHA      4-BETA ) =   -0.05593
+ T(     5-ALPHA      2-BETA ) =    0.07419
+ T(     5-ALPHA      5-BETA ) =   -0.05587
+ T(     6-ALPHA      3-BETA ) =    0.07419
+ T(     6-ALPHA      6-BETA ) =   -0.05587
+ T(     7-ALPHA      7-BETA ) =   -0.06588
+HIGH-ORDER EQUATION-OF-MOTION COUPLED CLUSTER CALCULATIONS WILL BE PERFORMED
+RIGHT-HAND EIGENVECTORS WILL BE SOUGHT
+THE ORDER OF COUPLED CLUSTER            =  2
+THE ORDER OF LINEAR EXCITATION OPERATOR =  1
+THE NUMBER OF EOMCC ROOTS SOUGHT    3
+THE NUMBER OF INITIAL TRIAL VECTORS    5
+ESTIMATED MEMORY USAGE WILL BE     3.2 KB
+-----------------------------------------------------------------------
+             DEVIATION        OMEGA / EV       TOTAL ENERGY   CPU / SEC
+ ITER   1
+ ROOT   1   0.0000000603        0.00000      -24.8094870341         0.0
+ ROOT   2   0.0452032875        1.43364      -24.7568018724         0.0
+ ROOT   3   0.0452032875        1.43364      -24.7568018724         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   2
+ ROOT   1   0.0000000025        0.00000      -24.8094870340         0.0
+ ROOT   2   0.0000000000        1.29136      -24.7620306194         0.0
+ ROOT   3   0.0000000000        1.29136      -24.7620306194         0.0
+  1 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   3
+ ROOT   1   0.0000000000        0.00000      -24.8094870340         0.0
+ ROOT   2   0.0000000000        1.29136      -24.7620306194         0.0
+ ROOT   3   0.0000000000        1.29136      -24.7620306194         0.0
+-----------------------------------------------------------------------
+ROOT   1   0.0000000000 EV
+ %SINGLES (CC) =   0.00
+ %DOUBLES (CC) =   0.00
+ < S**2 > =   0.0000
+ %SINGLES (CI) =   0.09
+ %DOUBLES (CI) =   8.26
+ EFFFECTIVE DETERMINANT (     1     1 )   0.9570
+ EFFFECTIVE DETERMINANT (     2     2 )  -0.1519
+ EFFFECTIVE DETERMINANT (     3     3 )  -0.1519
+ROOT   2   1.2913552748 EV
+ %SINGLES (CC) = 100.00
+ %DOUBLES (CC) =   0.00
+ < S**2 > =   2.0000
+ %SINGLES (CI) =  98.68
+ %DOUBLES (CI) =   0.06
+ EFFFECTIVE DETERMINANT (     1     2 )   0.6016
+ EFFFECTIVE DETERMINANT (     1     3 )   0.3526
+ EFFFECTIVE DETERMINANT (     2     1 )  -0.6016
+ EFFFECTIVE DETERMINANT (     3     1 )  -0.3526
+ROOT   3   1.2913552748 EV
+ %SINGLES (CC) = 100.00
+ %DOUBLES (CC) =   0.00
+ < S**2 > =   2.0000
+ %SINGLES (CI) =  98.68
+ %DOUBLES (CI) =   0.06
+ EFFFECTIVE DETERMINANT (     1     2 )   0.3078
+ EFFFECTIVE DETERMINANT (     1     3 )  -0.6257
+ EFFFECTIVE DETERMINANT (     2     1 )  -0.3078
+ EFFFECTIVE DETERMINANT (     3     1 )   0.6257
+HIGH-ORDER EQUATION-OF-MOTION COUPLED CLUSTER CALCULATIONS WILL BE PERFORMED
+RIGHT-HAND EIGENVECTORS WILL BE SOUGHT
+THE ORDER OF COUPLED CLUSTER            =  2
+THE ORDER OF LINEAR EXCITATION OPERATOR =  2
+THE NUMBER OF EOMCC ROOTS SOUGHT    3
+THE NUMBER OF INITIAL TRIAL VECTORS    9
+ESTIMATED MEMORY USAGE WILL BE     3.2 KB
+-----------------------------------------------------------------------
+             DEVIATION        OMEGA / EV       TOTAL ENERGY   CPU / SEC
+ ITER   1
+ ROOT   1   0.0000001355        0.00000      -24.8094870786         0.0
+ ROOT   2   0.1113658496        1.43364      -24.7568018724         0.0
+ ROOT   3   0.1113658496        1.43364      -24.7568018724         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   2
+ ROOT   1   0.0000000091        0.00000      -24.8094870765         0.0
+ ROOT   2   0.0186904678        1.08196      -24.7697259601         0.0
+ ROOT   3   0.0186904678        1.08196      -24.7697259601         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   3
+ ROOT   1   0.0000000016        0.00000      -24.8094870764         0.0
+ ROOT   2   0.0030919783        1.07221      -24.7700842765         0.0
+ ROOT   3   0.0030919783        1.07221      -24.7700842765         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   4
+ ROOT   1   0.0000000003        0.00000      -24.8094870764         0.0
+ ROOT   2   0.0004787336        1.07179      -24.7700994381         0.0
+ ROOT   3   0.0004787336        1.07179      -24.7700994381         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   5
+ ROOT   1   0.0000000000        0.00000      -24.8094870764         0.0
+ ROOT   2   0.0000422983        1.07185      -24.7700975029         0.0
+ ROOT   3   0.0000422983        1.07185      -24.7700975029         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   6
+ ROOT   1   0.0000000000        0.00000      -24.8094870764         0.0
+ ROOT   2   0.0000000609        1.07184      -24.7700978600         0.0
+ ROOT   3   0.0000000609        1.07184      -24.7700978600         0.0
+  2 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   7
+ ROOT   1   0.0000000000        0.00000      -24.8094870764         0.0
+ ROOT   2   0.0000000000        1.07184      -24.7700978594         0.0
+ ROOT   3   0.0000000000        1.07184      -24.7700978594         0.0
+-----------------------------------------------------------------------
+ROOT   1   0.0000000000 EV
+ %SINGLES (CC) =   0.00
+ %DOUBLES (CC) =   0.00
+ < S**2 > =   0.0000
+ %SINGLES (CI) =   0.09
+ %DOUBLES (CI) =   8.26
+ EFFFECTIVE DETERMINANT (     1     1 )   0.9570
+ EFFFECTIVE DETERMINANT (     2     2 )  -0.1519
+ EFFFECTIVE DETERMINANT (     3     3 )  -0.1519
+ROOT   2   1.0718355700 EV
+ %SINGLES (CC) =  98.93
+ %DOUBLES (CC) =   1.07
+ < S**2 > =   2.0000
+ %SINGLES (CI) =  97.89
+ %DOUBLES (CI) =   0.81
+ EFFFECTIVE DETERMINANT (     1     2 )  -0.6688
+ EFFFECTIVE DETERMINANT (     1     3 )  -0.1918
+ EFFFECTIVE DETERMINANT (     2     1 )   0.6688
+ EFFFECTIVE DETERMINANT (     3     1 )   0.1918
+ROOT   3   1.0718355700 EV
+ %SINGLES (CC) =  98.93
+ %DOUBLES (CC) =   1.07
+ < S**2 > =   2.0000
+ %SINGLES (CI) =  97.89
+ %DOUBLES (CI) =   0.81
+ EFFFECTIVE DETERMINANT (     1     2 )   0.1762
+ EFFFECTIVE DETERMINANT (     1     3 )  -0.6731
+ EFFFECTIVE DETERMINANT (     2     1 )  -0.1762
+ EFFFECTIVE DETERMINANT (     3     1 )   0.6731
+HIGH-ORDER EQUATION-OF-MOTION COUPLED CLUSTER CALCULATIONS WILL BE PERFORMED
+RIGHT-HAND EIGENVECTORS WILL BE SOUGHT
+THE ORDER OF COUPLED CLUSTER            =  2
+THE ORDER OF LINEAR EXCITATION OPERATOR =  3
+THE NUMBER OF EOMCC ROOTS SOUGHT    3
+THE NUMBER OF INITIAL TRIAL VECTORS    9
+ESTIMATED MEMORY USAGE WILL BE     3.2 KB
+-----------------------------------------------------------------------
+             DEVIATION        OMEGA / EV       TOTAL ENERGY   CPU / SEC
+ ITER   1
+ ROOT   1   0.0087518233        0.00000      -24.8094870786         0.0
+ ROOT   2   0.1123460150        1.43364      -24.7568018724         0.0
+ ROOT   3   0.1123460150        1.43364      -24.7568018724         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   2
+ ROOT   1   0.0014419591        0.00000      -24.8093768218         0.0
+ ROOT   2   0.0209596813        1.05888      -24.7704637347         0.0
+ ROOT   3   0.0209596813        1.05888      -24.7704637347         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   3
+ ROOT   1   0.0002081770        0.00000      -24.8095252353         0.0
+ ROOT   2   0.0042809731        1.04491      -24.7711254268         0.0
+ ROOT   3   0.0042809731        1.04491      -24.7711254268         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   4
+ ROOT   1   0.0000450892        0.00000      -24.8095432436         0.0
+ ROOT   2   0.0007556080        1.04812      -24.7710256473         0.0
+ ROOT   3   0.0007556080        1.04812      -24.7710256473         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   5
+ ROOT   1   0.0000047534        0.00000      -24.8095426205         0.0
+ ROOT   2   0.0001070768        1.04752      -24.7710470176         0.0
+ ROOT   3   0.0001070768        1.04752      -24.7710470176         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   6
+ ROOT   1   0.0000005142        0.00000      -24.8095425617         0.0
+ ROOT   2   0.0000059054        1.04754      -24.7710460992         0.0
+ ROOT   3   0.0000059054        1.04754      -24.7710460992         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   7
+ ROOT   1   0.0000000364        0.00000      -24.8095425992         0.0
+ ROOT   2   0.0000002978        1.04755      -24.7710457198         0.0
+ ROOT   3   0.0000002978        1.04755      -24.7710457198         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   8
+ ROOT   1   0.0000000037        0.00000      -24.8095426018         0.0
+ ROOT   2   0.0000000354        1.04755      -24.7710457004         0.0
+ ROOT   3   0.0000000354        1.04755      -24.7710457004         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   9
+ ROOT   1   0.0000000000        0.00000      -24.8095426019         0.0
+ ROOT   2   0.0000000023        1.04755      -24.7710456988         0.0
+ ROOT   3   0.0000000023        1.04755      -24.7710456988         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER  10
+ ROOT   1   0.0000000000        0.00000      -24.8095426019         0.0
+ ROOT   2   0.0000000001        1.04755      -24.7710456989         0.0
+ ROOT   3   0.0000000001        1.04755      -24.7710456989         0.0
+  2 TRIAL VECTORS HAVE BEEN ADDED
+ ITER  11
+ ROOT   1   0.0000000000        0.00000      -24.8095426019         0.0
+ ROOT   2   0.0000000000        1.04755      -24.7710456989         0.0
+ ROOT   3   0.0000000000        1.04755      -24.7710456989         0.0
+-----------------------------------------------------------------------
+ROOT   1   0.0000000000 EV
+ %SINGLES (CC) =   0.00
+ %DOUBLES (CC) =   0.00
+ < S**2 > =   0.0000
+ %SINGLES (CI) =   0.09
+ %DOUBLES (CI) =   8.23
+ EFFFECTIVE DETERMINANT (     1     1 )   0.9571
+ EFFFECTIVE DETERMINANT (     2     2 )  -0.1509
+ EFFFECTIVE DETERMINANT (     3     3 )  -0.1509
+ROOT   2   1.0475544599 EV
+ %SINGLES (CC) =  98.89
+ %DOUBLES (CC) =   1.09
+ < S**2 > =   2.0000
+ %SINGLES (CI) =  97.74
+ %DOUBLES (CI) =   0.83
+ EFFFECTIVE DETERMINANT (     1     2 )   0.3838
+ EFFFECTIVE DETERMINANT (     1     3 )   0.5799
+ EFFFECTIVE DETERMINANT (     2     1 )  -0.3838
+ EFFFECTIVE DETERMINANT (     3     1 )  -0.5799
+ROOT   3   1.0475544599 EV
+ %SINGLES (CC) =  98.89
+ %DOUBLES (CC) =   1.09
+ < S**2 > =   2.0000
+ %SINGLES (CI) =  97.74
+ %DOUBLES (CI) =   0.83
+ EFFFECTIVE DETERMINANT (     1     2 )  -0.5470
+ EFFFECTIVE DETERMINANT (     1     3 )   0.4294
+ EFFFECTIVE DETERMINANT (     2     1 )   0.5470
+ EFFFECTIVE DETERMINANT (     3     1 )  -0.4294
+HIGH-ORDER EQUATION-OF-MOTION COUPLED CLUSTER CALCULATIONS WILL BE PERFORMED
+RIGHT-HAND EIGENVECTORS WILL BE SOUGHT
+THE ORDER OF COUPLED CLUSTER            =  2
+THE ORDER OF LINEAR EXCITATION OPERATOR =  4
+THE NUMBER OF EOMCC ROOTS SOUGHT    3
+THE NUMBER OF INITIAL TRIAL VECTORS    9
+ESTIMATED MEMORY USAGE WILL BE     3.2 KB
+-----------------------------------------------------------------------
+             DEVIATION        OMEGA / EV       TOTAL ENERGY   CPU / SEC
+ ITER   1
+ ROOT   1   0.0093871855        0.00000      -24.8094870786         0.0
+ ROOT   2   0.1123686062        1.43364      -24.7568018724         0.0
+ ROOT   3   0.1123686062        1.43364      -24.7568018724         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   2
+ ROOT   1   0.0016617226        0.00000      -24.8094375687         0.0
+ ROOT   2   0.0210025962        1.06027      -24.7704734818         0.0
+ ROOT   3   0.0210025962        1.06027      -24.7704734818         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   3
+ ROOT   1   0.0002526134        0.00000      -24.8096125379         0.0
+ ROOT   2   0.0043473603        1.04667      -24.7711481839         0.0
+ ROOT   3   0.0043473603        1.04667      -24.7711481839         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   4
+ ROOT   1   0.0000492495        0.00000      -24.8096300829         0.0
+ ROOT   2   0.0007177193        1.04896      -24.7710814083         0.0
+ ROOT   3   0.0007177193        1.04896      -24.7710814083         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   5
+ ROOT   1   0.0000087312        0.00000      -24.8096285251         0.0
+ ROOT   2   0.0000898540        1.04887      -24.7710831463         0.0
+ ROOT   3   0.0000898540        1.04887      -24.7710831463         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   6
+ ROOT   1   0.0000013659        0.00000      -24.8096285615         0.0
+ ROOT   2   0.0000063543        1.04890      -24.7710822168         0.0
+ ROOT   3   0.0000063543        1.04890      -24.7710822168         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   7
+ ROOT   1   0.0000001544        0.00000      -24.8096286137         0.0
+ ROOT   2   0.0000005251        1.04890      -24.7710821926         0.0
+ ROOT   3   0.0000005251        1.04890      -24.7710821926         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   8
+ ROOT   1   0.0000000088        0.00000      -24.8096286256         0.0
+ ROOT   2   0.0000000560        1.04890      -24.7710821846         0.0
+ ROOT   3   0.0000000560        1.04890      -24.7710821846         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER   9
+ ROOT   1   0.0000000003        0.00000      -24.8096286253         0.0
+ ROOT   2   0.0000000023        1.04890      -24.7710821903         0.0
+ ROOT   3   0.0000000023        1.04890      -24.7710821903         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER  10
+ ROOT   1   0.0000000000        0.00000      -24.8096286253         0.0
+ ROOT   2   0.0000000001        1.04890      -24.7710821904         0.0
+ ROOT   3   0.0000000001        1.04890      -24.7710821904         0.0
+  3 TRIAL VECTORS HAVE BEEN ADDED
+ ITER  11
+ ROOT   1   0.0000000000        0.00000      -24.8096286253         0.0
+ ROOT   2   0.0000000000        1.04890      -24.7710821904         0.0
+ ROOT   3   0.0000000000        1.04890      -24.7710821904         0.0
+-----------------------------------------------------------------------
+ROOT   1   0.0000000000 EV
+ %SINGLES (CC) =   0.00
+ %DOUBLES (CC) =   0.00
+ < S**2 > =   0.0000
+ %SINGLES (CI) =   0.09
+ %DOUBLES (CI) =   8.26
+ EFFFECTIVE DETERMINANT (     1     1 )   0.9569
+ EFFFECTIVE DETERMINANT (     2     2 )  -0.1513
+ EFFFECTIVE DETERMINANT (     3     3 )  -0.1513
+ROOT   2   1.0489022923 EV
+ %SINGLES (CC) =  98.89
+ %DOUBLES (CC) =   1.09
+ < S**2 > =   2.0000
+ %SINGLES (CI) =  97.73
+ %DOUBLES (CI) =   0.83
+ EFFFECTIVE DETERMINANT (     1     2 )  -0.6727
+ EFFFECTIVE DETERMINANT (     1     3 )  -0.1761
+ EFFFECTIVE DETERMINANT (     2     1 )   0.6727
+ EFFFECTIVE DETERMINANT (     3     1 )   0.1761
+ROOT   3   1.0489022923 EV
+ %SINGLES (CC) =  98.89
+ %DOUBLES (CC) =   1.09
+ < S**2 > =   2.0000
+ %SINGLES (CI) =  97.73
+ %DOUBLES (CI) =   0.83
+ EFFFECTIVE DETERMINANT (     1     2 )  -0.2025
+ EFFFECTIVE DETERMINANT (     1     3 )   0.6652
+ EFFFECTIVE DETERMINANT (     2     1 )   0.2025
+ EFFFECTIVE DETERMINANT (     3     1 )  -0.6652
+Exiting from polymer program
