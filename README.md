@@ -34,6 +34,12 @@ Modify MPI Fortran90 compiler and compile options in "Makefile," and then
      $ cd src
      $ make
 
+When pmodules.f90 is modified, 
+
+     $ cd src
+     $ make clean
+     $ make
+
 # how to execute interactively
 
 Modify directory information in "debug," and then
