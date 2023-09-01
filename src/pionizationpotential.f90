@@ -1931,6 +1931,8 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
    double precision,allocatable :: c_eri(:,:,:,:)
    double precision,allocatable :: sigma(:,:,:)
    double precision,allocatable :: wpaij(:,:,:),upaij(:,:,:),wpiab(:,:,:),upiab(:,:,:)
+   double precision,allocatable :: tabpi(:,:,:,:),sqaij(:,:,:,:),tda(:,:)
+   double precision,allocatable :: tabpi2(:,:,:,:),sqaij2(:,:,:,:)
    integer :: ispin,jspin,kspin,lspin,l,ii,jj,kk,ll
    integer :: aspin,bspin,cspin,dspin,a,b,c,d,aa,bb,ccc,dd
    integer :: pspin,qspin,rspin,sspin,p,q,r,s,pp,qq,rr,ss
@@ -3413,7 +3415,196 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
    call dump5(sigma(:,:,2),iall(0,0,0)-ivirtcore)
    call dump5(sigma(:,:,3),iall(0,0,0)-ivirtcore)
 
-   deallocate(sigma)
+   ! 2ph TDA
+   write(*,'(A)') "***********"
+   write(*,'(A)') "* 2ph-TDA *"
+   write(*,'(A)') "***********"
+   write(*,'(A,E20.10)') '2ph-TDA @ OMEGA = ',OMEGA
+
+   allocate(tda(iall(0,0,0)-icore,iall(0,0,0)-icore))
+   allocate(tabpi(iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2))
+   allocate(sqaij(iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2))
+   allocate(tabpi2(iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2))
+   allocate(sqaij2(iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2))
+
+   tabpi=0.0d0
+   sqaij=0.0d0
+
+   do mloop=1,20
+   write(*,*) "2ph-TDA loop",mloop
+ 
+   do aspin=1,2
+    do a=iocc+1,iall(0,0,0)-ivirtcore
+     aa=(aspin-1)*iall(0,0,0)+a
+     do bspin=1,2
+      do b=iocc+1,iall(0,0,0)-ivirtcore
+       bb=(bspin-1)*iall(0,0,0)+b
+       do pspin=1,2
+        do p=icore+1,iall(0,0,0)-ivirtcore
+         pp=(pspin-1)*iall(0,0,0)+p
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+           tabpi2(aa,bb,pp,ii)=c_eri(aa,bb,pp,ii)/(omega+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+! -----------------------------------
+           do cspin=1,2
+            do c=iocc+1,iall(0,0,0)-ivirtcore
+             ccc=(cspin-1)*iall(0,0,0)+c
+             do kspin=1,2
+              do k=icore+1,iocc
+               kk=(kspin-1)*iall(0,0,0)+k
+! -----------------------------------
+               tabpi2(aa,bb,pp,ii)=tabpi2(aa,bb,pp,ii)-c_eri(aa,kk,ccc,ii)*tabpi(ccc,bb,pp,kk) &
+                                  /(omega+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+               tabpi2(aa,bb,pp,ii)=tabpi2(aa,bb,pp,ii)+c_eri(bb,kk,ccc,ii)*tabpi(ccc,aa,pp,kk) &
+                                  /(omega+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+           do cspin=1,2
+            do c=iocc+1,iall(0,0,0)-ivirtcore
+             ccc=(cspin-1)*iall(0,0,0)+c
+             do dspin=1,2
+              do d=iocc+1,iall(0,0,0)-ivirtcore
+               dd=(dspin-1)*iall(0,0,0)+d
+! -----------------------------------
+               tabpi2(aa,bb,pp,ii)=tabpi2(aa,bb,pp,ii)+0.5d0*c_eri(aa,bb,ccc,dd)*tabpi(ccc,dd,pp,ii) &
+                                  /(omega+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+   enddo
+
+   do qspin=1,2
+    do q=icore+1,iall(0,0,0)-ivirtcore
+     qq=(qspin-1)*iall(0,0,0)+q
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           sqaij2(qq,aa,ii,jj)=c_eri(qq,aa,ii,jj)/(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega-epsilon(a,0,0,0))
+! -----------------------------------
+           do cspin=1,2
+            do c=iocc+1,iall(0,0,0)-ivirtcore
+             ccc=(cspin-1)*iall(0,0,0)+c
+             do kspin=1,2
+              do k=icore+1,iocc
+               kk=(kspin-1)*iall(0,0,0)+k
+! -----------------------------------
+               sqaij2(qq,aa,ii,jj)=sqaij2(qq,aa,ii,jj)-c_eri(kk,aa,ii,ccc)*sqaij(qq,ccc,kk,jj) &
+                                  /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega-epsilon(a,0,0,0))
+               sqaij2(qq,aa,ii,jj)=sqaij2(qq,aa,ii,jj)+c_eri(kk,aa,jj,ccc)*sqaij(qq,ccc,kk,ii) &
+                                  /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega-epsilon(a,0,0,0))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+           do kspin=1,2
+            do k=icore+1,iocc
+             kk=(kspin-1)*iall(0,0,0)+k
+             do lspin=1,2
+              do l=icore+1,iocc
+               ll=(lspin-1)*iall(0,0,0)+l
+! -----------------------------------
+               sqaij2(qq,aa,ii,jj)=sqaij2(qq,aa,ii,jj)+0.5d0*c_eri(kk,ll,ii,jj)*sqaij(qq,aa,kk,ll) &
+                                  /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega-epsilon(a,0,0,0))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+   enddo
+
+   tabpi=tabpi2
+   sqaij=sqaij2
+
+   tda=0.0d0
+
+   do pspin=1,1 ! alpha spin only
+    do p=icore+1,iall(0,0,0)-ivirtcore
+     pp=(pspin-1)*iall(0,0,0)+p
+     do qspin=1,1 ! alpha spin only
+      do q=icore+1,iall(0,0,0)-ivirtcore
+       qq=(qspin-1)*iall(0,0,0)+q
+
+       do aspin=1,2
+        do a=iocc+1,iall(0,0,0)-ivirtcore
+         aa=(aspin-1)*iall(0,0,0)+a
+         do bspin=1,2
+          do b=iocc+1,iall(0,0,0)-ivirtcore
+           bb=(bspin-1)*iall(0,0,0)+b
+           do ispin=1,2
+            do i=icore+1,iocc
+             ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+             tda(pp-icore,qq-icore)=tda(pp-icore,qq-icore)+0.5d0*c_eri(qq,ii,aa,bb)*tabpi(aa,bb,pp,ii)
+! -----------------------------------
+            enddo
+           enddo
+          enddo
+         enddo
+        enddo
+       enddo
+         
+       do aspin=1,2
+        do a=iocc+1,iall(0,0,0)-ivirtcore
+         aa=(aspin-1)*iall(0,0,0)+a
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+           do jspin=1,2
+            do j=icore+1,iocc
+             jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+             tda(pp-icore,qq-icore)=tda(pp-icore,qq-icore)-0.5d0*c_eri(ii,jj,pp,aa)*sqaij(qq,aa,ii,jj)
+! -----------------------------------
+            enddo
+           enddo
+          enddo
+         enddo
+        enddo
+       enddo
+
+      enddo
+     enddo
+    enddo
+   enddo
+
+   call dump5(tda,iall(0,0,0)-icore)
+
+   enddo ! 2ph-TDA loop
+
+   deallocate(tabpi,sqaij)
+   deallocate(tabpi2,sqaij2)
+   deallocate(tda)
+
+   ! ... 2phTDA
 
    goto 10
 
