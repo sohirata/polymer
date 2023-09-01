@@ -142,7 +142,8 @@ SUBROUTINE PRINT_ENERGYBANDS(IALG)
    INTEGER :: IALG ! = 1: HF/DFT; =2: MP2; =3: GF2
    INTEGER :: IX,IY,IZ,I,J,KX,KY,KZ,L,M
    DOUBLE PRECISION :: DGAP,IGAP
-   DOUBLE PRECISION :: MAXE,MINE,F1,F2,N1,N2
+   DOUBLE PRECISION :: MAXE,MINE,F1,F2,F12,N1,N2,N12
+   DOUBLE PRECISION :: TEMPHF,TEMP
    INTEGER :: N,NB
    INTEGER :: NMOD
    DOUBLE PRECISION,ALLOCATABLE :: E(:,:,:,:)
@@ -150,28 +151,47 @@ SUBROUTINE PRINT_ENERGYBANDS(IALG)
    IF ((IALG > 1).AND.(IOPTN(44) <= 0)) RETURN
 
    ALLOCATE(E(NCGS,-KVCX:KVCX,-KVCY:KVCY,-KVCZ:KVCZ))
+   IF (DOPTN(108) > 0.0D0) THEN
+    TEMPHF=DOPTN(108)
+   ELSE IF (DOPTN(108) == 0.0D0) THEN
+    TEMPHF=1.0D0
+   ELSE
+    CALL PABORT('ILLEGAL HF TEMPERATURE')
+   ENDIF
    IF (IALG == 1) THEN
     NB=NCGS
     NMOD=1
     E=EPSILON
+    TEMP=DOPTN(108)
     IF (MYID == 0) WRITE(6,'(A)') 'HF/DFT ENERGY BANDS'
+    IF ((DOPTN(108) > 0.0D0).AND.(MYID == 0)) THEN
+     WRITE(6,'(A)') '*********************************************'
+     WRITE(6,'(A,E22.15,A)') '* HF TEMPERATURE = ',TEMPHF,' K *'
+     WRITE(6,'(A)') '*********************************************'
+    ENDIF
    ELSE IF (IALG == 2) THEN
     NB=IOPTN(44)
     NMOD=IOPTN(99)
     E=QEPSILON
+    TEMP=DOPTN(98)
     IF (MYID == 0) WRITE(6,'(A)') 'MP2 QUASI-PARTICLE ENERGY BANDS (DIAGONAL, FREQ-INDEP)'
+    IF ((TEMP > 0.0D0).AND.(MYID == 0)) THEN
+     WRITE(6,'(A)') '*********************************************'
+     WRITE(6,'(A,E22.15,A)') '* MP TEMPERATURE = ',TEMP,' K *'
+     WRITE(6,'(A)') '*********************************************'
+    ENDIF
    ELSE IF (IALG == 3) THEN
     NB=IOPTN(44)
     NMOD=IOPTN(99)
     E=DEPSILON
+    TEMP=DOPTN(98)
     IF ((MYID == 0).AND.(LOPTN(106)))      WRITE(6,'(A)') 'GF2 QUASI-PARTICLE ENERGY BANDS (DIAGONAL, FREQ-DEP)'
     IF ((MYID == 0).AND.(.NOT.LOPTN(106))) WRITE(6,'(A)') 'GF2 QUASI-PARTICLE ENERGY BANDS (NONDIAGONAL, FREQ-DEP)'
-   ENDIF
-
-   IF ((DOPTN(98) > 0.0D0).AND.(MYID == 0)) THEN
-    WRITE(6,'(A)') '*********************************************'
-    WRITE(6,'(A,E22.15,A)') '* MP TEMPERATURE = ',DOPTN(98),' K *'
-    WRITE(6,'(A)') '*********************************************'
+    IF ((TEMP > 0.0D0).AND.(MYID == 0)) THEN
+     WRITE(6,'(A)') '*********************************************'
+     WRITE(6,'(A,E22.15,A)') '* MP TEMPERATURE = ',TEMP,' K *'
+     WRITE(6,'(A)') '*********************************************'
+    ENDIF
    ENDIF
 
 !  COUNT THE NUMBER OF ELECTRONS IN A UNIT CELL.  IF THE NUMBER IS ODD, THEN THE PROGRAM PABORTS.
@@ -184,78 +204,94 @@ SUBROUTINE PRINT_ENERGYBANDS(IALG)
    IF (MYID == 0) WRITE(6,'(A,I3)') 'NUMBER OF ELECTRONS = ',N
 
 !  DETERMINE THE FERMI LEVEL
-   IF (DOPTN(98) > 0.0D0) THEN
-    IF (MYID == 0) WRITE(6,'(A)') 'DETERMINING THE FERMI LEVEL'
-    MAXE=-1.0D99
-    MINE=1.0D99
+   IF (MYID == 0) WRITE(6,'(A)') 'DETERMINING THE FERMI LEVEL'
+   MAXE=-1.0D99
+   MINE=1.0D99
+   DO IX=-KVCX,MAX(0,KVCX-1)
+   DO IY=-KVCY,MAX(0,KVCY-1)
+   DO IZ=-KVCZ,MAX(0,KVCZ-1)
+    DO J=1,NCGS
+     IF (EPSILON(J,IX,IY,IZ) > MAXE) MAXE=EPSILON(J,IX,IY,IZ)
+     IF (EPSILON(J,IX,IY,IZ) < MINE) MINE=EPSILON(J,IX,IY,IZ)
+    ENDDO
+   ENDDO
+   ENDDO
+   ENDDO
+   F1=MINE
+   F12=(MINE+MAXE)/2.0D0
+   F2=MAXE
+   DO WHILE (.TRUE.)
+    N1=0.0D0
+    DO IX=-KVCX,MAX(0,KVCX-1)
+    DO IY=-KVCY,MAX(0,KVCY-1)
+    DO IZ=-KVCZ,MAX(0,KVCZ-1)
+     DO J=1,NCGS
+      N1=N1+2.0D0/(DEXP((EPSILON(J,IX,IY,IZ)-F1)/BOLTZMANN/TEMPHF)+1.0D0)
+     ENDDO
+    ENDDO
+    ENDDO
+    ENDDO
+    N1=N1/DFLOAT(MAX(1,2*KVCX)*MAX(1,2*KVCY)*MAX(1,2*KVCZ))-DFLOAT(N)
+    N2=0.0D0
+    DO IX=-KVCX,MAX(0,KVCX-1)
+    DO IY=-KVCY,MAX(0,KVCY-1)
+    DO IZ=-KVCZ,MAX(0,KVCZ-1)
+     DO J=1,NCGS
+      N2=N2+2.0D0/(DEXP((EPSILON(J,IX,IY,IZ)-F2)/BOLTZMANN/TEMPHF)+1.0D0)
+     ENDDO
+    ENDDO
+    ENDDO
+    ENDDO
+    N2=N2/DFLOAT(MAX(1,2*KVCX)*MAX(1,2*KVCY)*MAX(1,2*KVCZ))-DFLOAT(N)
+    N12=0.0D0
+    DO IX=-KVCX,MAX(0,KVCX-1)
+    DO IY=-KVCY,MAX(0,KVCY-1)
+    DO IZ=-KVCZ,MAX(0,KVCZ-1)
+     DO J=1,NCGS
+      N12=N12+2.0D0/(DEXP((EPSILON(J,IX,IY,IZ)-F12)/BOLTZMANN/TEMPHF)+1.0D0)
+     ENDDO
+    ENDDO
+    ENDDO
+    ENDDO
+    N12=N12/DFLOAT(MAX(1,2*KVCX)*MAX(1,2*KVCY)*MAX(1,2*KVCZ))-DFLOAT(N)
+
+    IF (IOPTN(9) >= 2) WRITE(6,'(3(A,F7.3,A,F10.7))') 'MUMIN=',F1, ': DeltaN=',N1, &
+                                                  '    MUMID=',F12,': DeltaN=',N12,&
+                                                  '    MUMAX=',F2, ': DeltaN=',N2
+    IF (N1 > N12) CALL PABORT('DETERMINATION OF FERMI ENERGY FAILED 2')
+    IF (N12 > N2) CALL PABORT('DETERMINATION OF FERMI ENERGY FAILED 3')
+    IF (DABS(N12) < 1.0D-10) THEN
+     FERMI=F12
+     IF (IOPTN(9) >= 2) WRITE(6,'(A,F20.15,A)') 'FERMI ENERGY = ',FERMI
+     EXIT
+    ELSE IF ((N1 > 0.0D0).AND.(N2 > 0.0D0)) THEN
+     F2=F1
+     F1=F1-0.1D0
+    ELSE IF ((N1 < 0.0D0).AND.(N2 < 0.0D0)) THEN
+     F1=F2
+     F2=F2+0.1D0
+    ELSE IF ((N1 < 0.0D0).AND.(N12 >= 0.0D0)) THEN
+     F2=F12
+    ELSE IF ((N12 <= 0.0D0).AND.(N2 > 0.0D0)) THEN
+     F1=F12
+    ELSE
+     CALL PABORT('DETERMINATION OF FERMI ENERGY FAILED 4')
+    ENDIF
+    F12=(F1+F2)/2.0D0
+
+!   IF (F2 > MAXE) CALL PABORT('DETERMINATION OF FERMI ENERGY FAILED')
+   ENDDO
+
+   IF (IOPTN(9) == 3) THEN
     DO IX=-KVCX/NMOD,MAX(0,KVCX/NMOD-1)
     DO IY=-KVCY/NMOD,MAX(0,KVCY/NMOD-1)
     DO IZ=-KVCZ/NMOD,MAX(0,KVCZ/NMOD-1)
-     DO J=1,NCGS
-      IF (EPSILON(J,IX*NMOD,IY*NMOD,IZ*NMOD) > MAXE) MAXE=EPSILON(J,IX*NMOD,IY*NMOD,IZ*NMOD)+DOPTN(98)/100.0D0
-      IF (EPSILON(J,IX*NMOD,IY*NMOD,IZ*NMOD) < MINE) MINE=EPSILON(J,IX*NMOD,IY*NMOD,IZ*NMOD)-DOPTN(98)/100.0D0
-     ENDDO
+     IF (MYID == 0) WRITE(6,'(A,100F10.5:)') 'EPSILON = ',(EPSILON(J,IX*NMOD,IY*NMOD,IZ*NMOD),J=1,NCGS)
+     IF (MYID == 0) WRITE(6,'(A,100F10.5:)') 'WEIGHT =  ', &
+      (2.0D0/(DEXP((EPSILON(J,IX*NMOD,IY*NMOD,IZ*NMOD)-FERMI)/BOLTZMANN/TEMPHF)+1.0D0),J=1,NCGS)
     ENDDO
     ENDDO
     ENDDO
-    F1=(EPSILON(N/2+1,0,0,0)+EPSILON(N/2,0,0,0))/2.0D0-0.1D0
-    F2=(EPSILON(N/2+1,0,0,0)+EPSILON(N/2,0,0,0))/2.0D0+0.1D0
-!   F1=MINE
-!   F2=MAXE
-    N1=1.0D0
-    DO WHILE (DABS(N1) > 1.0D-13)
-     N1=0.0D0
-     DO IX=-KVCX/NMOD,MAX(0,KVCX/NMOD-1)
-     DO IY=-KVCY/NMOD,MAX(0,KVCY/NMOD-1)
-     DO IZ=-KVCZ/NMOD,MAX(0,KVCZ/NMOD-1)
-      DO J=1,NCGS
-       N1=N1+2.0D0/(DEXP((EPSILON(J,IX*NMOD,IY*NMOD,IZ*NMOD)-F1)/BOLTZMANN/DOPTN(98))+1.0D0)
-      ENDDO
-     ENDDO
-     ENDDO
-     ENDDO
-     N1=N1/DFLOAT(MAX(1,2*KVCX/NMOD)*MAX(1,2*KVCY/NMOD)*MAX(1,2*KVCZ/NMOD))-DFLOAT(N)
-     N2=0.0D0
-     DO IX=-KVCX/NMOD,MAX(0,KVCX/NMOD-1)
-     DO IY=-KVCY/NMOD,MAX(0,KVCY/NMOD-1)
-     DO IZ=-KVCZ/NMOD,MAX(0,KVCZ/NMOD-1)
-      DO J=1,NCGS
-       N2=N2+2.0D0/(DEXP((EPSILON(J,IX*NMOD,IY*NMOD,IZ*NMOD)-F2)/BOLTZMANN/DOPTN(98))+1.0D0)
-      ENDDO
-     ENDDO
-     ENDDO
-     ENDDO
-     N2=N2/DFLOAT(MAX(1,2*KVCX/NMOD)*MAX(1,2*KVCY/NMOD)*MAX(1,2*KVCZ/NMOD))-DFLOAT(N)
-     IF ((N1 == 0.0D0).AND.(N2 == 0.0D0)) THEN
-      F1=(EPSILON(N/2+1,0,0,0)+EPSILON(N/2,0,0,0))/2.0D0
-      F2=(EPSILON(N/2+1,0,0,0)+EPSILON(N/2,0,0,0))/2.0D0
-     ELSE IF ((N1 > 0.0D0).AND.(N2 > 0.0D0)) THEN
-      F2=F1
-      F1=F1-0.1D0
-     ELSE IF ((N1 < 0.0D0).AND.(N2 < 0.0D0)) THEN
-      F1=F2
-      F2=F2+0.1D0
-     ELSE IF (DABS(N1) > DABS(N2)) THEN
-      F1=(F1+F2)/2.0D0
-     ELSE
-      F2=(F1+F2)/2.0D0
-     ENDIF
-     IF (IOPTN(9) == 3) WRITE(6,'(4F20.10)') N1,N2,F1,F2
-     IF (F1 < MINE) CALL PABORT('DETERMINATION OF FERMI ENERGY FAILED')
-     IF (F2 > MAXE) CALL PABORT('DETERMINATION OF FERMI ENERGY FAILED')
-    ENDDO
-    FERMI=F1
-    IF (IOPTN(9) == 3) THEN
-     DO IX=-KVCX/NMOD,MAX(0,KVCX/NMOD-1)
-     DO IY=-KVCY/NMOD,MAX(0,KVCY/NMOD-1)
-     DO IZ=-KVCZ/NMOD,MAX(0,KVCZ/NMOD-1)
-      IF (MYID == 0) WRITE(6,'(A,100F10.5:)') 'EPSILON = ',(EPSILON(J,IX*NMOD,IY*NMOD,IZ*NMOD),J=1,NCGS)
-      IF (MYID == 0) WRITE(6,'(A,100F10.5:)') 'WEIGHT =  ', &
-       (2.0D0/(DEXP((EPSILON(J,IX*NMOD,IY*NMOD,IZ*NMOD)-FERMI)/BOLTZMANN/DOPTN(98))+1.0D0),J=1,NCGS)
-     ENDDO
-     ENDDO
-     ENDDO
-    ENDIF
    ENDIF
 
    M=0
@@ -282,31 +318,31 @@ SUBROUTINE PRINT_ENERGYBANDS(IALG)
       ELSE IF (I < IOCC+1-NB) THEN
        CYCLE
       ELSE IF (I == M) THEN
-       IF (DOPTN(98) == 0.0D0) THEN
+       IF (TEMP == 0.0D0) THEN
         WRITE(6,'(A5,3X,11F8.4)') ' HOMO',(E(I,-J*NMOD,0,0),J=L*11,L*11+10)
         IF (IALG == 3) &
          WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,-J*NMOD,0,0),J=L*11,L*11+10)
        ELSE
         WRITE(6,'(I5,3X,11F8.4)') I,(E(I,-J*NMOD,0,0),J=L*11,L*11+10)
-        WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,-J*NMOD,0,0)-FERMI)/BOLTZMANN/DOPTN(98))+1),J=L*11,L*11+10)
+        WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,-J*NMOD,0,0)-FERMI)/BOLTZMANN/TEMP)+1),J=L*11,L*11+10)
        ENDIF
       ELSE IF (I == M+1) THEN
-       IF (DOPTN(98) == 0.0D0) THEN
+       IF (TEMP == 0.0D0) THEN
         WRITE(6,'(A5,3X,11F8.4)') ' LUMO',(E(I,-J*NMOD,0,0),J=L*11,L*11+10)
         IF (IALG == 3) &
          WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,-J*NMOD,0,0),J=L*11,L*11+10)
        ELSE
         WRITE(6,'(I5,3X,11F8.4)') I,(E(I,-J*NMOD,0,0),J=L*11,L*11+10)
-        WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,-J*NMOD,0,0)-FERMI)/BOLTZMANN/DOPTN(98))+1),J=L*11,L*11+10)
+        WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,-J*NMOD,0,0)-FERMI)/BOLTZMANN/TEMP)+1),J=L*11,L*11+10)
        ENDIF
       ELSE
-       IF (DOPTN(98) == 0.0D0) THEN
+       IF (TEMP == 0.0D0) THEN
         WRITE(6,'(I5,3X,11F8.4)') I,(E(I,-J*NMOD,0,0),J=L*11,L*11+10)
         IF (IALG == 3) &
          WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,-J*NMOD,0,0),J=L*11,L*11+10)
        ELSE
         WRITE(6,'(I5,3X,11F8.4)') I,(E(I,-J*NMOD,0,0),J=L*11,L*11+10)
-        WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,-J*NMOD,0,0)-FERMI)/BOLTZMANN/DOPTN(98))+1),J=L*11,L*11+10)
+        WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,-J*NMOD,0,0)-FERMI)/BOLTZMANN/TEMP)+1),J=L*11,L*11+10)
        ENDIF
       ENDIF
      ENDDO
@@ -321,31 +357,31 @@ SUBROUTINE PRINT_ENERGYBANDS(IALG)
     ELSE IF (I < IOCC+1-NB) THEN
      CYCLE
     ELSE IF (I == M) THEN
-     IF (DOPTN(98) == 0.0D0) THEN
+     IF (TEMP == 0.0D0) THEN
       WRITE(6,'(A5,3X,11F8.4)') ' HOMO',(E(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
       IF (IALG == 3) &
        WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
      ELSE
       WRITE(6,'(I5,3X,11F8.4)') I,(E(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
-      WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,-J*NMOD,0,0)-FERMI)/BOLTZMANN/DOPTN(98))+1),J=KX*11,KVCX/NMOD)
+      WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,-J*NMOD,0,0)-FERMI)/BOLTZMANN/TEMP)+1),J=KX*11,KVCX/NMOD)
      ENDIF
     ELSE IF (I == M+1) THEN
-     IF (DOPTN(98) == 0.0D0) THEN
+     IF (TEMP == 0.0D0) THEN
       WRITE(6,'(A5,3X,11F8.4)') ' LUMO',(E(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
       IF (IALG == 3) &
        WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
      ELSE
       WRITE(6,'(I5,3X,11F8.4)') I,(E(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
-      WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,-J*NMOD,0,0)-FERMI)/BOLTZMANN/DOPTN(98))+1),J=KX*11,KVCX/NMOD)
+      WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,-J*NMOD,0,0)-FERMI)/BOLTZMANN/TEMP)+1),J=KX*11,KVCX/NMOD)
      ENDIF
     ELSE
-     IF (DOPTN(98) == 0.0D0) THEN
+     IF (TEMP == 0.0D0) THEN
       WRITE(6,'(I5,3X,11F8.4)') I,(E(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
       IF (IALG == 3) &
        WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
      ELSE
       WRITE(6,'(I5,3X,11F8.4)') I,(E(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
-      WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,-J*NMOD,0,0)-FERMI)/BOLTZMANN/DOPTN(98))+1),J=KX*11,KVCX/NMOD)
+      WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,-J*NMOD,0,0)-FERMI)/BOLTZMANN/TEMP)+1),J=KX*11,KVCX/NMOD)
      ENDIF
     ENDIF
    ENDDO
@@ -363,31 +399,31 @@ SUBROUTINE PRINT_ENERGYBANDS(IALG)
       ELSE IF (I < IOCC+1-NB) THEN
        CYCLE
       ELSE IF (I == M) THEN
-       IF (DOPTN(98) == 0.0D0) THEN
+       IF (TEMP == 0.0D0) THEN
         WRITE(6,'(A5,3X,11F8.4)') ' HOMO',(E(I,0,-J*NMOD,0),J=L*11,L*11+10)
         IF (IALG == 3) &
          WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,-J*NMOD,0),J=L*11,L*11+10)
        ELSE
         WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,-J*NMOD,0),J=L*11,L*11+10)
-        WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,-J*NMOD,0)-FERMI)/BOLTZMANN/DOPTN(98))+1),J=L*11,L*11+10)
+        WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,-J*NMOD,0)-FERMI)/BOLTZMANN/TEMP)+1),J=L*11,L*11+10)
        ENDIF
       ELSE IF (I == M+1) THEN
-       IF (DOPTN(98) == 0.0D0) THEN
+       IF (TEMP == 0.0D0) THEN
         WRITE(6,'(A5,3X,11F8.4)') ' LUMO',(E(I,0,-J*NMOD,0),J=L*11,L*11+10)
         IF (IALG == 3) &
          WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,-J*NMOD,0),J=L*11,L*11+10)
        ELSE
         WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,-J*NMOD,0),J=L*11,L*11+10)
-        WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,-J*NMOD,0)-FERMI)/BOLTZMANN/DOPTN(98))+1),J=L*11,L*11+10)
+        WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,-J*NMOD,0)-FERMI)/BOLTZMANN/TEMP)+1),J=L*11,L*11+10)
        ENDIF
       ELSE
-       IF (DOPTN(98) == 0.0D0) THEN
+       IF (TEMP == 0.0D0) THEN
         WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,-J*NMOD,0),J=L*11,L*11+10)
         IF (IALG == 3) &
          WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,-J*NMOD,0),J=L*11,L*11+10)
        ELSE
         WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,-J*NMOD,0),J=L*11,L*11+10)
-        WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,-J*NMOD,0)-FERMI)/BOLTZMANN/DOPTN(98))+1),J=L*11,L*11+10)
+        WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,-J*NMOD,0)-FERMI)/BOLTZMANN/TEMP)+1),J=L*11,L*11+10)
        ENDIF
       ENDIF
      ENDDO
@@ -402,31 +438,31 @@ SUBROUTINE PRINT_ENERGYBANDS(IALG)
     ELSE IF (I < IOCC+1-NB) THEN
      CYCLE
     ELSE IF (I == M) THEN
-     IF (DOPTN(98) == 0.0D0) THEN
+     IF (TEMP == 0.0D0) THEN
       WRITE(6,'(A5,3X,11F8.4)') ' HOMO',(E(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
       IF (IALG == 3) &
        WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
      ELSE
       WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
-      WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,-J*NMOD,0)-FERMI)/BOLTZMANN/DOPTN(98))+1),J=KY*11,KVCY/NMOD)
+      WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,-J*NMOD,0)-FERMI)/BOLTZMANN/TEMP)+1),J=KY*11,KVCY/NMOD)
      ENDIF
     ELSE IF (I == M+1) THEN
-     IF (DOPTN(98) == 0.0D0) THEN
+     IF (TEMP == 0.0D0) THEN
       WRITE(6,'(A5,3X,11F8.4)') ' LUMO',(E(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
       IF (IALG == 3) &
        WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
      ELSE
       WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
-      WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,-J*NMOD,0)-FERMI)/BOLTZMANN/DOPTN(98))+1),J=KY*11,KVCY/NMOD)
+      WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,-J*NMOD,0)-FERMI)/BOLTZMANN/TEMP)+1),J=KY*11,KVCY/NMOD)
      ENDIF
     ELSE
-     IF (DOPTN(98) == 0.0D0) THEN
+     IF (TEMP == 0.0D0) THEN
       WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
       IF (IALG == 3) &
        WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
      ELSE
       WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
-      WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,-J*NMOD,0)-FERMI)/BOLTZMANN/DOPTN(98))+1),J=KY*11,KVCY/NMOD)
+      WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,-J*NMOD,0)-FERMI)/BOLTZMANN/TEMP)+1),J=KY*11,KVCY/NMOD)
      ENDIF
     ENDIF
    ENDDO
@@ -444,31 +480,31 @@ SUBROUTINE PRINT_ENERGYBANDS(IALG)
       ELSE IF (I < IOCC+1-NB) THEN
        CYCLE
       ELSE IF (I == M) THEN
-       IF (DOPTN(98) == 0.0D0) THEN
+       IF (TEMP == 0.0D0) THEN
         WRITE(6,'(A5,3X,11F8.4)') ' HOMO',(E(I,0,0,-J*NMOD),J=L*11,L*11+10)
         IF (IALG == 3) &
          WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,0,-J*NMOD),J=L*11,L*11+10)
        ELSE
         WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,0,-J*NMOD),J=L*11,L*11+10)
-        WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,0,-J*NMOD)-FERMI)/BOLTZMANN/DOPTN(98))+1),J=L*11,L*11+10)
+        WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,0,-J*NMOD)-FERMI)/BOLTZMANN/TEMP)+1),J=L*11,L*11+10)
        ENDIF
       ELSE IF (I == M+1) THEN
-       IF (DOPTN(98) == 0.0D0) THEN
+       IF (TEMP == 0.0D0) THEN
         WRITE(6,'(A5,3X,11F8.4)') ' LUMO',(E(I,0,0,-J*NMOD),J=L*11,L*11+10)
         IF (IALG == 3) &
          WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,0,-J*NMOD),J=L*11,L*11+10)
        ELSE
         WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,0,-J*NMOD),J=L*11,L*11+10)
-        WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,0,-J*NMOD)-FERMI)/BOLTZMANN/DOPTN(98))+1),J=L*11,L*11+10)
+        WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,0,-J*NMOD)-FERMI)/BOLTZMANN/TEMP)+1),J=L*11,L*11+10)
        ENDIF
       ELSE
-       IF (DOPTN(98) == 0.0D0) THEN
+       IF (TEMP == 0.0D0) THEN
         WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,0,-J*NMOD),J=L*11,L*11+10)
         IF (IALG == 3) &
          WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,0,-J*NMOD),J=L*11,L*11+10)
        ELSE
         WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,0,-J*NMOD),J=L*11,L*11+10)
-        WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,0,-J*NMOD)-FERMI)/BOLTZMANN/DOPTN(98))+1),J=L*11,L*11+10)
+        WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,0,-J*NMOD)-FERMI)/BOLTZMANN/TEMP)+1),J=L*11,L*11+10)
        ENDIF
       ENDIF
      ENDDO
@@ -483,38 +519,38 @@ SUBROUTINE PRINT_ENERGYBANDS(IALG)
     ELSE IF (I < IOCC+1-NB) THEN
      CYCLE
     ELSE IF (I == M) THEN
-     IF (DOPTN(98) == 0.0D0) THEN
+     IF (TEMP == 0.0D0) THEN
       WRITE(6,'(A5,3X,11F8.4)') ' HOMO',(E(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
       IF (IALG == 3) &
        WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
      ELSE
       WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
-      WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,0,-J*NMOD)-FERMI)/BOLTZMANN/DOPTN(98))+1),J=KZ*11,KVCZ/NMOD)
+      WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,0,-J*NMOD)-FERMI)/BOLTZMANN/TEMP)+1),J=KZ*11,KVCZ/NMOD)
      ENDIF
     ELSE IF (I == M+1) THEN
-     IF (DOPTN(98) == 0.0D0) THEN
+     IF (TEMP == 0.0D0) THEN
       WRITE(6,'(A5,3X,11F8.4)') ' LUMO',(E(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
       IF (IALG == 3) &
        WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
      ELSE
       WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
-      WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,0,-J*NMOD)-FERMI)/BOLTZMANN/DOPTN(98))+1),J=KZ*11,KVCZ/NMOD)
+      WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,0,-J*NMOD)-FERMI)/BOLTZMANN/TEMP)+1),J=KZ*11,KVCZ/NMOD)
      ENDIF
     ELSE
-     IF (DOPTN(98) == 0.0D0) THEN
+     IF (TEMP == 0.0D0) THEN
       WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
       IF (IALG == 3) &
        WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
      ELSE
       WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
-      WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,0,-J*NMOD)-FERMI)/BOLTZMANN/DOPTN(98))+1),J=KZ*11,KVCZ/NMOD)
+      WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,0,-J*NMOD)-FERMI)/BOLTZMANN/TEMP)+1),J=KZ*11,KVCZ/NMOD)
      ENDIF
     ENDIF
    ENDDO
    WRITE(6,'(A)') '------------------------------------------------------------------------------------------------'
    ENDIF
 
-   IF (DOPTN(98) == 0.0D0) THEN
+   IF (TEMP == 0.0D0) THEN
     DGAP=1.0D99
     DO IX=-KVCX/NMOD,MAX(0,KVCX/NMOD-1)
     DO IY=-KVCY/NMOD,MAX(0,KVCY/NMOD-1)
@@ -542,15 +578,13 @@ SUBROUTINE PRINT_ENERGYBANDS(IALG)
     ENDDO
     IF (MYID == 0) WRITE(6,'(A,F10.7,A,F11.7,A)') 'INDIRECT BAND GAP = ',IGAP,' HARTREE (',IGAP*EV,' EV )'
     IF ((DGAP*EV < 0.1).AND.(MYID == 0)) THEN
-     CALL WARNING('METAL')
-     CALL WARNING('************************************************************')
-     CALL WARNING('* CALCULATION IS INCORRECT; SET A SMALL FINITE TEMPERATURE *')
-     CALL WARNING('************************************************************')
+     CALL WARNING('********************************')
+     CALL WARNING('* CAUTION: SYSTEM MAY BE METAL *')
+     CALL WARNING('********************************')
     ELSE IF ((IGAP*EV < 0.1).AND.(MYID == 0)) THEN
-     CALL WARNING('SEMI-METAL')
-     CALL WARNING('************************************************************')
-     CALL WARNING('* CALCULATION IS INCORRECT; SET A SMALL FINITE TEMPERATURE *')
-     CALL WARNING('************************************************************')
+     CALL WARNING('*************************************')
+     CALL WARNING('* CAUTION: SYSTEM MAY BE SEMI-METAL *')
+     CALL WARNING('*************************************')
     ENDIF
    ELSE
     IF (MYID == 0) WRITE(6,'(A,F10.7,A,F11.7,A)') 'FERMI ENERGY      = ',FERMI,' HARTREE (',FERMI*EV,' EV )'

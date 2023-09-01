@@ -20,7 +20,7 @@ SUBROUTINE SELF_CONSISTENT_FIELD(LOEP,LSLATER,LKLI,LAC)
    OLDENERGY=0.0D0
    IF (MYID == 0) WRITE(6,'(A)') 'SELF-CONSISTENT FIELD ITERATION'
    IF (IOPTN(9) <= 1) THEN
-    IF (DOPTN(98) == 0.0D0) THEN
+    IF (DOPTN(108) == 0.0D0) THEN
      IF (MYID == 0) WRITE(6,'(A)') '-------------------------------------------------------------------------------'
      IF (MYID == 0) WRITE(6,'(A)') 'ITR DIIS ASSYMETRY  DENSITY CHANGE      TOTAL ENERGY   ENERGY CHANGE  CPU / SEC'
     ELSE
@@ -80,7 +80,7 @@ SUBROUTINE SELF_CONSISTENT_FIELD(LOEP,LSLATER,LKLI,LAC)
     CALL ENERGY_CALC(.FALSE.,LOEP,LSLATER,LKLI)
     CALL PCPU_TIME(ICPUE)
     IF (IOPTN(9) > 1) THEN
-     IF (DOPTN(98) == 0.0D0) THEN
+     IF (DOPTN(108) == 0.0D0) THEN
       IF (MYID == 0) WRITE(6,'(A)') '-------------------------------------------------------------------------------'
       IF (MYID == 0) WRITE(6,'(A)') 'ITR DIIS ASSYMETRY  DENSITY CHANGE      TOTAL ENERGY   ENERGY CHANGE  CPU / SEC'
      ELSE
@@ -91,7 +91,7 @@ SUBROUTINE SELF_CONSISTENT_FIELD(LOEP,LSLATER,LKLI,LAC)
      ENDIF
     ENDIF
     IF (ISCF > 1) THEN
-     IF (DOPTN(98) == 0.0D0) THEN
+     IF (DOPTN(108) == 0.0D0) THEN
       IF (MYID == 0) WRITE(6,'(I3,1X,I3,2X,E9.3,1X,F15.12,1X,F17.10,1X,F15.10,1X,F10.1)') &
       ISCF,IDIIS,ASYMMETRY,DENSITYCHANGE,EHFKS,EHFKS-OLDENERGY,ICPUE-ICPUS
      ELSE
@@ -99,7 +99,7 @@ SUBROUTINE SELF_CONSISTENT_FIELD(LOEP,LSLATER,LKLI,LAC)
       ISCF,IDIIS,ASYMMETRY,DENSITYCHANGE,EHFKS,EHFKS-OLDENERGY,FERMI,ICPUE-ICPUS
      ENDIF
     ELSE
-     IF (DOPTN(98) == 0.0D0) THEN
+     IF (DOPTN(108) == 0.0D0) THEN
       IF (MYID == 0) WRITE(6,'(I3,1X,I3,2X,E9.3,1X,F15.12,1X,F17.10,3X,A13,1X,F10.1)') &
       ISCF,IDIIS,ASYMMETRY,DENSITYCHANGE,EHFKS,'-------------',ICPUE-ICPUS
      ELSE
@@ -108,7 +108,7 @@ SUBROUTINE SELF_CONSISTENT_FIELD(LOEP,LSLATER,LKLI,LAC)
      ENDIF
     ENDIF
     IF (IOPTN(9) > 1) THEN
-     IF (DOPTN(98) == 0.0D0) THEN
+     IF (DOPTN(108) == 0.0D0) THEN
       IF (MYID == 0) WRITE(6,'(A)') '-------------------------------------------------------------------------------'
      ELSE
       IF (MYID == 0) WRITE(6,'(A)') &
@@ -128,7 +128,7 @@ SUBROUTINE SELF_CONSISTENT_FIELD(LOEP,LSLATER,LKLI,LAC)
    ENDDO
    
    IF (IOPTN(9) <= 1) THEN
-    IF (DOPTN(98) == 0.0D0) THEN
+    IF (DOPTN(108) == 0.0D0) THEN
      IF (MYID == 0) WRITE(6,'(A)') '-------------------------------------------------------------------------------'
     ELSE
      IF (MYID == 0) WRITE(6,'(A)') &
