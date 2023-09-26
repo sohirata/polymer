@@ -6641,8 +6641,6 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
    deallocate(tda,tda2,qp1,qp2,qp3)
    deallocate(gf2,e2,e3,v3,v2e,v3e2,v3v2e)
 
-stop
-
    goto 10
 
    write(*,*) "******************"
