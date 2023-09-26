@@ -62,6 +62,8 @@ SUBROUTINE HIGHORDER_CORRELATION
      WRITE(6,'(A)') '* ALGORITHM = RECURSIONS 1 & 2 & 3                        *'
     ELSE IF (IOPTN(104)==4) THEN
      WRITE(6,'(A)') '* ALGORITHM = RECURSIONS 1 & 2 & 3 + LAMBDA VARIATION     *'
+    ELSE IF (IOPTN(104)==99) THEN
+     WRITE(6,'(A)') "* ALGORITHM = EXACT SELF-ENERGY & GREEN'S FUNCTION        *"
     ELSE
      CALL PABORT('UNRECOGNIZED MBGFALG')
     ENDIF
@@ -121,7 +123,7 @@ SUBROUTINE HIGHORDER_CORRELATION
     ! ***************
     IF (IOPTN(104)>=3) CALL HIGHORDER_GF_REDUX3(OMEGA,IOPTN(97))
     DEALLOCATE(MP_STORED)
-    IF ((IOPTN(104)==1).OR.(IOPTN(104)==4)) THEN
+    IF ((IOPTN(104)==1).OR.(IOPTN(104)==4).OR.(IOPTN(104)==99)) THEN
     ! ******************************************************************
     ! * MBGF WITH FREQ-DEPENDENT SELF-ENERGY USING EXTENDED DELTA MBPT *
     ! ******************************************************************
@@ -148,9 +150,9 @@ SUBROUTINE HIGHORDER_CORRELATION
     ! **************
     ! * EXACT MBGF *
     ! **************
-    WRITE(6,'(/,A)') "**************"
-    WRITE(6,'(A)')   "* EXACT MBGF *"
-    WRITE(6,'(A,/)') "**************"
+    WRITE(6,'(/,A)') "********************************************"
+    WRITE(6,'(A,F12.5,A)')   "* EXACT MBGF AT OMEGA = ",OMEGA," *"
+    WRITE(6,'(A,/)') "********************************************"
 !   -----------------
 !   EXACT SELF-ENERGY
 !   -----------------
@@ -1627,8 +1629,8 @@ SUBROUTINE HIGHORDER_MP(ORDER)
     WRITE(6,'(A,F7.1,A)') 'ESTIMATED MEMORY USAGE WILL BE ',MEM,' B'
    ENDIF
    IF (MEM > DOPTN(28)*1000000.0) CALL PABORT('OUT OF MEMORY') 
-   WRITE(6,'(A)') '------------------------------------------------------'
-   WRITE(6,'(A)') 'ORDER      CORRELATION        TOTAL ENERGY   CPU / SEC'
+   WRITE(6,'(A)') '---------------------------------------------------------------------------'
+   WRITE(6,'(A)') 'ORDER      CORRELATION          CORRELATION        TOTAL ENERGY   CPU / SEC'
    ALLOCATE(VEC1(NCF,NCF),VEC2(NCF,NCF))
    OPEN(50,FILE=TRIM(COPTN(1))//'.fi0',FORM='UNFORMATTED')
    OPEN(51,FILE=TRIM(COPTN(1))//'.fo0',FORM='UNFORMATTED')
@@ -1646,7 +1648,7 @@ SUBROUTINE HIGHORDER_MP(ORDER)
     DMP(0)=DMP(0)+2.0D0*EPSILON(MOI,0,0,0)
    ENDDO
    EMP=EMP+DMP(0)
-   WRITE(6,'(I2,F20.10,F20.10,F12.1)') 0,DMP(0),EMP,0.0
+   WRITE(6,'(I2,F20.10,A,F20.10,F12.1)') 0,DMP(0),'     ---------------',EMP,0.0
    MP_STORED(0)=EMP
 
    ! DMP(1) ONWARD
@@ -1687,7 +1689,11 @@ SUBROUTINE HIGHORDER_MP(ORDER)
     IF (IFILE == 0) DMP(1)=DMP(1)-DMP(0)
     EMP=EMP+DMP(IFILE+1)
     CALL CPU_TIME(ICPUE)
-    WRITE(6,'(I2,F20.10,F20.10,F12.1)') IFILE+1,DMP(IFILE+1),EMP,ICPUE-ICPUS
+    IF (IFILE == 0) THEN
+     WRITE(6,'(I2,F20.10,A,F20.10,F12.1)') IFILE+1,DMP(IFILE+1),'     ---------------',EMP,ICPUE-ICPUS
+    ELSE
+     WRITE(6,'(I2,F20.10,F20.10,F20.10,F12.1)') IFILE+1,DMP(IFILE+1),EMP-DMP(0)-DMP(1)-NUCLEAR_REPULSION,EMP,ICPUE-ICPUS
+    ENDIF
     MP_STORED(IFILE+1)=EMP
     CALL CPU_TIME(ICPUS)
     CALL PFLUSH(6)
@@ -1739,7 +1745,7 @@ SUBROUTINE HIGHORDER_MP(ORDER)
     WRITE(50) VEC2
    ENDDO
 
-   WRITE(6,'(A)') '------------------------------------------------------'
+   WRITE(6,'(A)') '---------------------------------------------------------------------------'
    IF (IOPTN(97) > 0) THEN
     OPEN(97,FILE=TRIM(COPTN(1))//'.gf0',FORM='UNFORMATTED')
     REWIND(97)

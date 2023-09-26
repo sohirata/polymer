@@ -337,7 +337,7 @@ SUBROUTINE IP_HAMILTONIAN_PRODUCT(INFILE,OUTFILE,OFFSET,ORDER)
    DOUBLE PRECISION,ALLOCATABLE :: TRL(:,:),PRD(:,:)
    INTEGER,ALLOCATABLE :: IP_PSIGN(:,:,:),IP_PADRS(:,:,:)
 
-!  CALL PCPU_TIME(ICPUS)
+   CALL CPU_TIME(ICPUS)
    MEM=16.0*2.0*NCF*IP_NCF+4.0*2.0*NCF*(IALL(0,0,0)-IVIRTCORE)**2
 !  IF (MEM > 1000000.0) THEN
 !   WRITE(6,'(A,F7.1,A)') 'ESTIMATED MEMORY USAGE WILL BE ',MEM/1000000.0,' MB'
@@ -552,9 +552,9 @@ SUBROUTINE IP_HAMILTONIAN_PRODUCT(INFILE,OUTFILE,OFFSET,ORDER)
      ENDIF
     ENDDO
    ENDDO
-!  CALL PCPU_TIME(ICPUE)
-!  EST=ICPUE-ICPUS
-!  CALL PCPU_TIME(ICPUS)
+   CALL CPU_TIME(ICPUE)
+   EST=ICPUE-ICPUS
+   CALL CPU_TIME(ICPUS)
 
    ! TWO SPIN ORBITAL DIFFERENCES, CASE 2
    DO IB=1,IP_NCF
@@ -605,7 +605,7 @@ SUBROUTINE IP_HAMILTONIAN_PRODUCT(INFILE,OUTFILE,OFFSET,ORDER)
       ENDIF
      ENDDO
     ENDDO
-!   CALL PCPU_TIME(ICPUE)
+    CALL CPU_TIME(ICPUE)
 !   IF (IA == 1) THEN
 !    EST=EST+(ICPUE-ICPUS)*NCF
 !    EST=EST/3600.0
@@ -890,7 +890,7 @@ SUBROUTINE HIGHORDER_CI_IP(ORDER,NROOTS,NTRIALS)
    DOUBLE PRECISION :: PERCENTS,PERCENTD
    DOUBLE PRECISION,ALLOCATABLE :: VEC1(:,:),VEC2(:,:)
 
-!  CALL PCPU_TIME(ICPUS)
+   CALL CPU_TIME(ICPUS)
    WRITE(6,'(A)') 'HIGH-ORDER IONIZATION CONFIGURATION INTERACTION CALCULATIONS WILL BE PERFORMED'
    WRITE(6,'(A,I2,A,I2,A)') 'CI ORDER IS ',ORDER,'-HOLE ',ORDER-1,'-PARTICLE'
    WRITE(6,'(A,I4)') 'THE NUMBER OF CI ROOTS SOUGHT ',NROOTS
@@ -982,7 +982,7 @@ SUBROUTINE HIGHORDER_CI_IP(ORDER,NROOTS,NTRIALS)
     ENDIF
       
     ! FORM RESIDUAL VECTORS
-!   CALL PCPU_TIME(ICPUE)
+    CALL CPU_TIME(ICPUE)
     DEVMAX=0.0D0
     IF (NROOTS > 1) WRITE(6,'(A,I3)') ' ITER ',ICYCLE
     NTRIALS_NEXT=NTRIALS
@@ -1072,10 +1072,10 @@ SUBROUTINE HIGHORDER_CI_IP(ORDER,NROOTS,NTRIALS)
 
     ENDDO
 
-    CALL PCPU_TIME(ICPUS)
+    CALL CPU_TIME(ICPUS)
     CALL PFLUSH(6)
 
-    IF (DEVMAX < 1.0D-5) THEN
+    IF (DEVMAX < DOPTN(67)) THEN
      IF (NROOTS > 1) THEN
       WRITE(6,'(A)') '--------------------------------------------------------'
      ELSE
@@ -1488,7 +1488,7 @@ SUBROUTINE EOMIPCC(TORDER,RORDER,NROOTS,NTRIALS)
    DOUBLE PRECISION :: PERCENTS,PERCENTD
    DOUBLE PRECISION,ALLOCATABLE :: VEC1(:,:),VEC2(:,:)
 
-!  CALL PCPU_TIME(ICPUS)
+   CALL CPU_TIME(ICPUS)
    WRITE(6,'(A)') 'HIGH-ORDER IONIZATION-POTENTIAL EQUATION-OF-MOTION COUPLED CLUSTER CALCULATIONS WILL BE PERFORMED'
    WRITE(6,'(A,I2)') 'THE ORDER OF COUPLED CLUSTER            = ',TORDER
    WRITE(6,'(A,I2,A,I2,A)') 'THE ORDER OF IONIZATION OPERATOR = ',RORDER,'-HOLE ',RORDER-1,'-PARTICLE'
@@ -1616,7 +1616,7 @@ SUBROUTINE EOMIPCC(TORDER,RORDER,NROOTS,NTRIALS)
 !   ENDDO
       
     ! FORM RESIDUAL VECTORS
-!   CALL PCPU_TIME(ICPUE)
+    CALL CPU_TIME(ICPUE)
     DEVMAX=0.0D0
     WRITE(6,'(A,I3)') ' ITER ',ICYCLE
     NTRIALS_NEXT=NTRIALS
@@ -1703,10 +1703,10 @@ SUBROUTINE EOMIPCC(TORDER,RORDER,NROOTS,NTRIALS)
 
     ENDDO
 
-!   CALL PCPU_TIME(ICPUS)
+    CALL CPU_TIME(ICPUS)
     CALL PFLUSH(6)
 
-    IF (DEVMAX < 1.0D-9) THEN
+    IF (DEVMAX < DOPTN(67)) THEN
      WRITE(6,'(A)') '--------------------------------------------------------'
 !    REWIND(51)
      DO I=1,NROOTS
@@ -1815,7 +1815,7 @@ SUBROUTINE S_SQUARED_IP(INFILE,OFFSET,ORDER,S2)
    DOUBLE PRECISION :: S2,NORM
    DOUBLE PRECISION,ALLOCATABLE :: INP(:,:),OUT(:,:)
 
-!  CALL PCPU_TIME(ICPUS)
+!  CALL CPU_TIME(ICPUS)
    MEM=16.0*2.0*NCF*IP_NCF+4.0*2.0*NCF*(IALL(0,0,0)-IVIRTCORE)**2
 !  IF (MEM > 1000000.0) THEN
 !   WRITE(6,'(A,F7.1,A)') 'ESTIMATED MEMORY USAGE WILL BE ',MEM/1000000.0,' MB'
@@ -1931,17 +1931,27 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
    double precision,allocatable :: c_eri(:,:,:,:)
    double precision,allocatable :: sigma(:,:,:)
    double precision,allocatable :: wpaij(:,:,:),upaij(:,:,:),wpiab(:,:,:),upiab(:,:,:)
-   double precision,allocatable :: tabpi(:,:,:,:),sqaij(:,:,:,:),tda(:,:)
-   double precision,allocatable :: tabpi2(:,:,:,:),sqaij2(:,:,:,:)
+   double precision,allocatable :: tabpi(:,:,:,:),sqaij(:,:,:,:),uabij(:,:,:,:),tda(:,:)
+   double precision,allocatable :: tabpi2(:,:,:,:),sqaij2(:,:,:,:),uabij2(:,:,:,:),tda2(:,:)
+   double precision,allocatable :: gf2(:,:),v3(:,:),e2(:,:),e3(:,:),v2e(:,:),v3e2(:,:),v3v2e(:,:)
+   double precision,allocatable :: qp1(:),qp2(:),qp3(:)
    integer :: ispin,jspin,kspin,lspin,l,ii,jj,kk,ll
    integer :: aspin,bspin,cspin,dspin,a,b,c,d,aa,bb,ccc,dd
    integer :: pspin,qspin,rspin,sspin,p,q,r,s,pp,qq,rr,ss
-   double precision :: c_mp2,c_mp3,omega,ei,ej
-   integer :: mloop
+   double precision :: c_mp2,c_mp3,omega,ei,ej,omega2
+   double precision :: c_tda1,c_tda2,c_lccd,c_edge1,c_edge2,c_edge3,c_ve1,c_ve2,c_v3e2,c_v3v2e
+   double precision :: e_mp2,e_tda1,e_tda2,e_lccd
+   integer :: mloop,dloop,x
    integer :: il
+   integer :: n2h1p,n2p1h,ntot,istat,jstat,astat,bstat
+   DOUBLE PRECISION,ALLOCATABLE :: zarrow(:,:),VL(:,:),VR(:,:),EREAL(:),EIMAG(:),WK(:),hmin(:),hmax(:)
+   double precision,allocatable :: sg2(:,:),res(:,:),poles(:,:),residues(:,:)
+   integer,allocatable :: npoles(:,:)
+   double precision :: ressum,residue,gm1,gm2,gm3
+   INTEGER :: INFO
 ! to here
 
-!  CALL PCPU_TIME(ICPUS)
+   CALL CPU_TIME(ICPUS)
    WRITE(6,'(A)') 'RECURSIVE HIGH-ORDER MOELLER-PLESSET PERTURBATION CALCULATIONS WILL BE PERFORMED'
    MEM=16.0*2.0*NCF*IP_NCF
    IF (MEM > 1000000.0) THEN
@@ -1957,6 +1967,16 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
    WRITE(*,'(A)') "************************************************"
    WRITE(*,'(A)') "* Algebraic implementations of MBGF(2) and (3) *"
    WRITE(*,'(A)') "************************************************"
+   write(6,'(A)') 'HF orbital energy'
+   do i=icore+1,iall(0,0,0)-ivirtcore
+    if (i==iocc) then 
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0),' HOMO'
+    else if (i==iocc+1) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0),' LUMO'
+    else
+     write(6,'(I3,F20.14)') i,epsilon(i,0,0,0)
+    endif
+   enddo
    omega=doptn(87)
 !  goto 10
    ! Algebraic implementations at 2nd and 3rd orders as independent check
@@ -2240,7 +2260,7 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
 !  omega=-0.2465377147D0
 !  omega=-1.08996649737218202D0
 !  omega=-2.0D0
-   omega=-0.2D0
+!  omega=-0.2D0
    allocate(sigma(iall(0,0,0)-ivirtcore,iall(0,0,0)-ivirtcore,0:4))
    sigma=0.0d0
 
@@ -2966,6 +2986,8 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
 5 continue 
 !write(*,*) 'skipping 5-12'
 !goto 13
+!write(*,*) 'skipping 5-18'
+!goto 20
    ! 5
    do aspin=1,2
     do a=icore+1,iocc
@@ -2997,6 +3019,8 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
    enddo
 !write(*,*) c_mp3
 !c_mp3=0.0d0
+!write(*,*) 'skipping 6-18'
+!goto 20
    ! 6
    do aspin=1,2
     do a=icore+1,iocc
@@ -3215,6 +3239,8 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
 13 continue
 !write(*,*) c_mp3
 !c_mp3=0.0d0
+!write(*,*) 'skipping 13-18'
+!goto 20
    ! 13
    do aspin=1,2
     do a=icore+1,iocc
@@ -3415,23 +3441,782 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
    call dump5(sigma(:,:,2),iall(0,0,0)-ivirtcore)
    call dump5(sigma(:,:,3),iall(0,0,0)-ivirtcore)
 
-   ! 2ph TDA
-   write(*,'(A)') "***********"
-   write(*,'(A)') "* 2ph-TDA *"
-   write(*,'(A)') "***********"
-   write(*,'(A,E20.10)') '2ph-TDA @ OMEGA = ',OMEGA
+! ****************
+! 2nd-order vertex
+! ****************
 
-   allocate(tda(iall(0,0,0)-icore,iall(0,0,0)-icore))
+   allocate(tda(iall(0,0,0),iall(0,0,0)))
+   allocate(tda2(iall(0,0,0),iall(0,0,0)))
+   allocate(gf2(iall(0,0,0),iall(0,0,0)))
+   allocate(e2(iall(0,0,0),iall(0,0,0)))
+   allocate(e3(iall(0,0,0),iall(0,0,0)))
+   allocate(v3(iall(0,0,0),iall(0,0,0)))
+   allocate(v2e(iall(0,0,0),iall(0,0,0)))
+   allocate(v3e2(iall(0,0,0),iall(0,0,0)))
+   allocate(v3v2e(iall(0,0,0),iall(0,0,0)))
+   allocate(qp1(iall(0,0,0)),qp2(iall(0,0,0)),qp3(iall(0,0,0)))
    allocate(tabpi(iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2))
    allocate(sqaij(iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2))
+   allocate(uabij(iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2))
    allocate(tabpi2(iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2))
    allocate(sqaij2(iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2))
+   allocate(uabij2(iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2))
+
+   gf2(:,:)=sigma(:,:,2)
+   write(*,'(A)') "*************************"
+   write(*,'(A)') "* 2nd-order self-energy *"
+   write(*,'(A)') "*************************"
+   call dump5(gf2,iall(0,0,0)-ivirtcore)
+
+! ===================================================================
+
+   write(*,'(A)') "*********************************************"
+   write(*,'(A)') "* Full solution of 2nd-order Dyson equation *"
+   write(*,'(A)') "*********************************************"
+
+   write(*,'(A)') "*********************************************************"
+   write(*,'(A)') "* Diagonal approximation (arrow matrix diagonalization) *"
+   write(*,'(A)') "*********************************************************"
+ 
+   n2h1p=(iocc-icore)*(iocc-icore)*(iall(0,0,0)-iocc-ivirtcore)*8
+   n2p1h=(iocc-icore)*(iall(0,0,0)-iocc-ivirtcore)*(iall(0,0,0)-iocc-ivirtcore)*8
+
+   write(*,*) 'occ, vir          = ',iocc-icore,iall(0,0,0)-iocc-ivirtcore
+   write(*,*) '2h1p, 2p1h        = ',n2h1p,n2p1h
+   ntot=n2h1p+n2p1h+1
+   write(*,*) 'number of roots   = ',n2h1p+n2p1h+1
+   write(*,*) 'number of regions?= ',(n2h1p+n2p1h)/8+1
+ 
+   allocate(zarrow(ntot,ntot))
+   ALLOCATE(VL(1,ntot),EREAL(ntot),EIMAG(ntot),WK(4*ntot))
+   ALLOCATE(VR(ntot,ntot))
+   allocate(npoles(iall(0,0,0),2),poles(ntot,iall(0,0,0)),residues(ntot,iall(0,0,0)))
+
+   ! See Walter, Cederbaum, Schirmer, J.Math.Phys. 25, 729 (1984)
+   poles=0.0d0
+   residues=0.0d0
+   gm1=0.0d0
+   gm3=0.0d0
+   do p=icore+1,iall(0,0,0)-ivirtcore
+    write(*,'(A,I3)') 'Orbital:',p
+    write(*,'(A4,2A20)') 'ROOT','POLE','RESIDUE'
+    zarrow=0.0d0
+    ! a
+    zarrow(1,1)=epsilon(p,0,0,0)
+    ! 2h1p c's
+    istat=1
+    do ispin=1,2
+     do i=icore+1,iocc
+      ii=(ispin-1)*iall(0,0,0)+i
+      do jspin=1,2
+       do j=icore+1,iocc
+        jj=(jspin-1)*iall(0,0,0)+j
+        do aspin=1,2
+         do a=iocc+1,iall(0,0,0)-ivirtcore
+          aa=(aspin-1)*iall(0,0,0)+a
+          istat=istat+1
+          zarrow(istat,istat)=epsilon(i,0,0,0)+epsilon(j,0,0,0)-epsilon(a,0,0,0)
+          zarrow(1,istat)=c_eri(p,aa,ii,jj)*dsqrt(0.5d0)
+          zarrow(istat,1)=c_eri(ii,jj,p,aa)*dsqrt(0.5d0)
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+    ! 2p1h c's
+    do aspin=1,2
+     do a=iocc+1,iall(0,0,0)-ivirtcore
+      aa=(aspin-1)*iall(0,0,0)+a
+      do bspin=1,2
+       do b=iocc+1,iall(0,0,0)-ivirtcore
+        bb=(bspin-1)*iall(0,0,0)+b
+        do ispin=1,2
+         do i=icore+1,iocc
+          ii=(ispin-1)*iall(0,0,0)+i
+          istat=istat+1
+          zarrow(istat,istat)=epsilon(a,0,0,0)+epsilon(b,0,0,0)-epsilon(i,0,0,0)
+          zarrow(1,istat)=c_eri(p,ii,aa,bb)*dsqrt(0.5d0)
+          zarrow(istat,1)=c_eri(aa,bb,p,ii)*dsqrt(0.5d0)
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+    if (istat /= ntot) call pabort('a bug')
+    CALL DGEEV('N','V',ntot,zarrow,ntot,EREAL,EIMAG,VL,1,VR,ntot,WK,4*ntot,INFO)
+    CALL PIKSRT(ntot,ntot,EREAL,VR,EIMAG)
+    ressum=0.0d0
+    jstat=0
+    astat=0
+    do istat=1,ntot
+     if (vr(1,istat)**2 > 1.0d-14) then
+      astat=astat+1
+      if (ereal(istat) < 0.0d0) jstat=jstat+1
+      poles(astat,p)=ereal(istat)
+      residues(astat,p)=vr(1,istat)**2
+      ressum=ressum+residues(astat,p)
+      write(*,'(I4,2F20.14)') astat,poles(astat,p),residues(astat,p)
+      if (poles(astat,p) < 0.0d0) then
+       gm1=gm1+0.5d0*(poles(astat,p)-EPSILON(p,0,0,0))*residues(astat,p)
+      endif
+     endif
+    enddo
+    npoles(p,1)=jstat
+    npoles(p,2)=astat
+    write(*,'(A4,A20,F20.14)') 'SUM',' ',ressum
+   enddo
+   write(*,'(A4,A20,2F20.14)') ' ','Galitskii-Migdal',gm1,gm1+EHFKS
+   deallocate(zarrow,VL,EREAL,EIMAG,WK,VR)
+
+   write(*,'(A)') "-------------------------------------------------"
+   write(*,'(A)') "- Diagonal approximation (edge dressing non-SC) -"
+   write(*,'(A)') "-------------------------------------------------"
+
+   tda=0.0d0
+   do pspin=1,1 ! alpha spin only
+   do p=icore+1,iall(0,0,0)-ivirtcore
+    pp=(pspin-1)*iall(0,0,0)+p
+    do qspin=1,1 ! alpha spin only
+    do q=icore+1,iall(0,0,0)-ivirtcore
+     qq=(qspin-1)*iall(0,0,0)+q
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do astat=npoles(a,1)+1,npoles(a,2)
+       do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+         bb=(bspin-1)*iall(0,0,0)+b
+         do bstat=npoles(b,1)+1,npoles(b,2)
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+           do istat=1,npoles(i,1)
+! -----------------------------------
+           tda(p,q)=tda(p,q)+0.5d0*c_eri(qq,ii,aa,bb)*c_eri(aa,bb,pp,ii) &
+              /(omega+poles(istat,i)-poles(astat,a)-poles(bstat,b)) &
+              *residues(istat,i)*residues(astat,a)*residues(bstat,b)
+! -----------------------------------
+          enddo
+          enddo
+         enddo
+        enddo
+        enddo
+       enddo
+      enddo
+      enddo
+     enddo
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do astat=npoles(a,1)+1,npoles(a,2)
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do istat=1,npoles(i,1)
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+           do jstat=1,npoles(j,1)
+! -----------------------------------
+           tda(p,q)=tda(p,q)-0.5d0*c_eri(ii,jj,pp,aa)*c_eri(qq,aa,ii,jj) &
+              /(poles(istat,i)+poles(jstat,j)-omega-poles(astat,a)) &
+              *residues(istat,i)*residues(jstat,j)*residues(astat,a)
+! -----------------------------------
+          enddo
+          enddo
+         enddo
+        enddo
+        enddo
+       enddo
+      enddo
+      enddo
+     enddo
+
+    enddo
+    enddo
+   enddo
+   enddo
+
+   write(*,'(A,E20.10)') 'OMEGA = ',OMEGA
+   call dump5(tda,iall(0,0,0))
+
+   c_edge2=0.0d0
+   do aspin=1,2
+    do a=iocc+1,iall(0,0,0)-ivirtcore
+     aa=(aspin-1)*iall(0,0,0)+a
+     do astat=npoles(a,1)+1,npoles(a,2)
+     do bspin=1,2
+      do b=iocc+1,iall(0,0,0)-ivirtcore
+       bb=(bspin-1)*iall(0,0,0)+b
+       do bstat=npoles(b,1)+1,npoles(b,2)
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do istat=1,npoles(i,1)
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+           do jstat=1,npoles(j,1)
+! -----------------------------------
+           c_edge2=c_edge2+0.25d0*c_eri(ii,jj,aa,bb)*c_eri(aa,bb,ii,jj) &
+              /(poles(istat,i)+poles(jstat,j)-poles(astat,a)-poles(bstat,b)) &
+              *residues(istat,i)*residues(jstat,j)*residues(astat,a)*residues(bstat,b)
+! -----------------------------------
+          enddo
+          enddo
+         enddo
+        enddo
+        enddo
+       enddo
+      enddo
+      enddo
+     enddo
+    enddo
+    enddo
+   enddo
+   write(6,'(A,2F20.14)') 'Energy:', c_edge2,c_edge2+EHFKS
+
+   deallocate(npoles,poles,residues)
+
+   write(*,'(A)') "*********************************************"
+   write(*,'(A)') "* Full Dyson (arrow matrix diagonalization) *"
+   write(*,'(A)') "*********************************************"
+ 
+   n2h1p=(iocc-icore)*(iocc-icore)*(iall(0,0,0)-iocc-ivirtcore)*8
+   n2p1h=(iocc-icore)*(iall(0,0,0)-iocc-ivirtcore)*(iall(0,0,0)-iocc-ivirtcore)*8
+
+   write(*,*) 'occ, vir          = ',iocc-icore,iall(0,0,0)-iocc-ivirtcore
+   write(*,*) '2h1p, 2p1h        = ',n2h1p,n2p1h
+   ntot=n2h1p+n2p1h+iall(0,0,0)-icore-ivirtcore
+   write(*,*) 'number of roots   = ',ntot
+   write(*,*) 'number of regions?= ',(n2h1p+n2p1h)/8+1
+ 
+   allocate(zarrow(ntot,ntot))
+   ALLOCATE(VL(1,ntot),EREAL(ntot),EIMAG(ntot),WK(4*ntot))
+   ALLOCATE(VR(ntot,ntot))
+   allocate(npoles(iall(0,0,0),2),poles(ntot,iall(0,0,0)),residues(ntot,iall(0,0,0)))
+
+   ! See Walter, Cederbaum, Schirmer, J.Math.Phys. 25, 729 (1984)
+   zarrow=0.0d0
+   do p=icore+1,iall(0,0,0)-ivirtcore
+    ! a
+    zarrow(p-icore,p-icore)=epsilon(p,0,0,0)
+   enddo
+   ! 2h1p c's
+   istat=iall(0,0,0)-ivirtcore-icore
+    do ispin=1,2
+     do i=icore+1,iocc
+      ii=(ispin-1)*iall(0,0,0)+i
+      do jspin=1,2
+       do j=icore+1,iocc
+        jj=(jspin-1)*iall(0,0,0)+j
+        do aspin=1,2
+         do a=iocc+1,iall(0,0,0)-ivirtcore
+          aa=(aspin-1)*iall(0,0,0)+a
+          istat=istat+1
+          zarrow(istat,istat)=epsilon(i,0,0,0)+epsilon(j,0,0,0)-epsilon(a,0,0,0)
+          do p=icore+1,iall(0,0,0)-ivirtcore
+           zarrow(p-icore,istat)=c_eri(p,aa,ii,jj)*dsqrt(0.5d0)
+           zarrow(istat,p-icore)=c_eri(ii,jj,p,aa)*dsqrt(0.5d0)
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+    ! 2p1h c's
+    do aspin=1,2
+     do a=iocc+1,iall(0,0,0)-ivirtcore
+      aa=(aspin-1)*iall(0,0,0)+a
+      do bspin=1,2
+       do b=iocc+1,iall(0,0,0)-ivirtcore
+        bb=(bspin-1)*iall(0,0,0)+b
+        do ispin=1,2
+         do i=icore+1,iocc
+          ii=(ispin-1)*iall(0,0,0)+i
+          istat=istat+1
+          zarrow(istat,istat)=epsilon(a,0,0,0)+epsilon(b,0,0,0)-epsilon(i,0,0,0)
+          do p=icore+1,iall(0,0,0)-ivirtcore
+           zarrow(p-icore,istat)=c_eri(p,ii,aa,bb)*dsqrt(0.5d0)
+           zarrow(istat,p-icore)=c_eri(aa,bb,p,ii)*dsqrt(0.5d0)
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+   if (istat /= ntot) call pabort('a bug')
+   CALL DGEEV('N','V',ntot,zarrow,ntot,EREAL,EIMAG,VL,1,VR,ntot,WK,4*ntot,INFO)
+   CALL PIKSRT(ntot,ntot,EREAL,VR,EIMAG)
+   npoles=0
+   poles=0.0d0
+   residues=0.0d0
+   ressum=0.0d0
+   gm2=0.0d0
+   jstat=0
+   do istat=1,ntot
+    residue=0.0d0
+    do p=icore+1,iall(0,0,0)-ivirtcore
+     residue=residue+vr(p-icore,istat)**2
+    enddo
+    if (residue > 1.0d-14) then
+     jstat=jstat+1
+     write(*,'(I4,2F20.14)') jstat,EREAL(istat),residue
+     do p=icore+1,iall(0,0,0)-ivirtcore
+      poles(jstat,p)=ereal(istat)
+      residues(jstat,p)=vr(p-icore,istat)**2
+     enddo
+     ressum=ressum+residue
+    endif
+    if (ereal(istat) < 0.0d0) then
+     do p=icore+1,iall(0,0,0)-ivirtcore
+      gm2=gm2+0.5d0*(ereal(istat)-epsilon(p,0,0,0))*vr(p-icore,istat)**2
+     enddo
+    endif
+   enddo
+   npoles=jstat
+   write(*,'(A4,A20,F20.14)') 'SUM',' ',ressum
+   write(*,'(A4,A20,2F20.14)') ' ','Galitskii-Migdal',gm2,gm2+EHFKS
+
+   deallocate(zarrow,VL,EREAL,EIMAG,WK,VR)
+
+   write(*,'(A)') "-------------------------------------"
+   write(*,'(A)') "- Full Dyson (edge dressing non-SC) -"
+   write(*,'(A)') "-------------------------------------"
+
+   tda=0.0d0
+   do pspin=1,1 ! alpha spin only
+   do p=icore+1,iall(0,0,0)-ivirtcore
+    pp=(pspin-1)*iall(0,0,0)+p
+    do qspin=1,1 ! alpha spin only
+    do q=icore+1,iall(0,0,0)-ivirtcore
+     qq=(qspin-1)*iall(0,0,0)+q
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do astat=1,npoles(a,1)
+       if (poles(astat,a) < 0.0d0) cycle
+       do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+         bb=(bspin-1)*iall(0,0,0)+b
+         do bstat=1,npoles(b,1)
+         if (poles(bstat,b) < 0.0d0) cycle
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+           do istat=1,npoles(i,1)
+           if (poles(istat,i) > 0.0d0) cycle
+! -----------------------------------
+           tda(p,q)=tda(p,q)+0.5d0*c_eri(qq,ii,aa,bb)*c_eri(aa,bb,pp,ii) &
+              /(omega+poles(istat,i)-poles(astat,a)-poles(bstat,b)) &
+              *residues(istat,i)*residues(astat,a)*residues(bstat,b)
+! -----------------------------------
+          enddo
+          enddo
+         enddo
+        enddo
+        enddo
+       enddo
+      enddo
+      enddo
+     enddo
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do astat=1,npoles(a,1)
+       if (poles(astat,a) < 0.0d0) cycle
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do istat=1,npoles(i,1)
+         if (poles(istat,i) > 0.0d0) cycle
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+           do jstat=1,npoles(j,1)
+           if (poles(jstat,j) > 0.0d0) cycle
+! -----------------------------------
+           tda(p,q)=tda(p,q)-0.5d0*c_eri(ii,jj,pp,aa)*c_eri(qq,aa,ii,jj) &
+              /(poles(istat,i)+poles(jstat,j)-omega-poles(astat,a)) &
+              *residues(istat,i)*residues(jstat,j)*residues(astat,a)
+! -----------------------------------
+          enddo
+          enddo
+         enddo
+        enddo
+        enddo
+       enddo
+      enddo
+      enddo
+     enddo
+
+    enddo
+    enddo
+   enddo
+   enddo
+
+   write(*,'(A,E20.10)') 'OMEGA = ',OMEGA
+   call dump5(tda,iall(0,0,0))
+
+   c_edge2=0.0d0
+   do aspin=1,2
+    do a=iocc+1,iall(0,0,0)-ivirtcore
+     aa=(aspin-1)*iall(0,0,0)+a
+     do astat=1,npoles(a,1)
+     if (poles(astat,a) < 0.0d0) cycle
+     do bspin=1,2
+      do b=iocc+1,iall(0,0,0)-ivirtcore
+       bb=(bspin-1)*iall(0,0,0)+b
+       do bstat=1,npoles(b,1)
+       if (poles(bstat,b) < 0.0d0) cycle
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do istat=1,npoles(i,1)
+         if (poles(istat,i) > 0.0d0) cycle
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+           do jstat=1,npoles(j,1)
+           if (poles(jstat,j) > 0.0d0) cycle
+! -----------------------------------
+           c_edge2=c_edge2+0.25d0*c_eri(ii,jj,aa,bb)*c_eri(aa,bb,ii,jj) &
+              /(poles(istat,i)+poles(jstat,j)-poles(astat,a)-poles(bstat,b)) &
+              *residues(istat,i)*residues(jstat,j)*residues(astat,a)*residues(bstat,b)
+! -----------------------------------
+          enddo
+          enddo
+         enddo
+        enddo
+        enddo
+       enddo
+      enddo
+      enddo
+     enddo
+    enddo
+    enddo
+   enddo
+   write(6,'(A,2F20.14)') 'Energy:', c_edge2,c_edge2+EHFKS
+
+   deallocate(npoles,poles,residues)
+
+   write(*,'(A)') "*********************************************"
+   write(*,'(A)') "* Diagonal approximation (graphical method) *"
+   write(*,'(A)') "*********************************************"
+
+   qp1=0.0d0
+   do dloop=1,20
+!  write(*,*) "Dyson loop",dloop
+
+   qp2=0.0d0
+   qp3=0.0d0 ! residue
+   do pspin=1,1 ! alpha spin only
+    do p=icore+1,iall(0,0,0)-ivirtcore
+     pp=(pspin-1)*iall(0,0,0)+p
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+         bb=(bspin-1)*iall(0,0,0)+b
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+           qp2(p)=qp2(p)+0.5d0*c_eri(pp,ii,aa,bb)*c_eri(aa,bb,pp,ii) &
+              /(epsilon(i,0,0,0)+epsilon(p,0,0,0)+qp1(p)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+           qp3(p)=qp3(p)-0.5d0*c_eri(pp,ii,aa,bb)*c_eri(aa,bb,pp,ii) &
+              /(epsilon(i,0,0,0)+epsilon(p,0,0,0)+qp1(p)-epsilon(a,0,0,0)-epsilon(b,0,0,0))**2
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           qp2(p)=qp2(p)-0.5d0*c_eri(ii,jj,pp,aa)*c_eri(pp,aa,ii,jj) &
+              /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-epsilon(p,0,0,0)-qp1(p)-epsilon(a,0,0,0))
+           qp3(p)=qp3(p)-0.5d0*c_eri(ii,jj,pp,aa)*c_eri(pp,aa,ii,jj) &
+              /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-epsilon(p,0,0,0)-qp1(p)-epsilon(a,0,0,0))**2
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+    enddo
+   enddo
+
+   qp1=qp2
+
+   if (dloop == 20) then
+    write(*,'(A4,2A20)') 'ROOT','POLE','RESIDUE'
+    do i=icore+1,iall(0,0,0)-ivirtcore
+     write(6,'(I4,2F20.14)') i,epsilon(i,0,0,0)+qp1(i),1.0d0/(1.0d0-qp3(i))
+    enddo
+    gm3=0.0d0
+    do i=icore+1,iocc
+     gm3=gm3+0.5d0*(qp1(i))*1.0d0/(1.0d0-qp3(i))
+    enddo
+    write(*,'(A4,A20,F20.14)') ' ','Galitskii (useless)',gm3
+   endif
+
+   enddo
+
+   write(*,'(A)') "*********************************"
+   write(*,'(A)') "* Full Dyson (graphical method) *"
+   write(*,'(A)') "*********************************"
+
+   ntot=iall(0,0,0)-ivirtcore-icore
+   allocate(sg2(ntot,ntot),res(ntot,ntot))
+   ALLOCATE(VL(1,ntot),EREAL(ntot),EIMAG(ntot),WK(4*ntot))
+   ALLOCATE(VR(ntot,ntot))
+
+   write(*,'(A4,2A20)') 'ROOT','POLE','RESIDUE'
+
+   gm3=0.0d0
+   ! target root
+   do rspin=1,1 ! alpha spin only
+   do r=icore+1,iall(0,0,0)-ivirtcore
+   rr=(rspin-1)*iall(0,0,0)+r
+   qp1(r)=epsilon(r,0,0,0)
+
+   do dloop=1,20
+!  write(*,*) "Dyson loop",dloop
+
+   sg2=0.0d0
+   res=0.0d0 ! residue
+
+   do pspin=1,1 ! alpha spin only
+   do p=icore+1,iall(0,0,0)-ivirtcore
+    pp=(pspin-1)*iall(0,0,0)+p
+    sg2(p-icore,p-icore)=epsilon(p,0,0,0)
+    do qspin=1,1 ! alpha spin only
+    do q=icore+1,iall(0,0,0)-ivirtcore
+     qq=(qspin-1)*iall(0,0,0)+q
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+         bb=(bspin-1)*iall(0,0,0)+b
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+           sg2(p-icore,q-icore)=sg2(p-icore,q-icore)+0.5d0*c_eri(qq,ii,aa,bb)*c_eri(aa,bb,pp,ii) &
+              /(epsilon(i,0,0,0)+qp1(r)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+           res(p-icore,q-icore)=res(p-icore,q-icore)-0.5d0*c_eri(qq,ii,aa,bb)*c_eri(aa,bb,pp,ii) &
+              /(epsilon(i,0,0,0)+qp1(r)-epsilon(a,0,0,0)-epsilon(b,0,0,0))**2
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           sg2(p-icore,q-icore)=sg2(p-icore,q-icore)-0.5d0*c_eri(ii,jj,pp,aa)*c_eri(qq,aa,ii,jj) &
+              /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-qp1(r)-epsilon(a,0,0,0))
+           res(p-icore,q-icore)=res(p-icore,q-icore)-0.5d0*c_eri(ii,jj,pp,aa)*c_eri(qq,aa,ii,jj) &
+              /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-qp1(r)-epsilon(a,0,0,0))**2
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+    enddo
+    enddo
+   enddo
+   enddo
+
+   CALL DGEEV('N','V',ntot,sg2,ntot,EREAL,EIMAG,VL,1,VR,ntot,WK,4*ntot,INFO)
+   CALL PIKSRT(ntot,ntot,EREAL,VR,EIMAG)
+!  do p=icore+1,iall(0,0,0)-ivirtcore
+!   residue=vr(r-icore,p-icore)**2
+!   write(*,*) 'target=',r,'eigenfxn=',p,'weight=',residue
+!   if (residue > 0.5d0) s=p
+!  enddo
+   qp1(r)=ereal(r-icore)
+   qp3(r)=0.0d0
+   do p=icore+1,iall(0,0,0)-ivirtcore
+    do q=icore+1,iall(0,0,0)-ivirtcore
+     qp3(r)=qp3(r)+vr(p-icore,r-icore)*res(p-icore,q-icore)*vr(q-icore,r-icore)
+    enddo
+   enddo
+
+   if (dloop == 20) then
+    write(6,'(I4,2F20.14)') r,qp1(r),1.0d0/(1.0d0-qp3(r))
+   endif
+
+   enddo ! Dyson loop
+   if (qp1(r) < 0.0d0) gm3=gm3+0.5d0*(qp1(r)-epsilon(r,0,0,0))*1.0d0/(1.0d0-qp3(r))
+
+   enddo 
+   enddo ! Target orbital loop
+   write(*,'(A4,A20,F20.14)') ' ','Galitskii (useless)',gm3
+
+   deallocate(sg2,res)
+   deallocate(VL,EREAL,EIMAG,WK,VR)
+
+   write(*,'(A)') "*******************************************"
+   write(*,'(A)') "* Diagonal, freq-indep (QP) approximation *"
+   write(*,'(A)') "*******************************************"
+
+   qp1=0.0d0
+   do pspin=1,1 ! alpha spin only
+    do p=icore+1,iall(0,0,0)-ivirtcore
+     pp=(pspin-1)*iall(0,0,0)+p
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+         bb=(bspin-1)*iall(0,0,0)+b
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+           qp1(p)=qp1(p)+0.5d0*c_eri(pp,ii,aa,bb)*c_eri(aa,bb,pp,ii) &
+              /(epsilon(i,0,0,0)+epsilon(p,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           qp1(p)=qp1(p)-0.5d0*c_eri(ii,jj,pp,aa)*c_eri(pp,aa,ii,jj) &
+              /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-epsilon(p,0,0,0)-epsilon(a,0,0,0))
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+    enddo
+   enddo
+
+   write(*,'(A4,2A20)') 'ROOT','POLE','RESIDUE'
+   do i=icore+1,iall(0,0,0)-ivirtcore
+    write(6,'(I4,2F20.14)') i,epsilon(i,0,0,0)+qp1(i),1.0d0
+   enddo
+
+   gm3=0.0d0
+   do p=icore+1,iocc
+    gm3=gm3+0.5d0*(qp1(p))
+   enddo
+   write(*,'(A4,A20,F20.14)') ' ','Galitskii (useless)',gm3
+
+   write(*,'(A)') "*******************"
+   write(*,'(A)') "* Pole bracketing *"
+   write(*,'(A)') "*******************"
+
+   ntot=(iocc-icore)**2*(iall(0,0,0)-iocc-ivirtcore)+(iall(0,0,0)-iocc-ivirtcore)**2*(iocc-icore)+1
+   allocate(hmin(ntot),hmax(ntot))
+
+!  do p=icore+1,iall(0,0,0)-ivirtcore
+!  write(*,*) 'Orbital:',p
+   istat=0
+   do i=icore+1,iocc
+    do j=icore+1,iocc
+     do a=iall(0,0,0)-ivirtcore,iocc+1,-1
+!     if (a==p) cycle
+      istat=istat+1
+      hmin(istat+1)=epsilon(i,0,0,0)+epsilon(j,0,0,0)-epsilon(a,0,0,0)
+      hmax(istat)=epsilon(i,0,0,0)+epsilon(j,0,0,0)-epsilon(a,0,0,0)
+     enddo
+    enddo
+   enddo
+   do a=iocc+1,iall(0,0,0)-ivirtcore
+    do b=iocc+1,iall(0,0,0)-ivirtcore
+     do i=iocc,icore+1,-1
+!     if (i==p) cycle
+      istat=istat+1
+      hmin(istat+1)=epsilon(a,0,0,0)+epsilon(b,0,0,0)-epsilon(i,0,0,0)
+      hmax(istat)=epsilon(a,0,0,0)+epsilon(b,0,0,0)-epsilon(i,0,0,0)
+     enddo
+    enddo
+   enddo
+   hmin(1)=-999.9d0
+   hmax(istat+1)=999.9d0
+!  if (istat /= (ntot-1)/8) call pabort('bug')
+   CALL PIKSRT_EVALONLY(istat+1,hmin)
+   CALL PIKSRT_EVALONLY(istat+1,hmax)
+   write(6,'(A8,2A20)') 'REGION','MIN','MAX'
+   jstat=0
+   do i=1,istat+1
+    if ((hmax(i)-hmin(i)) > 1.0d-14) then
+     jstat=jstat+1
+     write(6,'(I8,2F20.14)') jstat,hmin(i),hmax(i)
+    endif
+   enddo   
+!  enddo
+
+   deallocate(hmin,hmax)
+
+! ===================================================================
+
+   write(*,'(A)') "********************"
+   write(*,'(A)') "* 2nd-order vertex *"
+   write(*,'(A)') "********************"
+   write(*,'(A,E20.10)') 'OMEGA = ',OMEGA
 
    tabpi=0.0d0
    sqaij=0.0d0
 
    do mloop=1,20
-   write(*,*) "2ph-TDA loop",mloop
+   write(*,*) "S & U amplitude eq loop",mloop
  
    do aspin=1,2
     do a=iocc+1,iall(0,0,0)-ivirtcore
@@ -3563,7 +4348,7 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
             do i=icore+1,iocc
              ii=(ispin-1)*iall(0,0,0)+i
 ! -----------------------------------
-             tda(pp-icore,qq-icore)=tda(pp-icore,qq-icore)+0.5d0*c_eri(qq,ii,aa,bb)*tabpi(aa,bb,pp,ii)
+             tda(pp,qq)=tda(pp,qq)+0.5d0*c_eri(qq,ii,aa,bb)*tabpi(aa,bb,pp,ii)
 ! -----------------------------------
             enddo
            enddo
@@ -3582,7 +4367,7 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
             do j=icore+1,iocc
              jj=(jspin-1)*iall(0,0,0)+j
 ! -----------------------------------
-             tda(pp-icore,qq-icore)=tda(pp-icore,qq-icore)-0.5d0*c_eri(ii,jj,pp,aa)*sqaij(qq,aa,ii,jj)
+             tda(pp,qq)=tda(pp,qq)-0.5d0*c_eri(ii,jj,pp,aa)*sqaij(qq,aa,ii,jj)
 ! -----------------------------------
             enddo
            enddo
@@ -3596,15 +4381,2267 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
     enddo
    enddo
 
-   call dump5(tda,iall(0,0,0)-icore)
+!  call dump5(tda,iall(0,0,0))
 
-   enddo ! 2ph-TDA loop
+! ======= adding the energy-independent terms
+!  do pspin=1,1 ! alpha spin only
+!   do p=icore+1,iall(0,0,0)-ivirtcore
+!    pp=(pspin-1)*iall(0,0,0)+p
+!    do qspin=1,1 ! alpha spin only
+!     do q=icore+1,iall(0,0,0)-ivirtcore
+!      qq=(qspin-1)*iall(0,0,0)+q
+! -----------------------------------
+!      tda(pp,qq)=tda(pp,qq)+sigma(pp,qq,3)
+! -----------------------------------
+!     enddo
+!    enddo
+!   enddo
+!  enddo
 
-   deallocate(tabpi,sqaij)
-   deallocate(tabpi2,sqaij2)
-   deallocate(tda)
+   if (mloop == 20) write(6,'(A,F15.10)') 'VERTEX2 self-energy at omega = ',omega
+   if (mloop == 20) call dump5(tda,iall(0,0,0))
 
-   ! ... 2phTDA
+   enddo ! ... S & U amplitude equation loop
+
+   write(6,'(A,F15.10)') 'VERTEX2 diagonal self-energy at omega = ',omega
+   do i=icore+1,iall(0,0,0)-ivirtcore
+    if (i==iocc) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+tda(i,i),' HOMO'
+    else if (i==iocc+1) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+tda(i,i),' LUMO'
+    else
+     write(6,'(I3,F20.14)') i,epsilon(i,0,0,0)+tda(i,i)
+    endif
+   enddo
+
+   ! 2nd-order vertex energy
+
+   tabpi=0.0d0
+   sqaij=0.0d0
+   uabij=0.0d0
+
+   do mloop=1,20
+   write(*,*) "T amplitude equation loop",mloop
+ 
+   do aspin=1,2
+    do a=iocc+1,iall(0,0,0)-ivirtcore
+     aa=(aspin-1)*iall(0,0,0)+a
+     do bspin=1,2
+      do b=iocc+1,iall(0,0,0)-ivirtcore
+       bb=(bspin-1)*iall(0,0,0)+b
+       do jspin=1,2
+        do j=icore+1,iocc
+         jj=(jspin-1)*iall(0,0,0)+j
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+           tabpi2(aa,bb,jj,ii)=c_eri(aa,bb,jj,ii)/(epsilon(j,0,0,0)+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+           uabij2(aa,bb,jj,ii)=c_eri(aa,bb,jj,ii)/(epsilon(j,0,0,0)+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+! -----------------------------------
+           do cspin=1,2
+            do c=iocc+1,iall(0,0,0)-ivirtcore
+             ccc=(cspin-1)*iall(0,0,0)+c
+             do kspin=1,2
+              do k=icore+1,iocc
+               kk=(kspin-1)*iall(0,0,0)+k
+! -----------------------------------
+               tabpi2(aa,bb,jj,ii)=tabpi2(aa,bb,jj,ii)-c_eri(aa,kk,ccc,ii)*tabpi(ccc,bb,jj,kk) &
+                                  /(epsilon(j,0,0,0)+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+               tabpi2(aa,bb,jj,ii)=tabpi2(aa,bb,jj,ii)+c_eri(bb,kk,ccc,ii)*tabpi(ccc,aa,jj,kk) &
+                                  /(epsilon(j,0,0,0)+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+               uabij2(aa,bb,jj,ii)=uabij2(aa,bb,jj,ii)-c_eri(aa,kk,ccc,ii)*uabij(ccc,bb,jj,kk) &
+                                  /(epsilon(j,0,0,0)+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+               uabij2(aa,bb,jj,ii)=uabij2(aa,bb,jj,ii)+c_eri(bb,kk,ccc,ii)*uabij(ccc,aa,jj,kk) &
+                                  /(epsilon(j,0,0,0)+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+           do cspin=1,2
+            do c=iocc+1,iall(0,0,0)-ivirtcore
+             ccc=(cspin-1)*iall(0,0,0)+c
+             do dspin=1,2
+              do d=iocc+1,iall(0,0,0)-ivirtcore
+               dd=(dspin-1)*iall(0,0,0)+d
+! -----------------------------------
+               tabpi2(aa,bb,jj,ii)=tabpi2(aa,bb,jj,ii)+0.5d0*c_eri(aa,bb,ccc,dd)*tabpi(ccc,dd,jj,ii) &
+                                  /(epsilon(j,0,0,0)+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+               uabij2(aa,bb,jj,ii)=uabij2(aa,bb,jj,ii)+0.5d0*c_eri(aa,bb,ccc,dd)*uabij(ccc,dd,jj,ii) &
+                                  /(epsilon(j,0,0,0)+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+   enddo
+
+   do bspin=1,2
+    do b=iocc+1,iall(0,0,0)-ivirtcore
+     bb=(bspin-1)*iall(0,0,0)+b
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           sqaij2(bb,aa,ii,jj)=c_eri(bb,aa,ii,jj)/(epsilon(i,0,0,0)+epsilon(j,0,0,0)-epsilon(b,0,0,0)-epsilon(a,0,0,0))
+! -----------------------------------
+           do cspin=1,2
+            do c=iocc+1,iall(0,0,0)-ivirtcore
+             ccc=(cspin-1)*iall(0,0,0)+c
+             do kspin=1,2
+              do k=icore+1,iocc
+               kk=(kspin-1)*iall(0,0,0)+k
+! -----------------------------------
+               sqaij2(bb,aa,ii,jj)=sqaij2(bb,aa,ii,jj)-c_eri(kk,aa,ii,ccc)*sqaij(bb,ccc,kk,jj) &
+                                  /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-epsilon(b,0,0,0)-epsilon(a,0,0,0))
+               sqaij2(bb,aa,ii,jj)=sqaij2(bb,aa,ii,jj)+c_eri(kk,aa,jj,ccc)*sqaij(bb,ccc,kk,ii) &
+                                  /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-epsilon(b,0,0,0)-epsilon(a,0,0,0))
+               uabij2(bb,aa,ii,jj)=uabij2(bb,aa,ii,jj)-c_eri(kk,aa,ii,ccc)*uabij(bb,ccc,kk,jj) &
+                                  /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-epsilon(b,0,0,0)-epsilon(a,0,0,0))
+               uabij2(bb,aa,ii,jj)=uabij2(bb,aa,ii,jj)+c_eri(kk,aa,jj,ccc)*uabij(bb,ccc,kk,ii) &
+                                  /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-epsilon(b,0,0,0)-epsilon(a,0,0,0))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+           do kspin=1,2
+            do k=icore+1,iocc
+             kk=(kspin-1)*iall(0,0,0)+k
+             do lspin=1,2
+              do l=icore+1,iocc
+               ll=(lspin-1)*iall(0,0,0)+l
+! -----------------------------------
+               sqaij2(bb,aa,ii,jj)=sqaij2(bb,aa,ii,jj)+0.5d0*c_eri(kk,ll,ii,jj)*sqaij(bb,aa,kk,ll) &
+                                  /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-epsilon(b,0,0,0)-epsilon(a,0,0,0))
+               uabij2(bb,aa,ii,jj)=uabij2(bb,aa,ii,jj)+0.5d0*c_eri(kk,ll,ii,jj)*uabij(bb,aa,kk,ll) &
+                                  /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-epsilon(b,0,0,0)-epsilon(a,0,0,0))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+   enddo
+
+   tabpi=tabpi2
+   sqaij=sqaij2
+   uabij=uabij2
+
+   c_mp2=0.0d0
+   c_tda1=0.0d0
+   c_tda2=0.0d0
+   c_lccd=0.0d0
+
+   do jspin=1,2
+    do j=icore+1,iocc
+     jj=(jspin-1)*iall(0,0,0)+j
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+         bb=(bspin-1)*iall(0,0,0)+b
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+           c_tda1=c_tda1+0.25d0*c_eri(jj,ii,aa,bb)*tabpi(aa,bb,jj,ii)
+           c_tda2=c_tda2+0.25d0*c_eri(ii,jj,bb,aa)*sqaij(bb,aa,ii,jj)
+           c_lccd=c_lccd+0.25d0*c_eri(jj,ii,aa,bb)*uabij(aa,bb,jj,ii)
+           c_mp2=c_mp2+0.25d0*c_eri(ii,jj,bb,aa)*c_eri(ii,jj,bb,aa) &
+                      /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+   enddo
+         
+   if (mloop == 20) then
+   write(6,'(A,2F20.14)') 'MP2 energy        :', c_mp2,c_mp2+EHFKS
+   write(6,'(A,2F20.14)') 'TDA energy 1      :', c_tda1,c_tda1+EHFKS
+   write(6,'(A,2F20.14)') 'TDA energy 2      :', c_tda2,c_tda2+EHFKS
+   write(6,'(A,2F20.14)') 'V2 energy (1+2/2) :', (c_tda1+c_tda2)/2.0d0,(c_tda1+c_tda2)/2.0d0+EHFKS
+   write(6,'(A,2F20.14)') 'V2 energy (1+2-E2):', c_tda1+c_tda2-c_mp2, c_tda1+c_tda2-c_mp2+EHFKS
+   write(6,'(A,2F20.14)') 'LCCD energy       :', c_lccd,c_lccd+EHFKS
+   write(6,'(A,2F20.14)') 'V3 energy         :', c_lccd*2.0d0/3.0d0+(c_tda1+c_tda2-c_mp2)/3.0d0, &
+                                                 c_lccd*2.0d0/3.0d0+(c_tda1+c_tda2-c_mp2)/3.0d0+EHFKS
+   endif
+
+   enddo ! ... T amplitude equation loop
+
+! ****************
+! 3rd-order vertex
+! ****************
+
+   write(6,'(A)') '********************'
+   write(6,'(A)') '* 3rd-order vertex *'
+   write(6,'(A)') '********************'
+
+   do pspin=1,1 ! alpha spin only
+    do p=icore+1,iall(0,0,0)-ivirtcore
+     pp=(pspin-1)*iall(0,0,0)+p
+     do qspin=1,1 ! alpha spin only
+      do q=icore+1,iall(0,0,0)-ivirtcore
+       qq=(qspin-1)*iall(0,0,0)+q
+
+       do aspin=1,2
+       do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+        do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+        bb=(bspin-1)*iall(0,0,0)+b
+         do cspin=1,2
+         do c=iocc+1,iall(0,0,0)-ivirtcore
+         ccc=(cspin-1)*iall(0,0,0)+c
+          do ispin=1,2
+          do i=icore+1,iocc
+          ii=(ispin-1)*iall(0,0,0)+i
+           do jspin=1,2
+           do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           tda(pp,qq)=tda(pp,qq)-0.25d0*c_eri(ii,jj,pp,ccc)*c_eri(qq,ccc,aa,bb)*uabij(aa,bb,ii,jj) &
+                                /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega-epsilon(c,0,0,0)) &
+                                -0.25d0*c_eri(ii,jj,qq,ccc)*c_eri(pp,ccc,aa,bb)*uabij(aa,bb,ii,jj) &
+                                /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega-epsilon(c,0,0,0))
+! -----------------------------------
+           enddo
+           enddo
+          enddo
+          enddo
+         enddo
+         enddo
+        enddo
+        enddo
+       enddo
+       enddo
+
+       do aspin=1,2
+       do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+        do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+        bb=(bspin-1)*iall(0,0,0)+b
+         do ispin=1,2
+         do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+          do jspin=1,2
+          do j=icore+1,iocc
+          jj=(jspin-1)*iall(0,0,0)+j
+           do kspin=1,2
+           do k=icore+1,iocc
+           kk=(kspin-1)*iall(0,0,0)+k
+! -----------------------------------
+           tda(pp,qq)=tda(pp,qq)+0.25d0*c_eri(qq,kk,aa,bb)*c_eri(ii,jj,pp,kk)*uabij(aa,bb,ii,jj) &
+                                /(omega+epsilon(k,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0)) &
+                                +0.25d0*c_eri(pp,kk,aa,bb)*c_eri(ii,jj,qq,kk)*uabij(aa,bb,ii,jj) &
+                                /(omega+epsilon(k,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+! -----------------------------------
+           enddo
+           enddo
+          enddo
+          enddo
+         enddo
+         enddo
+        enddo
+        enddo
+       enddo
+       enddo
+
+       do aspin=1,2
+       do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+        do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+        bb=(bspin-1)*iall(0,0,0)+b
+         do ispin=1,2
+         do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+          do jspin=1,2
+          do j=icore+1,iocc
+          jj=(jspin-1)*iall(0,0,0)+j
+           do kspin=1,2
+           do k=icore+1,iocc
+           kk=(kspin-1)*iall(0,0,0)+k
+! -----------------------------------
+           tda(pp,qq)=tda(pp,qq)+c_eri(ii,kk,pp,bb)*c_eri(qq,jj,aa,kk)*uabij(aa,bb,ii,jj) &
+                                /(epsilon(i,0,0,0)+epsilon(k,0,0,0)-omega-epsilon(b,0,0,0)) &
+                                +c_eri(ii,kk,qq,bb)*c_eri(pp,jj,aa,kk)*uabij(aa,bb,ii,jj) &
+                                /(epsilon(i,0,0,0)+epsilon(k,0,0,0)-omega-epsilon(b,0,0,0))
+! -----------------------------------
+           enddo
+           enddo
+          enddo
+          enddo
+         enddo
+         enddo
+        enddo
+        enddo
+       enddo
+       enddo
+
+       do aspin=1,2
+       do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+        do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+        bb=(bspin-1)*iall(0,0,0)+b
+         do cspin=1,2
+         do c=iocc+1,iall(0,0,0)-ivirtcore
+         ccc=(cspin-1)*iall(0,0,0)+c
+          do ispin=1,2
+          do i=icore+1,iocc
+          ii=(ispin-1)*iall(0,0,0)+i
+           do jspin=1,2
+           do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           tda(pp,qq)=tda(pp,qq)-c_eri(qq,jj,aa,ccc)*c_eri(ii,ccc,pp,bb)*uabij(aa,bb,ii,jj) &
+                                /(omega+epsilon(j,0,0,0)-epsilon(a,0,0,0)-epsilon(c,0,0,0)) &
+                                -c_eri(pp,jj,aa,ccc)*c_eri(ii,ccc,qq,bb)*uabij(aa,bb,ii,jj) &
+                                /(omega+epsilon(j,0,0,0)-epsilon(a,0,0,0)-epsilon(c,0,0,0))
+! -----------------------------------
+           enddo
+           enddo
+          enddo
+          enddo
+         enddo
+         enddo
+        enddo
+        enddo
+       enddo
+       enddo
+
+       do aspin=1,2
+       do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+        do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+        bb=(bspin-1)*iall(0,0,0)+b
+         do cspin=1,2
+         do c=iocc+1,iall(0,0,0)-ivirtcore
+         ccc=(cspin-1)*iall(0,0,0)+c
+          do ispin=1,2
+          do i=icore+1,iocc
+          ii=(ispin-1)*iall(0,0,0)+i
+           do jspin=1,2
+           do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           tda(pp,qq)=tda(pp,qq)+0.25D0*c_eri(qq,aa,pp,bb)*c_eri(aa,ccc,ii,jj)*uabij(bb,ccc,ii,jj) &
+                                /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-epsilon(a,0,0,0)-epsilon(c,0,0,0)) &
+                                +0.25D0*c_eri(pp,aa,qq,bb)*c_eri(aa,ccc,ii,jj)*uabij(bb,ccc,ii,jj) &
+                                /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-epsilon(a,0,0,0)-epsilon(c,0,0,0)) 
+!          tda(pp,qq)=tda(pp,qq)+0.25D0*c_eri(qq,aa,pp,bb)*uabij(aa,ccc,ii,jj)*uabij(bb,ccc,ii,jj) &
+!                               +0.25D0*c_eri(pp,aa,qq,bb)*uabij(aa,ccc,ii,jj)*uabij(bb,ccc,ii,jj) 
+! -----------------------------------
+           enddo
+           enddo
+          enddo
+          enddo
+         enddo
+         enddo
+        enddo
+        enddo
+       enddo
+       enddo
+
+       do aspin=1,2
+       do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+        do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+        bb=(bspin-1)*iall(0,0,0)+b
+         do ispin=1,2
+         do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+          do jspin=1,2
+          do j=icore+1,iocc
+          jj=(jspin-1)*iall(0,0,0)+j
+           do kspin=1,2
+           do k=icore+1,iocc
+           kk=(kspin-1)*iall(0,0,0)+k
+! -----------------------------------
+           tda(pp,qq)=tda(pp,qq)-0.25D0*c_eri(qq,jj,pp,ii)*c_eri(aa,bb,ii,kk)*uabij(aa,bb,jj,kk) &
+                                /(epsilon(i,0,0,0)+epsilon(k,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0)) &
+                                -0.25D0*c_eri(pp,jj,qq,ii)*c_eri(aa,bb,ii,kk)*uabij(aa,bb,jj,kk) &
+                                /(epsilon(i,0,0,0)+epsilon(k,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0)) 
+!          tda(pp,qq)=tda(pp,qq)-0.25D0*c_eri(qq,jj,pp,ii)*uabij(aa,bb,ii,kk)*uabij(aa,bb,jj,kk) &
+!                               -0.25D0*c_eri(pp,jj,qq,ii)*uabij(aa,bb,ii,kk)*uabij(aa,bb,jj,kk)
+! -----------------------------------
+           enddo
+           enddo
+          enddo
+          enddo
+         enddo
+         enddo
+        enddo
+        enddo
+       enddo
+       enddo
+
+       do aspin=1,2
+       do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+        do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+        bb=(bspin-1)*iall(0,0,0)+b
+         do cspin=1,2
+         do c=iocc+1,iall(0,0,0)-ivirtcore
+         ccc=(cspin-1)*iall(0,0,0)+c
+          do ispin=1,2
+          do i=icore+1,iocc     
+          ii=(ispin-1)*iall(0,0,0)+i
+           do jspin=1,2
+           do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           tda(pp,qq)=tda(pp,qq)+0.5D0*c_eri(qq,ii,pp,ccc)*c_eri(ccc,jj,aa,bb)*uabij(aa,bb,ii,jj) &
+                                /(epsilon(i,0,0,0)-epsilon(c,0,0,0)) &
+                                +0.5D0*c_eri(pp,ii,qq,ccc)*c_eri(ccc,jj,aa,bb)*uabij(aa,bb,ii,jj) &
+                                /(epsilon(i,0,0,0)-epsilon(c,0,0,0)) 
+! -----------------------------------
+           enddo
+           enddo
+          enddo
+          enddo
+         enddo
+         enddo
+        enddo
+        enddo
+       enddo
+       enddo
+
+       do aspin=1,2
+       do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+        do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+        bb=(bspin-1)*iall(0,0,0)+b
+         do ispin=1,2
+         do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+          do jspin=1,2
+          do j=icore+1,iocc
+          jj=(jspin-1)*iall(0,0,0)+j
+           do kspin=1,2
+           do k=icore+1,iocc
+           kk=(kspin-1)*iall(0,0,0)+k
+! -----------------------------------
+           tda(pp,qq)=tda(pp,qq)-0.5D0*c_eri(qq,kk,pp,aa)*c_eri(ii,jj,kk,bb)*uabij(aa,bb,ii,jj) &
+                                /(epsilon(k,0,0,0)-epsilon(a,0,0,0)) &
+                                -0.5D0*c_eri(pp,kk,qq,aa)*c_eri(ii,jj,kk,bb)*uabij(aa,bb,ii,jj) &
+                                /(epsilon(k,0,0,0)-epsilon(a,0,0,0)) 
+! -----------------------------------
+           enddo
+           enddo
+          enddo
+          enddo
+         enddo
+         enddo
+        enddo
+        enddo
+       enddo
+       enddo
+
+      enddo
+     enddo
+    enddo
+   enddo
+
+   v3=tda
+   write(6,'(A,F15.10)') 'VERTEX3 self-energy at omega = ',omega
+   call dump5(v3,iall(0,0,0))
+
+   write(6,'(A,F15.10)') 'VERTEX3 diagonal self-energy at omega = ',omega
+   do i=icore+1,iall(0,0,0)-ivirtcore
+    if (i==iocc) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+v3(i,i),' HOMO'
+    else if (i==iocc+1) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+v3(i,i),' LUMO'
+    else
+     write(6,'(I3,F20.14)') i,epsilon(i,0,0,0)+v3(i,i)
+    endif
+   enddo
+   ! ... vertex dressing
+
+! **************
+! 2nd-order edge
+! **************
+
+   write(6,'(A)') '******************************'
+   write(6,'(A)') '* 2nd-order edge (QP non-SC) *'
+   write(6,'(A)') '******************************'
+
+   qp1=0.0d0
+   do mloop=1,1
+!  write(*,*) "Self-consistency loop",mloop
+
+   qp2=0.0d0
+   do pspin=1,1 ! alpha spin only
+    do p=icore+1,iall(0,0,0)-ivirtcore
+     pp=(pspin-1)*iall(0,0,0)+p
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+         bb=(bspin-1)*iall(0,0,0)+b
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+           qp2(p)=qp2(p)+0.5d0*c_eri(pp,ii,aa,bb)*c_eri(aa,bb,pp,ii) &
+              /(epsilon(i,0,0,0)+qp1(i)+epsilon(p,0,0,0)+qp1(p)-epsilon(a,0,0,0)-qp1(a)-epsilon(b,0,0,0)-qp1(b))
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           qp2(p)=qp2(p)-0.5d0*c_eri(ii,jj,pp,aa)*c_eri(pp,aa,ii,jj) &
+              /(epsilon(i,0,0,0)+qp1(i)+epsilon(j,0,0,0)+qp1(j)-epsilon(p,0,0,0)-qp1(p)-epsilon(a,0,0,0)-qp1(a))
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+    enddo
+   enddo
+
+   qp1=qp2
+
+!  if (mloop == 20) then
+   write(6,'(A)') 'EDGE2 quasiparticle energy (diagonal, freq-indep)'
+   do i=icore+1,iall(0,0,0)-ivirtcore
+    if (i==iocc) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+qp1(i),' HOMO'
+    else if (i==iocc+1) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+qp1(i),' LUMO'
+    else
+     write(6,'(I3,F20.14)') i,epsilon(i,0,0,0)+qp1(i)
+    endif
+   enddo
+!  endif
+
+   enddo
+
+   tda=0.0d0
+   do pspin=1,1 ! alpha spin only
+   do p=icore+1,iall(0,0,0)-ivirtcore
+    pp=(pspin-1)*iall(0,0,0)+p
+    do qspin=1,1 ! alpha spin only
+    do q=icore+1,iall(0,0,0)-ivirtcore
+     qq=(qspin-1)*iall(0,0,0)+q
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+         bb=(bspin-1)*iall(0,0,0)+b
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+           tda(p,q)=tda(p,q)+0.5d0*c_eri(qq,ii,aa,bb)*c_eri(aa,bb,pp,ii) &
+              /(epsilon(i,0,0,0)+qp1(i)+omega-epsilon(a,0,0,0)-qp1(a)-epsilon(b,0,0,0)-qp1(b))
+!write(*,*) pp,qq,aa,bb,ii,tda(pp,qq)
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           tda(p,q)=tda(p,q)-0.5d0*c_eri(ii,jj,pp,aa)*c_eri(qq,aa,ii,jj) &
+              /(epsilon(i,0,0,0)+qp1(i)+epsilon(j,0,0,0)+qp1(j)-omega-epsilon(a,0,0,0)-qp1(a))
+!write(*,*) pp,qq,aa,ii,jj,tda(pp,qq)
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+    enddo
+    enddo
+   enddo
+   enddo
+
+   write(6,'(A,F15.10)') 'EDGE2 (QP) self-energy at omega = ',omega
+   call dump5(tda,iall(0,0,0))
+   write(6,'(A,F15.10)') 'EDGE2 (QP) diagonal self-energy at omega = ',omega
+   do i=icore+1,iall(0,0,0)-ivirtcore
+    if (i==iocc) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+tda(i,i),' HOMO'
+    else if (i==iocc+1) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+tda(i,i),' LUMO'
+    else
+     write(6,'(I3,F20.14)') i,epsilon(i,0,0,0)+tda(i,i)
+    endif
+   enddo
+
+   c_edge1=0.0d0
+   do aspin=1,2
+    do a=iocc+1,iall(0,0,0)-ivirtcore
+     aa=(aspin-1)*iall(0,0,0)+a
+     do bspin=1,2
+      do b=iocc+1,iall(0,0,0)-ivirtcore
+       bb=(bspin-1)*iall(0,0,0)+b
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           c_edge1=c_edge1+0.25d0*c_eri(ii,jj,aa,bb)*c_eri(aa,bb,ii,jj) &
+              /(epsilon(i,0,0,0)+qp1(i)+epsilon(j,0,0,0)+qp1(j)-epsilon(a,0,0,0)-qp1(a)-epsilon(b,0,0,0)-qp1(b))
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+   enddo
+   write(6,'(A,2F20.14)') 'EDGE2 (QP) energy:', c_edge1,c_edge1+EHFKS
+
+   ! ... edge dressing
+
+   write(6,'(A)') '**************************'
+   write(6,'(A)') '* 2nd-order edge (QP SC) *'
+   write(6,'(A)') '**************************'
+
+   qp1=0.0d0
+   do mloop=1,20
+   write(*,*) "Self-consistency loop",mloop
+
+   qp2=0.0d0
+   do pspin=1,1 ! alpha spin only
+    do p=icore+1,iall(0,0,0)-ivirtcore
+     pp=(pspin-1)*iall(0,0,0)+p
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+         bb=(bspin-1)*iall(0,0,0)+b
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+           qp2(p)=qp2(p)+0.5d0*c_eri(pp,ii,aa,bb)*c_eri(aa,bb,pp,ii) &
+              /(epsilon(i,0,0,0)+qp1(i)+epsilon(p,0,0,0)+qp1(p)-epsilon(a,0,0,0)-qp1(a)-epsilon(b,0,0,0)-qp1(b))
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           qp2(p)=qp2(p)-0.5d0*c_eri(ii,jj,pp,aa)*c_eri(pp,aa,ii,jj) &
+              /(epsilon(i,0,0,0)+qp1(i)+epsilon(j,0,0,0)+qp1(j)-epsilon(p,0,0,0)-qp1(p)-epsilon(a,0,0,0)-qp1(a))
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+    enddo
+   enddo
+
+   qp1=qp2
+
+   if (mloop == 20) then
+   write(6,'(A)') 'Self-consistent EDGE2 quasiparticle energy (diagonal, freq-indep)'
+   do i=icore+1,iall(0,0,0)-ivirtcore
+    if (i==iocc) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+qp1(i),' HOMO'
+    else if (i==iocc+1) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+qp1(i),' LUMO'
+    else
+     write(6,'(I3,F20.14)') i,epsilon(i,0,0,0)+qp1(i)
+    endif
+   enddo
+   endif
+
+   enddo
+
+   tda=0.0d0
+   do pspin=1,1 ! alpha spin only
+   do p=icore+1,iall(0,0,0)-ivirtcore
+    pp=(pspin-1)*iall(0,0,0)+p
+    do qspin=1,1 ! alpha spin only
+    do q=icore+1,iall(0,0,0)-ivirtcore
+     qq=(qspin-1)*iall(0,0,0)+q
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+         bb=(bspin-1)*iall(0,0,0)+b
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+           tda(p,q)=tda(p,q)+0.5d0*c_eri(qq,ii,aa,bb)*c_eri(aa,bb,pp,ii) &
+              /(epsilon(i,0,0,0)+qp1(i)+omega-epsilon(a,0,0,0)-qp1(a)-epsilon(b,0,0,0)-qp1(b))
+!write(*,*) pp,qq,aa,bb,ii,tda(pp,qq)
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           tda(p,q)=tda(p,q)-0.5d0*c_eri(ii,jj,pp,aa)*c_eri(qq,aa,ii,jj) &
+              /(epsilon(i,0,0,0)+qp1(i)+epsilon(j,0,0,0)+qp1(j)-omega-epsilon(a,0,0,0)-qp1(a))
+!write(*,*) pp,qq,aa,ii,jj,tda(pp,qq)
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+    enddo
+    enddo
+   enddo
+   enddo
+
+   write(6,'(A,F15.10)') 'Self-consistent EDGE2 (QP) self-energy at omega = ',omega
+   call dump5(tda,iall(0,0,0))
+   write(6,'(A,F15.10)') 'Self-consistent EDGE2 (QP) diagonal self-energy at omega = ',omega
+   do i=icore+1,iall(0,0,0)-ivirtcore
+    if (i==iocc) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+tda(i,i),' HOMO'
+    else if (i==iocc+1) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+tda(i,i),' LUMO'
+    else
+     write(6,'(I3,F20.14)') i,epsilon(i,0,0,0)+tda(i,i)
+    endif
+   enddo
+
+   c_edge1=0.0d0
+   do aspin=1,2
+    do a=iocc+1,iall(0,0,0)-ivirtcore
+     aa=(aspin-1)*iall(0,0,0)+a
+     do bspin=1,2
+      do b=iocc+1,iall(0,0,0)-ivirtcore
+       bb=(bspin-1)*iall(0,0,0)+b
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           c_edge1=c_edge1+0.25d0*c_eri(ii,jj,aa,bb)*c_eri(aa,bb,ii,jj) &
+              /(epsilon(i,0,0,0)+qp1(i)+epsilon(j,0,0,0)+qp1(j)-epsilon(a,0,0,0)-qp1(a)-epsilon(b,0,0,0)-qp1(b))
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+   enddo
+   write(6,'(A,2F20.14)') 'Self-consistent EDGE2 (QP) energy:', c_edge1,c_edge1+EHFKS
+
+   ! ... edge dressing
+
+   write(6,'(A)') '************************************'
+   write(6,'(A)') '* 2nd-order edge (freq-dep non-SC) *'
+   write(6,'(A)') '************************************'
+
+   qp1=0.0d0
+   do dloop=1,20
+   write(*,*) "Dyson loop",dloop
+
+   qp2=0.0d0
+   do pspin=1,1 ! alpha spin only
+    do p=icore+1,iall(0,0,0)-ivirtcore
+     pp=(pspin-1)*iall(0,0,0)+p
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+         bb=(bspin-1)*iall(0,0,0)+b
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+           qp2(p)=qp2(p)+0.5d0*c_eri(pp,ii,aa,bb)*c_eri(aa,bb,pp,ii) &
+              /(epsilon(i,0,0,0)+epsilon(p,0,0,0)+qp1(p)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           qp2(p)=qp2(p)-0.5d0*c_eri(ii,jj,pp,aa)*c_eri(pp,aa,ii,jj) &
+              /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-epsilon(p,0,0,0)-qp1(p)-epsilon(a,0,0,0))
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+    enddo
+   enddo
+
+   qp1=qp2
+
+   if (dloop == 20) then
+   write(6,'(A)') 'EDGE2 diagonal Dyson roots'
+   do i=icore+1,iall(0,0,0)-ivirtcore
+    if (i==iocc) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+qp1(i),' HOMO'
+    else if (i==iocc+1) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+qp1(i),' LUMO'
+    else
+     write(6,'(I3,F20.14)') i,epsilon(i,0,0,0)+qp1(i)
+    endif
+   enddo
+   endif
+
+   enddo
+
+   tda=0.0d0
+   do pspin=1,1 ! alpha spin only
+   do p=icore+1,iall(0,0,0)-ivirtcore
+    pp=(pspin-1)*iall(0,0,0)+p
+    do qspin=1,1 ! alpha spin only
+    do q=icore+1,iall(0,0,0)-ivirtcore
+     qq=(qspin-1)*iall(0,0,0)+q
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+         bb=(bspin-1)*iall(0,0,0)+b
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+           tda(p,q)=tda(p,q)+0.5d0*c_eri(qq,ii,aa,bb)*c_eri(aa,bb,pp,ii) &
+              /(epsilon(i,0,0,0)+qp1(i)+omega-epsilon(a,0,0,0)-qp1(a)-epsilon(b,0,0,0)-qp1(b))
+!write(*,*) pp,qq,aa,bb,ii,tda(pp,qq)
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           tda(p,q)=tda(p,q)-0.5d0*c_eri(ii,jj,pp,aa)*c_eri(qq,aa,ii,jj) &
+              /(epsilon(i,0,0,0)+qp1(i)+epsilon(j,0,0,0)+qp1(j)-omega-epsilon(a,0,0,0)-qp1(a))
+!write(*,*) pp,qq,aa,ii,jj,tda(pp,qq)
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+    enddo
+    enddo
+   enddo
+   enddo
+
+   e2=tda
+   write(6,'(A,F15.10)') 'EDGE2 (diag, freq-dep) self-energy at omega = ',omega
+   call dump5(e2,iall(0,0,0))
+   write(6,'(A,F15.10)') 'EDGE2 (diag, freq-dep) diagonal self-energy at omega = ',omega
+   do i=icore+1,iall(0,0,0)-ivirtcore
+    if (i==iocc) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+e2(i,i),' HOMO'
+    else if (i==iocc+1) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+e2(i,i),' LUMO'
+    else
+     write(6,'(I3,F20.14)') i,epsilon(i,0,0,0)+e2(i,i)
+    endif
+   enddo
+
+   c_edge2=0.0d0
+   do aspin=1,2
+    do a=iocc+1,iall(0,0,0)-ivirtcore
+     aa=(aspin-1)*iall(0,0,0)+a
+     do bspin=1,2
+      do b=iocc+1,iall(0,0,0)-ivirtcore
+       bb=(bspin-1)*iall(0,0,0)+b
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           c_edge2=c_edge2+0.25d0*c_eri(ii,jj,aa,bb)*c_eri(aa,bb,ii,jj) &
+              /(epsilon(i,0,0,0)+qp1(i)+epsilon(j,0,0,0)+qp1(j)-epsilon(a,0,0,0)-qp1(a)-epsilon(b,0,0,0)-qp1(b))
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+   enddo
+   write(6,'(A,2F20.14)') 'EDGE2 (freq-dependent) energy:', c_edge2,c_edge2+EHFKS
+
+   ! ... edge dressing
+
+   write(6,'(A)') '********************************'
+   write(6,'(A)') '* 2nd-order edge (freq-dep SC) *'
+   write(6,'(A)') '********************************'
+
+   qp3=0.0d0
+   do mloop=1,20
+   write(*,*) "Self-consistency loop",mloop
+
+   qp1=0.0d0
+   do dloop=1,20
+!  write(*,*) "Dyson loop",dloop
+
+   qp2=0.0d0
+   do pspin=1,1 ! alpha spin only
+    do p=icore+1,iall(0,0,0)-ivirtcore
+     pp=(pspin-1)*iall(0,0,0)+p
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+         bb=(bspin-1)*iall(0,0,0)+b
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+           qp2(p)=qp2(p)+0.5d0*c_eri(pp,ii,aa,bb)*c_eri(aa,bb,pp,ii) &
+              /(epsilon(i,0,0,0)+qp3(i)+epsilon(p,0,0,0)+qp3(p)+qp1(p)-epsilon(a,0,0,0)-qp3(a)-epsilon(b,0,0,0)-qp3(b))
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           qp2(p)=qp2(p)-0.5d0*c_eri(ii,jj,pp,aa)*c_eri(pp,aa,ii,jj) &
+              /(epsilon(i,0,0,0)+qp3(i)+epsilon(j,0,0,0)+qp3(j)-epsilon(p,0,0,0)-qp3(p)-qp1(p)-epsilon(a,0,0,0)-qp3(a))
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+    enddo
+   enddo
+
+   qp1=qp2
+
+   if (dloop == 21) then
+   write(6,'(A)') 'EDGE2 diagonal Dyson roots'
+   do i=icore+1,iall(0,0,0)-ivirtcore
+    if (i==iocc) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+qp1(i),' HOMO'
+    else if (i==iocc+1) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+qp1(i),' LUMO'
+    else
+     write(6,'(I3,F20.14)') i,epsilon(i,0,0,0)+qp1(i)
+    endif
+   enddo
+   endif
+
+   enddo ! ... Dyson loop
+
+   qp3=qp1
+
+   if (mloop == 20) then
+   write(6,'(A)') 'Self-consistent EDGE2 diagonal Dyson roots'
+   do i=icore+1,iall(0,0,0)-ivirtcore
+    if (i==iocc) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+qp3(i),' HOMO'
+    else if (i==iocc+1) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+qp3(i),' LUMO'
+    else
+     write(6,'(I3,F20.14)') i,epsilon(i,0,0,0)+qp3(i)
+    endif
+   enddo
+   endif
+
+   enddo ! ... self-consistency loop
+
+   tda=0.0d0
+   do pspin=1,1 ! alpha spin only
+   do p=icore+1,iall(0,0,0)-ivirtcore
+    pp=(pspin-1)*iall(0,0,0)+p
+    do qspin=1,1 ! alpha spin only
+    do q=icore+1,iall(0,0,0)-ivirtcore
+     qq=(qspin-1)*iall(0,0,0)+q
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+         bb=(bspin-1)*iall(0,0,0)+b
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+           tda(p,q)=tda(p,q)+0.5d0*c_eri(qq,ii,aa,bb)*c_eri(aa,bb,pp,ii) &
+              /(epsilon(i,0,0,0)+qp3(i)+omega-epsilon(a,0,0,0)-qp3(a)-epsilon(b,0,0,0)-qp3(b))
+!write(*,*) pp,qq,aa,bb,ii,tda(pp,qq)
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           tda(p,q)=tda(p,q)-0.5d0*c_eri(ii,jj,pp,aa)*c_eri(qq,aa,ii,jj) &
+              /(epsilon(i,0,0,0)+qp3(i)+epsilon(j,0,0,0)+qp3(j)-omega-epsilon(a,0,0,0)-qp3(a))
+!write(*,*) pp,qq,aa,ii,jj,tda(pp,qq)
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+    enddo
+    enddo
+   enddo
+   enddo
+
+   e3=tda
+   write(6,'(A,F15.10)') 'Self-consistent EDGE2 (diag, freq-dep) self-energy at omega = ',omega
+   call dump5(e3,iall(0,0,0))
+   write(6,'(A,F15.10)') 'Self-consistent EDGE2 (diag, freq-dep) diagonal self-energy at omega = ',omega
+   do i=icore+1,iall(0,0,0)-ivirtcore
+    if (i==iocc) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+e3(i,i),' HOMO'
+    else if (i==iocc+1) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+e3(i,i),' LUMO'
+    else
+     write(6,'(I3,F20.14)') i,epsilon(i,0,0,0)+e3(i,i)
+    endif
+   enddo
+
+   c_edge3=0.0d0
+   do aspin=1,2
+    do a=iocc+1,iall(0,0,0)-ivirtcore
+     aa=(aspin-1)*iall(0,0,0)+a
+     do bspin=1,2
+      do b=iocc+1,iall(0,0,0)-ivirtcore
+       bb=(bspin-1)*iall(0,0,0)+b
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           c_edge3=c_edge3+0.25d0*c_eri(ii,jj,aa,bb)*c_eri(aa,bb,ii,jj) &
+              /(epsilon(i,0,0,0)+qp3(i)+epsilon(j,0,0,0)+qp3(j)-epsilon(a,0,0,0)-qp3(a)-epsilon(b,0,0,0)-qp3(b))
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+   enddo
+   write(6,'(A,2F20.14)') 'Self-consistent EDGE2 (dyson) energy:', c_edge3,c_edge3+EHFKS
+
+   ! ... edge dressing
+
+   write(*,'(A)') "*************************"
+   write(*,'(A)') "* 2nd-order edge-vertex *"
+   write(*,'(A)') "*************************"
+   write(*,'(A,E20.10)') 'OMEGA = ',OMEGA
+
+   tabpi=0.0d0
+   sqaij=0.0d0
+
+   do mloop=1,20
+   write(*,*) "S & U amplitude eq loop",mloop
+ 
+   do aspin=1,2
+    do a=iocc+1,iall(0,0,0)-ivirtcore
+     aa=(aspin-1)*iall(0,0,0)+a
+     do bspin=1,2
+      do b=iocc+1,iall(0,0,0)-ivirtcore
+       bb=(bspin-1)*iall(0,0,0)+b
+       do pspin=1,2
+        do p=icore+1,iall(0,0,0)-ivirtcore
+         pp=(pspin-1)*iall(0,0,0)+p
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+           tabpi2(aa,bb,pp,ii)=c_eri(aa,bb,pp,ii)/(omega+epsilon(i,0,0,0)+qp3(i)-epsilon(a,0,0,0)-qp3(a)-epsilon(b,0,0,0)-qp3(b))
+! -----------------------------------
+           do cspin=1,2
+            do c=iocc+1,iall(0,0,0)-ivirtcore
+             ccc=(cspin-1)*iall(0,0,0)+c
+             do kspin=1,2
+              do k=icore+1,iocc
+               kk=(kspin-1)*iall(0,0,0)+k
+! -----------------------------------
+               tabpi2(aa,bb,pp,ii)=tabpi2(aa,bb,pp,ii)-c_eri(aa,kk,ccc,ii)*tabpi(ccc,bb,pp,kk) &
+                                  /(omega+epsilon(i,0,0,0)+qp3(i)-epsilon(a,0,0,0)-qp3(a)-epsilon(b,0,0,0)-qp3(b))
+               tabpi2(aa,bb,pp,ii)=tabpi2(aa,bb,pp,ii)+c_eri(bb,kk,ccc,ii)*tabpi(ccc,aa,pp,kk) &
+                                  /(omega+epsilon(i,0,0,0)+qp3(i)-epsilon(a,0,0,0)-qp3(a)-epsilon(b,0,0,0)-qp3(b))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+           do cspin=1,2
+            do c=iocc+1,iall(0,0,0)-ivirtcore
+             ccc=(cspin-1)*iall(0,0,0)+c
+             do dspin=1,2
+              do d=iocc+1,iall(0,0,0)-ivirtcore
+               dd=(dspin-1)*iall(0,0,0)+d
+! -----------------------------------
+               tabpi2(aa,bb,pp,ii)=tabpi2(aa,bb,pp,ii)+0.5d0*c_eri(aa,bb,ccc,dd)*tabpi(ccc,dd,pp,ii) &
+                                  /(omega+epsilon(i,0,0,0)+qp3(i)-epsilon(a,0,0,0)-qp3(a)-epsilon(b,0,0,0)-qp3(b))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+   enddo
+
+   do qspin=1,2
+    do q=icore+1,iall(0,0,0)-ivirtcore
+     qq=(qspin-1)*iall(0,0,0)+q
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           sqaij2(qq,aa,ii,jj)=c_eri(qq,aa,ii,jj)/(epsilon(i,0,0,0)+qp3(i)+epsilon(j,0,0,0)+qp3(j)-omega-epsilon(a,0,0,0)-qp3(a))
+! -----------------------------------
+           do cspin=1,2
+            do c=iocc+1,iall(0,0,0)-ivirtcore
+             ccc=(cspin-1)*iall(0,0,0)+c
+             do kspin=1,2
+              do k=icore+1,iocc
+               kk=(kspin-1)*iall(0,0,0)+k
+! -----------------------------------
+               sqaij2(qq,aa,ii,jj)=sqaij2(qq,aa,ii,jj)-c_eri(kk,aa,ii,ccc)*sqaij(qq,ccc,kk,jj) &
+                                  /(epsilon(i,0,0,0)+qp3(i)+epsilon(j,0,0,0)+qp3(j)-omega-epsilon(a,0,0,0)-qp3(a))
+               sqaij2(qq,aa,ii,jj)=sqaij2(qq,aa,ii,jj)+c_eri(kk,aa,jj,ccc)*sqaij(qq,ccc,kk,ii) &
+                                  /(epsilon(i,0,0,0)+qp3(i)+epsilon(j,0,0,0)+qp3(j)-omega-epsilon(a,0,0,0)-qp3(a))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+           do kspin=1,2
+            do k=icore+1,iocc
+             kk=(kspin-1)*iall(0,0,0)+k
+             do lspin=1,2
+              do l=icore+1,iocc
+               ll=(lspin-1)*iall(0,0,0)+l
+! -----------------------------------
+               sqaij2(qq,aa,ii,jj)=sqaij2(qq,aa,ii,jj)+0.5d0*c_eri(kk,ll,ii,jj)*sqaij(qq,aa,kk,ll) &
+                                  /(epsilon(i,0,0,0)+qp3(i)+epsilon(j,0,0,0)+qp3(j)-omega-epsilon(a,0,0,0)-qp3(a))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+   enddo
+
+   tabpi=tabpi2
+   sqaij=sqaij2
+
+   tda=0.0d0
+
+   do pspin=1,1 ! alpha spin only
+    do p=icore+1,iall(0,0,0)-ivirtcore
+     pp=(pspin-1)*iall(0,0,0)+p
+     do qspin=1,1 ! alpha spin only
+      do q=icore+1,iall(0,0,0)-ivirtcore
+       qq=(qspin-1)*iall(0,0,0)+q
+
+       do aspin=1,2
+        do a=iocc+1,iall(0,0,0)-ivirtcore
+         aa=(aspin-1)*iall(0,0,0)+a
+         do bspin=1,2
+          do b=iocc+1,iall(0,0,0)-ivirtcore
+           bb=(bspin-1)*iall(0,0,0)+b
+           do ispin=1,2
+            do i=icore+1,iocc
+             ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+             tda(pp,qq)=tda(pp,qq)+0.5d0*c_eri(qq,ii,aa,bb)*tabpi(aa,bb,pp,ii)
+! -----------------------------------
+            enddo
+           enddo
+          enddo
+         enddo
+        enddo
+       enddo
+         
+       do aspin=1,2
+        do a=iocc+1,iall(0,0,0)-ivirtcore
+         aa=(aspin-1)*iall(0,0,0)+a
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+           do jspin=1,2
+            do j=icore+1,iocc
+             jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+             tda(pp,qq)=tda(pp,qq)-0.5d0*c_eri(ii,jj,pp,aa)*sqaij(qq,aa,ii,jj)
+! -----------------------------------
+            enddo
+           enddo
+          enddo
+         enddo
+        enddo
+       enddo
+
+      enddo
+     enddo
+    enddo
+   enddo
+
+!  call dump5(tda,iall(0,0,0))
+
+! ======= adding the energy-independent terms
+!  do pspin=1,1 ! alpha spin only
+!   do p=icore+1,iall(0,0,0)-ivirtcore
+!    pp=(pspin-1)*iall(0,0,0)+p
+!    do qspin=1,1 ! alpha spin only
+!     do q=icore+1,iall(0,0,0)-ivirtcore
+!      qq=(qspin-1)*iall(0,0,0)+q
+! -----------------------------------
+!      tda(pp,qq)=tda(pp,qq)+sigma(pp,qq,3)
+! -----------------------------------
+!     enddo
+!    enddo
+!   enddo
+!  enddo
+
+   if (mloop == 20) write(6,'(A,F15.10)') 'EDGE2-VERTEX2 self-energy at omega = ',omega
+   if (mloop == 20) call dump5(tda,iall(0,0,0))
+
+   enddo ! ... S & U amplitude equation loop
+
+   write(6,'(A,F15.10)') 'EDGE2-VERTEX2 diagonal self-energy at omega = ',omega
+   do i=icore+1,iall(0,0,0)-ivirtcore
+    if (i==iocc) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+tda(i,i),' HOMO'
+    else if (i==iocc+1) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+tda(i,i),' LUMO'
+    else
+     write(6,'(I3,F20.14)') i,epsilon(i,0,0,0)+tda(i,i)
+    endif
+   enddo
+
+   ! 2nd-order vertex energy
+
+   tabpi=0.0d0
+   sqaij=0.0d0
+   uabij=0.0d0
+
+   do mloop=1,20
+   write(*,*) "T amplitude equation loop",mloop
+ 
+   do aspin=1,2
+    do a=iocc+1,iall(0,0,0)-ivirtcore
+     aa=(aspin-1)*iall(0,0,0)+a
+     do bspin=1,2
+      do b=iocc+1,iall(0,0,0)-ivirtcore
+       bb=(bspin-1)*iall(0,0,0)+b
+       do jspin=1,2
+        do j=icore+1,iocc
+         jj=(jspin-1)*iall(0,0,0)+j
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+           tabpi2(aa,bb,jj,ii)=c_eri(aa,bb,jj,ii)/ &
+             (epsilon(j,0,0,0)+qp3(j)+epsilon(i,0,0,0)+qp3(i)-epsilon(a,0,0,0)-qp3(a)-epsilon(b,0,0,0)-qp3(b))
+           uabij2(aa,bb,jj,ii)=c_eri(aa,bb,jj,ii)/ &
+             (epsilon(j,0,0,0)+qp3(j)+epsilon(i,0,0,0)+qp3(i)-epsilon(a,0,0,0)-qp3(a)-epsilon(b,0,0,0)-qp3(b))
+! -----------------------------------
+           do cspin=1,2
+            do c=iocc+1,iall(0,0,0)-ivirtcore
+             ccc=(cspin-1)*iall(0,0,0)+c
+             do kspin=1,2
+              do k=icore+1,iocc
+               kk=(kspin-1)*iall(0,0,0)+k
+! -----------------------------------
+               tabpi2(aa,bb,jj,ii)=tabpi2(aa,bb,jj,ii)-c_eri(aa,kk,ccc,ii)*tabpi(ccc,bb,jj,kk) &
+                  /(epsilon(j,0,0,0)+qp3(j)+epsilon(i,0,0,0)+qp3(i)-epsilon(a,0,0,0)-qp3(a)-epsilon(b,0,0,0)-qp3(b))
+               tabpi2(aa,bb,jj,ii)=tabpi2(aa,bb,jj,ii)+c_eri(bb,kk,ccc,ii)*tabpi(ccc,aa,jj,kk) &
+                  /(epsilon(j,0,0,0)+qp3(j)+epsilon(i,0,0,0)+qp3(i)-epsilon(a,0,0,0)-qp3(a)-epsilon(b,0,0,0)-qp3(b))
+               uabij2(aa,bb,jj,ii)=uabij2(aa,bb,jj,ii)-c_eri(aa,kk,ccc,ii)*uabij(ccc,bb,jj,kk) &
+                  /(epsilon(j,0,0,0)+qp3(j)+epsilon(i,0,0,0)+qp3(i)-epsilon(a,0,0,0)-qp3(a)-epsilon(b,0,0,0)-qp3(b))
+               uabij2(aa,bb,jj,ii)=uabij2(aa,bb,jj,ii)+c_eri(bb,kk,ccc,ii)*uabij(ccc,aa,jj,kk) &
+                  /(epsilon(j,0,0,0)+qp3(j)+epsilon(i,0,0,0)+qp3(i)-epsilon(a,0,0,0)-qp3(a)-epsilon(b,0,0,0)-qp3(b))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+           do cspin=1,2
+            do c=iocc+1,iall(0,0,0)-ivirtcore
+             ccc=(cspin-1)*iall(0,0,0)+c
+             do dspin=1,2
+              do d=iocc+1,iall(0,0,0)-ivirtcore
+               dd=(dspin-1)*iall(0,0,0)+d
+! -----------------------------------
+               tabpi2(aa,bb,jj,ii)=tabpi2(aa,bb,jj,ii)+0.5d0*c_eri(aa,bb,ccc,dd)*tabpi(ccc,dd,jj,ii) &
+                  /(epsilon(j,0,0,0)+qp3(j)+epsilon(i,0,0,0)+qp3(i)-epsilon(a,0,0,0)-qp3(a)-epsilon(b,0,0,0)-qp3(b))
+               uabij2(aa,bb,jj,ii)=uabij2(aa,bb,jj,ii)+0.5d0*c_eri(aa,bb,ccc,dd)*uabij(ccc,dd,jj,ii) &
+                  /(epsilon(j,0,0,0)+qp3(j)+epsilon(i,0,0,0)+qp3(i)-epsilon(a,0,0,0)-qp3(a)-epsilon(b,0,0,0)-qp3(b))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+   enddo
+
+   do bspin=1,2
+    do b=iocc+1,iall(0,0,0)-ivirtcore
+     bb=(bspin-1)*iall(0,0,0)+b
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           sqaij2(bb,aa,ii,jj)=c_eri(bb,aa,ii,jj)/(epsilon(i,0,0,0)+epsilon(j,0,0,0)-epsilon(b,0,0,0)-epsilon(a,0,0,0))
+! -----------------------------------
+           do cspin=1,2
+            do c=iocc+1,iall(0,0,0)-ivirtcore
+             ccc=(cspin-1)*iall(0,0,0)+c
+             do kspin=1,2
+              do k=icore+1,iocc
+               kk=(kspin-1)*iall(0,0,0)+k
+! -----------------------------------
+               sqaij2(bb,aa,ii,jj)=sqaij2(bb,aa,ii,jj)-c_eri(kk,aa,ii,ccc)*sqaij(bb,ccc,kk,jj) &
+                  /(epsilon(i,0,0,0)+qp3(i)+epsilon(j,0,0,0)+qp3(j)-epsilon(b,0,0,0)-qp3(b)-epsilon(a,0,0,0)-qp3(a))
+               sqaij2(bb,aa,ii,jj)=sqaij2(bb,aa,ii,jj)+c_eri(kk,aa,jj,ccc)*sqaij(bb,ccc,kk,ii) &
+                  /(epsilon(i,0,0,0)+qp3(i)+epsilon(j,0,0,0)+qp3(j)-epsilon(b,0,0,0)-qp3(b)-epsilon(a,0,0,0)-qp3(a))
+               uabij2(bb,aa,ii,jj)=uabij2(bb,aa,ii,jj)-c_eri(kk,aa,ii,ccc)*uabij(bb,ccc,kk,jj) &
+                  /(epsilon(i,0,0,0)+qp3(i)+epsilon(j,0,0,0)+qp3(j)-epsilon(b,0,0,0)-qp3(b)-epsilon(a,0,0,0)-qp3(a))
+               uabij2(bb,aa,ii,jj)=uabij2(bb,aa,ii,jj)+c_eri(kk,aa,jj,ccc)*uabij(bb,ccc,kk,ii) &
+                  /(epsilon(i,0,0,0)+qp3(i)+epsilon(j,0,0,0)+qp3(j)-epsilon(b,0,0,0)-qp3(b)-epsilon(a,0,0,0)-qp3(a))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+           do kspin=1,2
+            do k=icore+1,iocc
+             kk=(kspin-1)*iall(0,0,0)+k
+             do lspin=1,2
+              do l=icore+1,iocc
+               ll=(lspin-1)*iall(0,0,0)+l
+! -----------------------------------
+               sqaij2(bb,aa,ii,jj)=sqaij2(bb,aa,ii,jj)+0.5d0*c_eri(kk,ll,ii,jj)*sqaij(bb,aa,kk,ll) &
+                  /(epsilon(i,0,0,0)+qp3(i)+epsilon(j,0,0,0)+qp3(j)-epsilon(b,0,0,0)-qp3(b)-epsilon(a,0,0,0)-qp3(a))
+               uabij2(bb,aa,ii,jj)=uabij2(bb,aa,ii,jj)+0.5d0*c_eri(kk,ll,ii,jj)*uabij(bb,aa,kk,ll) &
+                  /(epsilon(i,0,0,0)+qp3(i)+epsilon(j,0,0,0)+qp3(j)-epsilon(b,0,0,0)-qp3(b)-epsilon(a,0,0,0)-qp3(a))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+   enddo
+
+   tabpi=tabpi2
+   sqaij=sqaij2
+   uabij=uabij2
+
+   e_mp2=0.0d0
+   e_tda1=0.0d0
+   e_tda2=0.0d0
+   e_lccd=0.0d0
+
+   do jspin=1,2
+    do j=icore+1,iocc
+     jj=(jspin-1)*iall(0,0,0)+j
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+         bb=(bspin-1)*iall(0,0,0)+b
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+           e_tda1=e_tda1+0.25d0*c_eri(jj,ii,aa,bb)*tabpi(aa,bb,jj,ii)
+           e_tda2=e_tda2+0.25d0*c_eri(ii,jj,bb,aa)*sqaij(bb,aa,ii,jj)
+           e_lccd=e_lccd+0.25d0*c_eri(jj,ii,aa,bb)*uabij(aa,bb,jj,ii)
+           e_mp2=e_mp2+0.25d0*c_eri(ii,jj,bb,aa)*c_eri(ii,jj,bb,aa) &
+              /(epsilon(i,0,0,0)+qp3(i)+epsilon(j,0,0,0)+qp3(j)-epsilon(a,0,0,0)-qp3(a)-epsilon(b,0,0,0)-qp3(b))
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+   enddo
+         
+   if (mloop == 20) then
+   write(6,'(A,2F20.14)') 'E2-MP2 energy        :', e_mp2,e_mp2+EHFKS
+   write(6,'(A,2F20.14)') 'E2-TDA energy 1      :', e_tda1,e_tda1+EHFKS
+   write(6,'(A,2F20.14)') 'E2-TDA energy 2      :', e_tda2,e_tda2+EHFKS
+   write(6,'(A,2F20.14)') 'E2-V2 energy (1+2/2) :', (e_tda1+e_tda2)/2.0d0,(e_tda1+e_tda2)/2.0d0+EHFKS
+   write(6,'(A,2F20.14)') 'E2-V2 energy (1+2-E2):', e_tda1+e_tda2-e_mp2, e_tda1+e_tda2-e_mp2+EHFKS
+   write(6,'(A,2F20.14)') 'E2-LCCD energy       :', e_lccd,e_lccd+EHFKS
+   write(6,'(A,2F20.14)') 'E2-V3 energy         :', e_lccd*2.0d0/3.0d0+(e_tda1+e_tda2-e_mp2)/3.0d0, &
+                                                    e_lccd*2.0d0/3.0d0+(e_tda1+e_tda2-e_mp2)/3.0d0+EHFKS
+   endif
+
+   enddo ! ... T amplitude equation loop
+
+! *********************
+! 2nd-order vertex-edge
+! *********************
+
+   write(6,'(A)') '*************************************'
+   write(6,'(A)') '* 2nd-order vertex-edge (QP non-SC) *'
+   write(6,'(A)') '*************************************'
+
+   qp1=0.0d0
+   do x=icore+1,iall(0,0,0)-ivirtcore
+   omega2=epsilon(x,0,0,0)
+
+   tabpi=0.0d0
+   sqaij=0.0d0
+
+   do mloop=1,20
+!  write(*,*) "S & U amplitude eq loop",mloop
+ 
+   do aspin=1,2
+    do a=iocc+1,iall(0,0,0)-ivirtcore
+     aa=(aspin-1)*iall(0,0,0)+a
+     do bspin=1,2
+      do b=iocc+1,iall(0,0,0)-ivirtcore
+       bb=(bspin-1)*iall(0,0,0)+b
+       do pspin=1,2
+        do p=icore+1,iall(0,0,0)-ivirtcore
+         pp=(pspin-1)*iall(0,0,0)+p
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+           tabpi2(aa,bb,pp,ii)=c_eri(aa,bb,pp,ii)/(omega2+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+! -----------------------------------
+           do cspin=1,2
+            do c=iocc+1,iall(0,0,0)-ivirtcore
+             ccc=(cspin-1)*iall(0,0,0)+c
+             do kspin=1,2
+              do k=icore+1,iocc
+               kk=(kspin-1)*iall(0,0,0)+k
+! -----------------------------------
+               tabpi2(aa,bb,pp,ii)=tabpi2(aa,bb,pp,ii)-c_eri(aa,kk,ccc,ii)*tabpi(ccc,bb,pp,kk) &
+                                  /(omega2+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+               tabpi2(aa,bb,pp,ii)=tabpi2(aa,bb,pp,ii)+c_eri(bb,kk,ccc,ii)*tabpi(ccc,aa,pp,kk) &
+                                  /(omega2+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+           do cspin=1,2
+            do c=iocc+1,iall(0,0,0)-ivirtcore
+             ccc=(cspin-1)*iall(0,0,0)+c
+             do dspin=1,2
+              do d=iocc+1,iall(0,0,0)-ivirtcore
+               dd=(dspin-1)*iall(0,0,0)+d
+! -----------------------------------
+               tabpi2(aa,bb,pp,ii)=tabpi2(aa,bb,pp,ii)+0.5d0*c_eri(aa,bb,ccc,dd)*tabpi(ccc,dd,pp,ii) &
+                                  /(omega2+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+   enddo
+
+   do qspin=1,2
+    do q=icore+1,iall(0,0,0)-ivirtcore
+     qq=(qspin-1)*iall(0,0,0)+q
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           sqaij2(qq,aa,ii,jj)=c_eri(qq,aa,ii,jj)/(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega2-epsilon(a,0,0,0))
+! -----------------------------------
+           do cspin=1,2
+            do c=iocc+1,iall(0,0,0)-ivirtcore
+             ccc=(cspin-1)*iall(0,0,0)+c
+             do kspin=1,2
+              do k=icore+1,iocc
+               kk=(kspin-1)*iall(0,0,0)+k
+! -----------------------------------
+               sqaij2(qq,aa,ii,jj)=sqaij2(qq,aa,ii,jj)-c_eri(kk,aa,ii,ccc)*sqaij(qq,ccc,kk,jj) &
+                                  /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega2-epsilon(a,0,0,0))
+               sqaij2(qq,aa,ii,jj)=sqaij2(qq,aa,ii,jj)+c_eri(kk,aa,jj,ccc)*sqaij(qq,ccc,kk,ii) &
+                                  /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega2-epsilon(a,0,0,0))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+           do kspin=1,2
+            do k=icore+1,iocc
+             kk=(kspin-1)*iall(0,0,0)+k
+             do lspin=1,2
+              do l=icore+1,iocc
+               ll=(lspin-1)*iall(0,0,0)+l
+! -----------------------------------
+               sqaij2(qq,aa,ii,jj)=sqaij2(qq,aa,ii,jj)+0.5d0*c_eri(kk,ll,ii,jj)*sqaij(qq,aa,kk,ll) &
+                                  /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega2-epsilon(a,0,0,0))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+   enddo
+
+   tabpi=tabpi2
+   sqaij=sqaij2
+
+   tda=0.0d0
+
+   do pspin=1,1 ! alpha spin only
+    do p=icore+1,iall(0,0,0)-ivirtcore
+     pp=(pspin-1)*iall(0,0,0)+p
+     do qspin=1,1 ! alpha spin only
+      do q=icore+1,iall(0,0,0)-ivirtcore
+       qq=(qspin-1)*iall(0,0,0)+q
+
+       do aspin=1,2
+        do a=iocc+1,iall(0,0,0)-ivirtcore
+         aa=(aspin-1)*iall(0,0,0)+a
+         do bspin=1,2
+          do b=iocc+1,iall(0,0,0)-ivirtcore
+           bb=(bspin-1)*iall(0,0,0)+b
+           do ispin=1,2
+            do i=icore+1,iocc
+             ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+             tda(pp,qq)=tda(pp,qq)+0.5d0*c_eri(qq,ii,aa,bb)*tabpi(aa,bb,pp,ii)
+! -----------------------------------
+            enddo
+           enddo
+          enddo
+         enddo
+        enddo
+       enddo
+         
+       do aspin=1,2
+        do a=iocc+1,iall(0,0,0)-ivirtcore
+         aa=(aspin-1)*iall(0,0,0)+a
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+           do jspin=1,2
+            do j=icore+1,iocc
+             jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+             tda(pp,qq)=tda(pp,qq)-0.5d0*c_eri(ii,jj,pp,aa)*sqaij(qq,aa,ii,jj)
+! -----------------------------------
+            enddo
+           enddo
+          enddo
+         enddo
+        enddo
+       enddo
+
+      enddo
+     enddo
+    enddo
+   enddo
+
+!  if (mloop == 20) write(6,'(A,F15.10)') 'VERTEX2 self-energy at omega = ',omega2
+!  if (mloop == 20) call dump5(tda,iall(0,0,0))
+
+   enddo ! ... S & U amplitude equation loop
+
+   qp1(x)=tda(x,x)
+
+   enddo ! ... orbital loop
+
+   write(6,'(A)') 'VERTEX2 quasiparticle energy (diagonal, freq-indep)'
+   do i=icore+1,iall(0,0,0)-ivirtcore
+    if (i==iocc) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+qp1(i),' HOMO'
+    else if (i==iocc+1) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+qp1(i),' LUMO'
+    else
+     write(6,'(I3,F20.14)') i,epsilon(i,0,0,0)+qp1(i)
+    endif
+   enddo
+
+   tda=0.0d0
+   do pspin=1,1 ! alpha spin only
+   do p=icore+1,iall(0,0,0)-ivirtcore
+    pp=(pspin-1)*iall(0,0,0)+p
+    do qspin=1,1 ! alpha spin only
+    do q=icore+1,iall(0,0,0)-ivirtcore
+     qq=(qspin-1)*iall(0,0,0)+q
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+         bb=(bspin-1)*iall(0,0,0)+b
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+           tda(p,q)=tda(p,q)+0.5d0*c_eri(qq,ii,aa,bb)*c_eri(aa,bb,pp,ii) &
+              /(epsilon(i,0,0,0)+qp1(i)+omega-epsilon(a,0,0,0)-qp1(a)-epsilon(b,0,0,0)-qp1(b))
+!write(*,*) pp,qq,aa,bb,ii,tda(pp,qq)
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           tda(p,q)=tda(p,q)-0.5d0*c_eri(ii,jj,pp,aa)*c_eri(qq,aa,ii,jj) &
+              /(epsilon(i,0,0,0)+qp1(i)+epsilon(j,0,0,0)+qp1(j)-omega-epsilon(a,0,0,0)-qp1(a))
+!write(*,*) pp,qq,aa,ii,jj,tda(pp,qq)
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+    enddo
+    enddo
+   enddo
+   enddo
+
+   write(6,'(A,F15.10)') 'VERTEX2-EDGE (diag, freq-dep) self-energy at omega = ',omega
+   call dump5(tda,iall(0,0,0))
+   write(6,'(A,F15.10)') 'VERTEX2-EDGE (diag, freq-dep) diagonal self-energy at omega = ',omega
+   do i=icore+1,iall(0,0,0)-ivirtcore
+    if (i==iocc) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+tda(i,i),' HOMO'
+    else if (i==iocc+1) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+tda(i,i),' LUMO'
+    else
+     write(6,'(I3,F20.14)') i,epsilon(i,0,0,0)+tda(i,i)
+    endif
+   enddo
+
+   c_ve1=0.0d0
+   do aspin=1,2
+    do a=iocc+1,iall(0,0,0)-ivirtcore
+     aa=(aspin-1)*iall(0,0,0)+a
+     do bspin=1,2
+      do b=iocc+1,iall(0,0,0)-ivirtcore
+       bb=(bspin-1)*iall(0,0,0)+b
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           c_ve1=c_ve1+0.25d0*c_eri(ii,jj,aa,bb)*c_eri(aa,bb,ii,jj) &
+              /(epsilon(i,0,0,0)+qp1(i)+epsilon(j,0,0,0)+qp1(j)-epsilon(a,0,0,0)-qp1(a)-epsilon(b,0,0,0)-qp1(b))
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+   enddo 
+
+   write(6,'(A)') '*******************************************'
+   write(6,'(A)') '* 2nd-order vertex-edge (freq-dep non-SC) *'
+   write(6,'(A)') '*******************************************'
+
+   qp1=0.0d0
+   do x=icore+1,iall(0,0,0)-ivirtcore
+
+   do dloop=1,20
+!  write(*,*) "Dyson loop",dloop
+   omega2=epsilon(x,0,0,0)+qp1(x)
+
+   tabpi=0.0d0
+   sqaij=0.0d0
+
+   do mloop=1,20
+!  write(*,*) "S & U amplitude eq loop",mloop
+ 
+   do aspin=1,2
+    do a=iocc+1,iall(0,0,0)-ivirtcore
+     aa=(aspin-1)*iall(0,0,0)+a
+     do bspin=1,2
+      do b=iocc+1,iall(0,0,0)-ivirtcore
+       bb=(bspin-1)*iall(0,0,0)+b
+       do pspin=1,2
+        do p=icore+1,iall(0,0,0)-ivirtcore
+         pp=(pspin-1)*iall(0,0,0)+p
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+           tabpi2(aa,bb,pp,ii)=c_eri(aa,bb,pp,ii)/(omega2+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+! -----------------------------------
+           do cspin=1,2
+            do c=iocc+1,iall(0,0,0)-ivirtcore
+             ccc=(cspin-1)*iall(0,0,0)+c
+             do kspin=1,2
+              do k=icore+1,iocc
+               kk=(kspin-1)*iall(0,0,0)+k
+! -----------------------------------
+               tabpi2(aa,bb,pp,ii)=tabpi2(aa,bb,pp,ii)-c_eri(aa,kk,ccc,ii)*tabpi(ccc,bb,pp,kk) &
+                                  /(omega2+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+               tabpi2(aa,bb,pp,ii)=tabpi2(aa,bb,pp,ii)+c_eri(bb,kk,ccc,ii)*tabpi(ccc,aa,pp,kk) &
+                                  /(omega2+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+           do cspin=1,2
+            do c=iocc+1,iall(0,0,0)-ivirtcore
+             ccc=(cspin-1)*iall(0,0,0)+c
+             do dspin=1,2
+              do d=iocc+1,iall(0,0,0)-ivirtcore
+               dd=(dspin-1)*iall(0,0,0)+d
+! -----------------------------------
+               tabpi2(aa,bb,pp,ii)=tabpi2(aa,bb,pp,ii)+0.5d0*c_eri(aa,bb,ccc,dd)*tabpi(ccc,dd,pp,ii) &
+                                  /(omega2+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+   enddo
+
+   do qspin=1,2
+    do q=icore+1,iall(0,0,0)-ivirtcore
+     qq=(qspin-1)*iall(0,0,0)+q
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           sqaij2(qq,aa,ii,jj)=c_eri(qq,aa,ii,jj)/(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega2-epsilon(a,0,0,0))
+! -----------------------------------
+           do cspin=1,2
+            do c=iocc+1,iall(0,0,0)-ivirtcore
+             ccc=(cspin-1)*iall(0,0,0)+c
+             do kspin=1,2
+              do k=icore+1,iocc
+               kk=(kspin-1)*iall(0,0,0)+k
+! -----------------------------------
+               sqaij2(qq,aa,ii,jj)=sqaij2(qq,aa,ii,jj)-c_eri(kk,aa,ii,ccc)*sqaij(qq,ccc,kk,jj) &
+                                  /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega2-epsilon(a,0,0,0))
+               sqaij2(qq,aa,ii,jj)=sqaij2(qq,aa,ii,jj)+c_eri(kk,aa,jj,ccc)*sqaij(qq,ccc,kk,ii) &
+                                  /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega2-epsilon(a,0,0,0))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+           do kspin=1,2
+            do k=icore+1,iocc
+             kk=(kspin-1)*iall(0,0,0)+k
+             do lspin=1,2
+              do l=icore+1,iocc
+               ll=(lspin-1)*iall(0,0,0)+l
+! -----------------------------------
+               sqaij2(qq,aa,ii,jj)=sqaij2(qq,aa,ii,jj)+0.5d0*c_eri(kk,ll,ii,jj)*sqaij(qq,aa,kk,ll) &
+                                  /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega2-epsilon(a,0,0,0))
+! -----------------------------------
+              enddo
+             enddo
+            enddo
+           enddo
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+   enddo
+
+   tabpi=tabpi2
+   sqaij=sqaij2
+
+   tda=0.0d0
+
+   do pspin=1,1 ! alpha spin only
+    do p=icore+1,iall(0,0,0)-ivirtcore
+     pp=(pspin-1)*iall(0,0,0)+p
+     do qspin=1,1 ! alpha spin only
+      do q=icore+1,iall(0,0,0)-ivirtcore
+       qq=(qspin-1)*iall(0,0,0)+q
+
+       do aspin=1,2
+        do a=iocc+1,iall(0,0,0)-ivirtcore
+         aa=(aspin-1)*iall(0,0,0)+a
+         do bspin=1,2
+          do b=iocc+1,iall(0,0,0)-ivirtcore
+           bb=(bspin-1)*iall(0,0,0)+b
+           do ispin=1,2
+            do i=icore+1,iocc
+             ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+             tda(pp,qq)=tda(pp,qq)+0.5d0*c_eri(qq,ii,aa,bb)*tabpi(aa,bb,pp,ii)
+! -----------------------------------
+            enddo
+           enddo
+          enddo
+         enddo
+        enddo
+       enddo
+         
+       do aspin=1,2
+        do a=iocc+1,iall(0,0,0)-ivirtcore
+         aa=(aspin-1)*iall(0,0,0)+a
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+           do jspin=1,2
+            do j=icore+1,iocc
+             jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+             tda(pp,qq)=tda(pp,qq)-0.5d0*c_eri(ii,jj,pp,aa)*sqaij(qq,aa,ii,jj)
+! -----------------------------------
+            enddo
+           enddo
+          enddo
+         enddo
+        enddo
+       enddo
+
+      enddo
+     enddo
+    enddo
+   enddo
+
+!  if (mloop == 20) write(6,'(A,F15.10)') 'VERTEX2 self-energy at omega = ',omega2
+!  if (mloop == 20) call dump5(tda,iall(0,0,0))
+
+   enddo ! ... S & U amplitude equation loop
+
+   qp1(x)=tda(x,x)
+!  write(6,'(2I3,E20.10)') x,dloop,epsilon(x,0,0,0)+qp1(x)
+
+   enddo ! ... Dyson loop
+
+   enddo ! ... orbital loop
+
+   write(6,'(A)') 'VERTEX2 Dyson roots (diagonal, freq-dep)'
+   do i=icore+1,iall(0,0,0)-ivirtcore
+    if (i==iocc) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+qp1(i),' HOMO'
+    else if (i==iocc+1) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+qp1(i),' LUMO'
+    else
+     write(6,'(I3,F20.14)') i,epsilon(i,0,0,0)+qp1(i)
+    endif
+   enddo
+
+   tda=0.0d0
+   do pspin=1,1 ! alpha spin only
+   do p=icore+1,iall(0,0,0)-ivirtcore
+    pp=(pspin-1)*iall(0,0,0)+p
+    do qspin=1,1 ! alpha spin only
+    do q=icore+1,iall(0,0,0)-ivirtcore
+     qq=(qspin-1)*iall(0,0,0)+q
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+         bb=(bspin-1)*iall(0,0,0)+b
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+! -----------------------------------
+           tda(p,q)=tda(p,q)+0.5d0*c_eri(qq,ii,aa,bb)*c_eri(aa,bb,pp,ii) &
+              /(epsilon(i,0,0,0)+qp1(i)+omega-epsilon(a,0,0,0)-qp1(a)-epsilon(b,0,0,0)-qp1(b))
+!write(*,*) pp,qq,aa,bb,ii,tda(pp,qq)
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           tda(p,q)=tda(p,q)-0.5d0*c_eri(ii,jj,pp,aa)*c_eri(qq,aa,ii,jj) &
+              /(epsilon(i,0,0,0)+qp1(i)+epsilon(j,0,0,0)+qp1(j)-omega-epsilon(a,0,0,0)-qp1(a))
+!write(*,*) pp,qq,aa,ii,jj,tda(pp,qq)
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+
+    enddo
+    enddo
+   enddo
+   enddo
+
+   v2e=tda
+   write(6,'(A,F15.10)') 'VERTEX2-EDGE (diag, freq-dep) self-energy at omega = ',omega
+   call dump5(v2e,iall(0,0,0))
+   write(6,'(A,F15.10)') 'VERTEX2-EDGE (diag, freq-dep) diagonal self-energy at omega = ',omega
+   do i=icore+1,iall(0,0,0)-ivirtcore
+    if (i==iocc) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+v2e(i,i),' HOMO'
+    else if (i==iocc+1) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+v2e(i,i),' LUMO'
+    else
+     write(6,'(I3,F20.14)') i,epsilon(i,0,0,0)+v2e(i,i)
+    endif
+   enddo
+
+   v3e2=v3+e2-gf2
+   write(6,'(A,F15.10)') 'VERTEX3 & EDGE2 self-energy at omega = ',omega
+   call dump5(v3e2,iall(0,0,0))
+   write(6,'(A,F15.10)') 'VERTEX3 & EDGE2 diagonal self-energy at omega = ',omega
+   do i=icore+1,iall(0,0,0)-ivirtcore
+    if (i==iocc) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+v3e2(i,i),' HOMO'
+    else if (i==iocc+1) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+v3e2(i,i),' LUMO'
+    else
+     write(6,'(I3,F20.14)') i,epsilon(i,0,0,0)+v3e2(i,i)
+    endif
+   enddo
+
+   v3v2e=v3+v2e-gf2
+   write(6,'(A,F15.10)') 'VERTEX3 & EDGE-TDA self-energy at omega = ',omega
+   call dump5(v3v2e,iall(0,0,0))
+   write(6,'(A,F15.10)') 'VERTEX3 & EDGE-TDA diagonal self-energy at omega = ',omega
+   do i=icore+1,iall(0,0,0)-ivirtcore
+    if (i==iocc) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+v3v2e(i,i),' HOMO'
+    else if (i==iocc+1) then
+     write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+v3v2e(i,i),' LUMO'
+    else
+     write(6,'(I3,F20.14)') i,epsilon(i,0,0,0)+v3v2e(i,i)
+    endif
+   enddo
+
+   c_ve2=0.0d0
+   do aspin=1,2
+    do a=iocc+1,iall(0,0,0)-ivirtcore
+     aa=(aspin-1)*iall(0,0,0)+a
+     do bspin=1,2
+      do b=iocc+1,iall(0,0,0)-ivirtcore
+       bb=(bspin-1)*iall(0,0,0)+b
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+! -----------------------------------
+           c_ve2=c_ve2+0.25d0*c_eri(ii,jj,aa,bb)*c_eri(aa,bb,ii,jj) &
+              /(epsilon(i,0,0,0)+qp1(i)+epsilon(j,0,0,0)+qp1(j)-epsilon(a,0,0,0)-qp1(a)-epsilon(b,0,0,0)-qp1(b))
+! -----------------------------------
+          enddo
+         enddo
+        enddo
+       enddo
+      enddo
+     enddo
+    enddo
+   enddo 
+
+   write(6,'(A,2F20.14)') 'MP2 energy        :', c_mp2,c_mp2+EHFKS
+   write(6,'(A,2F20.14)') 'TDA energy 1      :', c_tda1,c_tda1+EHFKS
+   write(6,'(A,2F20.14)') 'TDA energy 2      :', c_tda2,c_tda2+EHFKS
+   write(6,'(A,2F20.14)') 'V2 energy (1+2/2) :', (c_tda1+c_tda2)/2.0d0,(c_tda1+c_tda2)/2.0d0+EHFKS
+   write(6,'(A,2F20.14)') 'V2 energy (1+2-E2):', c_tda1+c_tda2-c_mp2, c_tda1+c_tda2-c_mp2+EHFKS
+   write(6,'(A,2F20.14)') 'LCCD energy       :', c_lccd,c_lccd+EHFKS
+   write(6,'(A,2F20.14)') 'V3 energy         :', c_lccd*2.0d0/3.0d0+(c_tda1+c_tda2-c_mp2)/3.0d0, &
+                                                 c_lccd*2.0d0/3.0d0+(c_tda1+c_tda2-c_mp2)/3.0d0+EHFKS
+
+   write(6,'(A,2F20.14)') 'EDGE2 (QP SC) energy                 :', c_edge1,c_edge1+EHFKS
+   write(6,'(A,2F20.14)') 'EDGE2 (dyson nonSC) energy           :', c_edge2,c_edge2+EHFKS
+   write(6,'(A,2F20.14)') 'EDGE2 (dyson SC) energy              :', c_edge3,c_edge3+EHFKS
+
+   write(6,'(A,2F20.14)') 'VERTEX2-EDGE energy                 :', c_ve1,c_ve1+EHFKS
+   write(6,'(A,2F20.14)') 'V2 (1+2/2)  + VERTEX2-EDGE energy   :', (c_tda1+c_tda2)/2.0d0+c_ve1-c_mp2, &
+                                                                   (c_tda1+c_tda2)/2.0d0+c_ve1-c_mp2+EHFKS
+   write(6,'(A,2F20.14)') 'V2 (1+2-E2) + VERTEX2-EDGE energy   :', c_tda1+c_tda2-c_mp2+c_edge2-c_mp2, &
+                                                                   c_tda1+c_tda2-c_mp2+c_edge2-c_mp2+EHFKS
+   write(6,'(A,2F20.14)') 'VERTEX2-EDGE (freq-dependent) energy:', c_ve2,c_ve2+EHFKS
+   write(6,'(A,2F20.14)') 'V2 (1+2/2)  + VERTEX2-EDGE (w-dep) e:', (c_tda1+c_tda2)/2.0d0+c_ve2-c_mp2, &
+                                                                   (c_tda1+c_tda2)/2.0d0+c_ve2-c_mp2+EHFKS
+   write(6,'(A,2F20.14)') 'V2 (1+2-E2) + VERTEX2-EDGE (w-dep) e:', c_tda1+c_tda2-c_mp2+c_ve2-c_mp2, &
+                                                                   c_tda1+c_tda2-c_mp2+c_ve2-c_mp2+EHFKS
+   
+   write(6,'(A,2F20.14)') 'V3 & E2 (dyson SC) energy :', c_lccd*2.0d0/3.0d0+(c_tda1+c_tda2-c_mp2)/3.0d0+c_edge3-c_mp2, &
+                                                 c_lccd*2.0d0/3.0d0+(c_tda1+c_tda2-c_mp2)/3.0d0+c_edge3-c_mp2+EHFKS
+   write(6,'(A,2F20.14)') 'V3 & EDGE-TDA energy      :', c_lccd*2.0d0/3.0d0+(c_tda1+c_tda2-c_mp2)/3.0d0+c_ve2-c_mp2, &
+                                                 c_lccd*2.0d0/3.0d0+(c_tda1+c_tda2-c_mp2)/3.0d0+c_ve2-c_mp2+EHFKS
+
+   deallocate(tabpi,sqaij,uabij)
+   deallocate(tabpi2,sqaij2,uabij2)
+   deallocate(tda,tda2,qp1,qp2,qp3)
+   deallocate(gf2,e2,e3,v3,v2e,v3e2,v3v2e)
+
+stop
 
    goto 10
 
@@ -4143,9 +7180,9 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
 ! end debug
      IF (IFILE == 0) DMP(1)=DMP(1)-DMP(0)
      EMP=EMP+DMP(IFILE+1)
-!    CALL PCPU_TIME(ICPUE)
+     CALL CPU_TIME(ICPUE)
      WRITE(6,'(I2,F20.10,2F20.10,F12.1)') IFILE+1,DMP(IFILE+1),EMP,MP_STORED(IFILE+1)-EMP,ICPUE-ICPUS
-!    CALL PCPU_TIME(ICPUS)
+     CALL CPU_TIME(ICPUS)
      CALL PFLUSH(6)
      IF (DABS(DMP(IFILE+1)) < 1.0D-15) EXIT
      VEC1=-VEC1
@@ -4251,7 +7288,7 @@ SUBROUTINE HIGHORDER_MP_IP_REDUX(MOP,MOQ,OMEGA,ORDER)
    DOUBLE PRECISION,ALLOCATABLE :: VEC1(:,:),VEC2(:,:)
    INTEGER :: NQP
 
-!  CALL PCPU_TIME(ICPUS)
+   CALL CPU_TIME(ICPUS)
    WRITE(6,'(A,2I3)') 'RECURSIVE HIGH-ORDER MOELLER-PLESSET PERTURBATION CALCULATIONS WILL BE PERFORMED FOR ',MOP,MOQ
    WRITE(6,'(A,F20.15,A)') 'SELF-ENERGY MATRIX WILL BE COMPUTED AT OMEGA=',OMEGA,' HARTREE'
 
@@ -4356,10 +7393,10 @@ SUBROUTINE HIGHORDER_MP_IP_REDUX(MOP,MOQ,OMEGA,ORDER)
 ! XXXX
      IF ((MOP==MOQ).AND.(IFILE == 0)) DMP(1)=DMP(1)-DMP(0)
      EMP=EMP+DMP(IFILE+1)
-!    CALL PCPU_TIME(ICPUE)
+     CALL CPU_TIME(ICPUE)
      WRITE(6,'(I2,F20.10,2F20.10,F12.1)') IFILE+1,DMP(IFILE+1),EMP,MP_STORED(IFILE+1)-DMP(IFILE+1),ICPUE-ICPUS
 !WRITE(6,'(I2,F20.10,2F20.10,F12.1)') IFILE+1,DMP(IFILE+1),EMP,-DMP(IFILE+1),ICPUE-ICPUS
-!    CALL PCPU_TIME(ICPUS)
+     CALL CPU_TIME(ICPUS)
      CALL PFLUSH(6)
 !    IF (DABS(DMP(IFILE+1)) < 1.0D-15) EXIT
      VEC1=-VEC1
@@ -4682,7 +7719,7 @@ SUBROUTINE HIGHORDER_MP_IP_ALLSTATES_OBSOLETE(ORDER)
    DOUBLE PRECISION :: E1,E2,E3
 double precision,allocatable :: hamsave(:,:)
 
-!  CALL PCPU_TIME(ICPUS)
+   CALL CPU_TIME(ICPUS)
    IF (.NOT.SILENT) WRITE(6,'(A)') 'RECURSIVE HIGH-ORDER MOELLER-PLESSET PERTURBATION CALCULATIONS WILL BE PERFORMED'
 
    ALLOCATE(VEC1(IP_NCF,NCF),VEC2(IP_NCF,NCF))
@@ -4975,10 +8012,10 @@ write(*,*) 'DEBUGGING @@@@@@@@@@@@@'
       ENDDO
       IF (IFILE == 0) DMP(1)=DMP(1)-DMP(0)
       EMP=EMP+DMP(IFILE+1)
-!     CALL PCPU_TIME(ICPUE)
+      CALL CPU_TIME(ICPUE)
       IF (.NOT.SILENT) WRITE(6,'(I2,F20.10,2F20.10,F12.1)') IFILE+1,DMP(IFILE+1),EMP,MP_STORED(IFILE+1)-EMP,ICPUE-ICPUS
       SIGMA(IFILE+1)=MP_STORED(IFILE+1)-EMP
-!     CALL PCPU_TIME(ICPUS)
+      CALL CPU_TIME(ICPUS)
       CALL PFLUSH(6)
 !     IF (DABS(DMP(IFILE+1)) < 1.0D-15) EXIT
       VEC1=-VEC1
@@ -5074,7 +8111,7 @@ SUBROUTINE HIGHORDER_MP_IP_ALLSTATES(ORIGINALORDER)
    USE FULLCI
 
    IMPLICIT NONE
-   DOUBLE PRECISION,PARAMETER :: TOL = 1.0D-9
+   DOUBLE PRECISION,PARAMETER :: TOL = 1.0D-3
    LOGICAL,PARAMETER :: SILENT = .FALSE.
    INTEGER,PARAMETER :: MAXR = 3
    INTEGER,PARAMETER :: MAXFILE = 100
