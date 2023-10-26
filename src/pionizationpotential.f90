@@ -1934,7 +1934,7 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
    double precision,allocatable :: tabpi(:,:,:,:),sqaij(:,:,:,:),uabij(:,:,:,:),tda(:,:)
    double precision,allocatable :: tabpi2(:,:,:,:),sqaij2(:,:,:,:),uabij2(:,:,:,:),tda2(:,:)
    double precision,allocatable :: gf2(:,:),v3(:,:),e2(:,:),e3(:,:),v2e(:,:),v3e2(:,:),v3v2e(:,:)
-   double precision,allocatable :: qp1(:),qp2(:),qp3(:)
+   double precision,allocatable :: qp1(:),qp2(:),qp3(:),res1(:)
    integer :: ispin,jspin,kspin,lspin,l,ii,jj,kk,ll
    integer :: aspin,bspin,cspin,dspin,a,b,c,d,aa,bb,ccc,dd
    integer :: pspin,qspin,rspin,sspin,p,q,r,s,pp,qq,rr,ss
@@ -1944,11 +1944,14 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
    integer :: mloop,dloop,x
    integer :: il
    integer :: n2h1p,n2p1h,ntot,istat,jstat,astat,bstat
-   DOUBLE PRECISION,ALLOCATABLE :: zarrow(:,:),VL(:,:),VR(:,:),EREAL(:),EIMAG(:),WK(:),hmin(:),hmax(:)
-   double precision,allocatable :: sg2(:,:),res(:,:),poles(:,:),residues(:,:)
-   integer,allocatable :: npoles(:,:)
+   DOUBLE PRECISION,ALLOCATABLE :: zarrow(:,:),VL(:,:),VR(:,:),EREAL(:),EIMAG(:),WK(:),hmin(:),hmax(:),hmin2(:),hmax2(:)
+   double precision,allocatable :: sg2(:,:),res(:,:),poles(:,:),residues(:,:),poles2(:,:),residues2(:,:)
+   integer,allocatable :: npoles(:,:),npoles2(:,:)
    double precision :: ressum,residue,gm1,gm2,gm3
    INTEGER :: INFO
+   integer :: iomega
+   double precision :: omegamin,omegamid,omegamax
+   integer :: iregion,nregion
 ! to here
 
    CALL CPU_TIME(ICPUS)
@@ -1964,6 +1967,9 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
    IF (MEM > DOPTN(28)*1000000.0) CALL PABORT('OUT OF MEMORY')
 
 ! from here to
+
+!  goto 10
+
    WRITE(*,'(A)') "************************************************"
    WRITE(*,'(A)') "* Algebraic implementations of MBGF(2) and (3) *"
    WRITE(*,'(A)') "************************************************"
@@ -3454,7 +3460,7 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
    allocate(v2e(iall(0,0,0),iall(0,0,0)))
    allocate(v3e2(iall(0,0,0),iall(0,0,0)))
    allocate(v3v2e(iall(0,0,0),iall(0,0,0)))
-   allocate(qp1(iall(0,0,0)),qp2(iall(0,0,0)),qp3(iall(0,0,0)))
+   allocate(qp1(iall(0,0,0)),qp2(iall(0,0,0)),qp3(iall(0,0,0)),res1(iall(0,0,0)))
    allocate(tabpi(iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2))
    allocate(sqaij(iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2))
    allocate(uabij(iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2,iall(0,0,0)*2))
@@ -3496,6 +3502,7 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
    poles=0.0d0
    residues=0.0d0
    gm1=0.0d0
+   gm2=0.0d0
    gm3=0.0d0
    do p=icore+1,iall(0,0,0)-ivirtcore
     write(*,'(A,I3)') 'Orbital:',p
@@ -3559,6 +3566,8 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
       ressum=ressum+residues(astat,p)
       write(*,'(I4,2F20.14)') astat,poles(astat,p),residues(astat,p)
       if (poles(astat,p) < 0.0d0) then
+       gm2=gm2+(poles(astat,p)+H(p,p))*residues(astat,p)
+!      gm2=gm2+(epsilon(p,0,0,0)+H(p,p))*residues(astat,p)
        gm1=gm1+0.5d0*(poles(astat,p)-EPSILON(p,0,0,0))*residues(astat,p)
       endif
      endif
@@ -3567,7 +3576,8 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
     npoles(p,2)=astat
     write(*,'(A4,A20,F20.14)') 'SUM',' ',ressum
    enddo
-   write(*,'(A4,A20,2F20.14)') ' ','Galitskii-Migdal',gm1,gm1+EHFKS
+   write(*,'(A4,A20,2F20.14)') ' ','Galitskii-Migdal (alt)',gm1,gm1+EHFKS
+   write(*,'(A4,A20,2F20.14)') ' ','Galitskii-Migdal',gm2+NUCLEAR_REPULSION-EHFKS,gm2+NUCLEAR_REPULSION
    deallocate(zarrow,VL,EREAL,EIMAG,WK,VR)
 
    write(*,'(A)') "-------------------------------------------------"
@@ -3908,9 +3918,9 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
 
    deallocate(npoles,poles,residues)
 
-   write(*,'(A)') "*********************************************"
-   write(*,'(A)') "* Diagonal approximation (graphical method) *"
-   write(*,'(A)') "*********************************************"
+   write(*,'(A)') "**********************************************************"
+   write(*,'(A)') "* Diagonal approximation (graphical method for Koopmans) *"
+   write(*,'(A)') "**********************************************************"
 
    qp1=0.0d0
    do dloop=1,20
@@ -3985,9 +3995,9 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
 
    enddo
 
-   write(*,'(A)') "*********************************"
-   write(*,'(A)') "* Full Dyson (graphical method) *"
-   write(*,'(A)') "*********************************"
+   write(*,'(A)') "**********************************************"
+   write(*,'(A)') "* Full Dyson (graphical method for Koopmans) *"
+   write(*,'(A)') "**********************************************"
 
    ntot=iall(0,0,0)-ivirtcore-icore
    allocate(sg2(ntot,ntot),res(ntot,ntot))
@@ -4163,7 +4173,7 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
    write(*,'(A)') "*******************"
 
    ntot=(iocc-icore)**2*(iall(0,0,0)-iocc-ivirtcore)+(iall(0,0,0)-iocc-ivirtcore)**2*(iocc-icore)+1
-   allocate(hmin(ntot),hmax(ntot))
+   allocate(hmin(ntot),hmax(ntot),hmin2(ntot),hmax2(ntot))
 
 !  do p=icore+1,iall(0,0,0)-ivirtcore
 !  write(*,*) 'Orbital:',p
@@ -4188,35 +4198,414 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
      enddo
     enddo
    enddo
-   hmin(1)=-999.9d0
-   hmax(istat+1)=999.9d0
+   hmin(1)=-99.9d0
+   hmax(istat+1)=99.9d0
 !  if (istat /= (ntot-1)/8) call pabort('bug')
    CALL PIKSRT_EVALONLY(istat+1,hmin)
    CALL PIKSRT_EVALONLY(istat+1,hmax)
    write(6,'(A8,2A20)') 'REGION','MIN','MAX'
-   jstat=0
+   nregion=0
    do i=1,istat+1
     if ((hmax(i)-hmin(i)) > 1.0d-14) then
-     jstat=jstat+1
-     write(6,'(I8,2F20.14)') jstat,hmin(i),hmax(i)
+     nregion=nregion+1
+     write(6,'(I8,2F20.14)') nregion,hmin(i),hmax(i)
+     hmin2(nregion)=hmin(i)
+     hmax2(nregion)=hmax(i)
     endif
    enddo   
 !  enddo
 
-   deallocate(hmin,hmax)
+   deallocate(hmin,hmax,hmin2,hmax2)
+
+!  goto 111 ! Skip self-consisitent GF2
+
+   write(*,'(A)') "*******************************************************"
+   write(*,'(A)') "* Diagonal approximation (graphical-bisection method) *"
+   write(*,'(A)') "*******************************************************"
+
+   n2h1p=(iocc-icore)*(iocc-icore)*(iall(0,0,0)-iocc-ivirtcore)*8
+   n2p1h=(iocc-icore)*(iall(0,0,0)-iocc-ivirtcore)*(iall(0,0,0)-iocc-ivirtcore)*8
+
+   write(*,*) 'occ, vir          = ',iocc-icore,iall(0,0,0)-iocc-ivirtcore
+   write(*,*) '2h1p, 2p1h        = ',n2h1p,n2p1h
+   ntot=(n2h1p+n2p1h+1)**3
+   write(*,*) 'max no of regions = ',ntot
+
+   allocate(npoles(iall(0,0,0),1),poles(ntot,iall(0,0,0)),residues(ntot,iall(0,0,0)))
+   allocate(npoles2(iall(0,0,0),1),poles2(ntot,iall(0,0,0)),residues2(ntot,iall(0,0,0)))
+   allocate(hmin(ntot),hmax(ntot),hmin2(ntot),hmax2(ntot))
+
+! initialize with Koopmans roots
+   do p=icore+1,iall(0,0,0)-ivirtcore
+    npoles(p,1)=1 
+    poles(1,p)=epsilon(p,0,0,0)
+    residues(1,p)=1.0d0
+   enddo
+
+   do mloop=1,2 ! Self-consistent loop
+write(6,*) 'Self-consistent cycle=',mloop
+
+   npoles2=0 ! no. of roots
+   poles2=0.0d0
+   residues2=0.0d0
+
+! -------------------------
+! Determine the regions ...
+
+   iregion=0
+   do aspin=1,2
+    do a=iocc+1,iall(0,0,0)-ivirtcore
+     aa=(aspin-1)*iall(0,0,0)+a
+     do astat=1,npoles(a,1)
+     if (poles(astat,a) < 0.0d0) cycle
+     do ispin=1,2
+      do i=icore+1,iocc
+       ii=(ispin-1)*iall(0,0,0)+i
+       do istat=1,npoles(i,1)
+       if (poles(istat,i) > 0.0d0) cycle
+       do jspin=1,2
+        do j=icore+1,iocc
+         jj=(jspin-1)*iall(0,0,0)+j
+         do jstat=1,npoles(j,1)
+         if (poles(jstat,j) > 0.0d0) cycle
+         iregion=iregion+1
+         if (iregion > ntot) call pabort('increase ntot')
+         hmax(iregion)=poles(istat,i)+poles(jstat,j)-poles(astat,a)
+        enddo
+        enddo
+       enddo
+      enddo
+      enddo
+     enddo
+    enddo
+    enddo
+   enddo
+
+   do aspin=1,2
+    do a=iocc+1,iall(0,0,0)-ivirtcore
+     aa=(aspin-1)*iall(0,0,0)+a
+     do astat=1,npoles(a,1)
+     if (poles(astat,a) < 0.0d0) cycle
+     do bspin=1,2
+      do b=iocc+1,iall(0,0,0)-ivirtcore
+       bb=(bspin-1)*iall(0,0,0)+b
+       do bstat=1,npoles(b,1)
+       if (poles(bstat,b) < 0.0d0) cycle
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do istat=1,npoles(i,1)
+         if (poles(istat,i) > 0.0d0) cycle
+         iregion=iregion+1
+         if (iregion > ntot) call pabort('increase ntot')
+         hmax(iregion)=poles(astat,a)+poles(bstat,b)-poles(istat,i)
+        enddo
+        enddo
+       enddo
+      enddo
+      enddo
+     enddo
+    enddo
+    enddo
+   enddo
+!  write(*,*) 'iregion=',iregion
+!  do i=1,iregion
+!   write(*,'(i3,f20.14)') i,hmax(i)
+!  enddo
+
+   CALL PIKSRT_EVALONLY(iregion,hmax)
+!  write(*,*) 'after sort'
+!  do i=1,iregion
+!   write(*,'(i3,f20.14)') i,hmax(i)
+!  enddo
+   nregion=1
+   hmin2(nregion)=-99.9d0
+   hmax2(nregion)=hmax(1)
+   do i=2,iregion
+    if (dabs(hmax(i-1)-hmax(i)) > 1.0d-14) then
+     nregion=nregion+1
+     hmin2(nregion)=hmax(i-1)
+     hmax2(nregion)=hmax(i)
+    endif
+   enddo
+!  write(*,*) 'nregion=',nregion
+   nregion=nregion+1
+   hmin2(nregion)=hmax2(nregion-1)
+   hmax2(nregion)=99.9d0
+   write(6,'(A8,2A20)') 'REGION','MIN','MAX'
+   do iregion=1,nregion
+     write(6,'(I8,2F20.14)') iregion,hmin2(iregion),hmax2(iregion)
+   enddo
+
+! ... Determine the regions
+! -------------------------
+
+   do pspin=1,1 ! alpha spin only
+    do p=icore+1,iall(0,0,0)-ivirtcore
+     pp=(pspin-1)*iall(0,0,0)+p
+write(6,*) 'Orbital=',p
+
+     ressum=0.0d0
+
+     do iregion=1,nregion
+     omegamin=hmin2(iregion)+1.0d-12
+     omegamax=hmax2(iregion)-1.0d-12
+     omegamid=(omegamin+omegamax)/2.0d0
+!write(6,*) 'Bracket=',istat,omegamin,omegamid,omegamax
+
+     do dloop=1,1000
+!write(6,*) 'Bisection loop:',dloop
+     if (dloop == 1000) call pabort('maxloop reached')
+
+     qp1(p)=epsilon(p,0,0,0)
+     qp2(p)=epsilon(p,0,0,0)
+     qp3(p)=epsilon(p,0,0,0)
+     res1(p)=0.0d0
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do astat=1,npoles(a,1)
+       if (poles(astat,a) < 0.0d0) cycle
+       do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+         bb=(bspin-1)*iall(0,0,0)+b
+         do bstat=1,npoles(b,1)
+         if (poles(bstat,b) < 0.0d0) cycle
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+           do istat=1,npoles(i,1)
+           if (poles(istat,i) > 0.0d0) cycle
+! -----------------------------------
+           qp1(p)=qp1(p)+0.5d0*c_eri(pp,ii,aa,bb)*c_eri(aa,bb,pp,ii) &
+              /(poles(istat,i)+omegamin-poles(astat,a)-poles(bstat,b)) &
+              *residues(istat,i)*residues(astat,a)*residues(bstat,b)
+           qp2(p)=qp2(p)+0.5d0*c_eri(pp,ii,aa,bb)*c_eri(aa,bb,pp,ii) &
+              /(poles(istat,i)+omegamid-poles(astat,a)-poles(bstat,b)) &
+              *residues(istat,i)*residues(astat,a)*residues(bstat,b)
+           qp3(p)=qp3(p)+0.5d0*c_eri(pp,ii,aa,bb)*c_eri(aa,bb,pp,ii) &
+              /(poles(istat,i)+omegamax-poles(astat,a)-poles(bstat,b)) &
+              *residues(istat,i)*residues(astat,a)*residues(bstat,b)
+           res1(p)=res1(p)-0.5d0*c_eri(pp,ii,aa,bb)*c_eri(aa,bb,pp,ii) &
+              /(poles(istat,i)+omegamid-poles(astat,a)-poles(bstat,b))**2 &
+              *residues(istat,i)*residues(astat,a)*residues(bstat,b)
+! -----------------------------------
+          enddo
+          enddo
+         enddo
+        enddo
+        enddo
+       enddo
+      enddo
+      enddo
+     enddo
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do astat=1,npoles(a,1)
+       if (poles(astat,a) < 0.0d0) cycle
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do istat=1,npoles(i,1)
+         if (poles(istat,i) > 0.0d0) cycle
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+           do jstat=1,npoles(j,1)
+           if (poles(jstat,j) > 0.0d0) cycle
+! -----------------------------------
+           qp1(p)=qp1(p)-0.5d0*c_eri(ii,jj,pp,aa)*c_eri(pp,aa,ii,jj) &
+              /(poles(istat,i)+poles(jstat,j)-omegamin-poles(astat,a)) &
+              *residues(istat,i)*residues(jstat,j)*residues(astat,a)
+           qp2(p)=qp2(p)-0.5d0*c_eri(ii,jj,pp,aa)*c_eri(pp,aa,ii,jj) &
+              /(poles(istat,i)+poles(jstat,j)-omegamid-poles(astat,a)) &
+              *residues(istat,i)*residues(jstat,j)*residues(astat,a)
+           qp3(p)=qp3(p)-0.5d0*c_eri(ii,jj,pp,aa)*c_eri(pp,aa,ii,jj) &
+              /(poles(istat,i)+poles(jstat,j)-omegamax-poles(astat,a)) &
+              *residues(istat,i)*residues(jstat,j)*residues(astat,a)
+           res1(p)=res1(p)-0.5d0*c_eri(ii,jj,pp,aa)*c_eri(pp,aa,ii,jj) &
+              /(poles(istat,i)+poles(jstat,j)-omegamid-poles(astat,a))**2 &
+              *residues(istat,i)*residues(jstat,j)*residues(astat,a)
+! -----------------------------------
+          enddo
+          enddo
+         enddo
+        enddo
+        enddo
+       enddo
+      enddo
+      enddo
+     enddo
+     if ((dabs(omegamid-qp2(p)) < 1.0d-10).or.(omegamax-omegamin < 1.0d-10)) then
+      res1(p)=1.0d0/(1.0d0-res1(p))
+      npoles2(p,1)=npoles2(p,1)+1
+      poles2(npoles2(p,1),p)=omegamid
+      residues2(npoles2(p,1),p)=res1(p)
+!     write(6,'(A,F20.15,A,F20.15)') '  root = ',omegamid,' : residue = ',res1(p)
+      ressum=ressum+res1(p)
+      exit
+     endif
+!write(6,*) 'Min:',omegamin,omegamin-qp1(p)
+!write(6,*) 'Mid:',omegamid,omegamid-qp2(p)
+!write(6,*) 'Max:',omegamax,omegamax-qp3(p)
+     if (omegamin-qp1(p) < 0.0d0) then
+      if (omegamid-qp2(p) < 0.0d0) then
+       if (omegamax-qp3(p) < 0.0d0) then
+!       write(6,*) 'no root in this bracket'
+        exit
+       else
+!       write(6,*) 'root in the second half-bracket'
+        omegamin=omegamid
+       endif
+      else
+!      write(6,*) 'root in the first half-bracket'
+       omegamax=omegamid
+      endif
+     else
+!     write(6,*) 'no root in this bracket'
+      exit
+     endif
+
+     omegamid=(omegamin+omegamax)/2.0d0
+     enddo ! -- loop over bisection
+
+     enddo ! -- loop over brackets
+
+     do iregion=1,npoles2(p,1)
+      write(6,'(I3,2F20.14)') iregion,poles2(iregion,p),residues2(iregion,p)
+     enddo
+     write(6,'(A3,A20,F20.14)') ' ',' ',ressum
+
+    enddo
+   enddo
+
+   gm1=0.0d0
+   do p=icore+1,iall(0,0,0)-ivirtcore
+    do iregion=1,npoles2(p,1)
+     if (poles2(iregion,p) < 0.0d0) gm1=gm1+0.5d0*(poles2(iregion,p)-epsilon(p,0,0,0))*residues2(iregion,p)
+     write(800+mloop,'(2F20.14)') poles2(iregion,p),residues2(iregion,p)
+    enddo
+   enddo
+   write(*,'(A4,A20,2F20.14)') ' ','Galitskii-Migdal',gm1,gm1+EHFKS
+   
+   npoles=npoles2
+   poles=poles2
+   residues=residues2
+
+   enddo ! self-consistent loop
+
+goto 112
+
+   qp1=0.0d0
+   omega2=omega
+! /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ SCAN
+   do iomega=-300,300
+   omega2=dfloat(iomega)/100.0d0
+   write(6,*) 'scanning omega = ',omega2
+
+   do pspin=1,1 ! alpha spin only
+    do p=icore+1,iall(0,0,0)-ivirtcore
+     pp=(pspin-1)*iall(0,0,0)+p
+
+     qp1(p)=epsilon(p,0,0,0)
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do astat=1,npoles(a,1)
+       if (poles(astat,a) < 0.0d0) cycle
+       do bspin=1,2
+        do b=iocc+1,iall(0,0,0)-ivirtcore
+         bb=(bspin-1)*iall(0,0,0)+b
+         do bstat=1,npoles(b,1)
+         if (poles(bstat,b) < 0.0d0) cycle
+         do ispin=1,2
+          do i=icore+1,iocc
+           ii=(ispin-1)*iall(0,0,0)+i
+           do istat=1,npoles(i,1)
+           if (poles(istat,i) > 0.0d0) cycle
+! -----------------------------------
+           qp1(p)=qp1(p)+0.5d0*c_eri(pp,ii,aa,bb)*c_eri(aa,bb,pp,ii) &
+              /(poles(istat,i)+omega2-poles(astat,a)-poles(bstat,b)) &
+              *residues(istat,i)*residues(astat,a)*residues(bstat,b)
+! -----------------------------------
+          enddo
+          enddo
+         enddo
+        enddo
+        enddo
+       enddo
+      enddo
+      enddo
+     enddo
+
+     do aspin=1,2
+      do a=iocc+1,iall(0,0,0)-ivirtcore
+       aa=(aspin-1)*iall(0,0,0)+a
+       do astat=1,npoles(a,1)
+       if (poles(astat,a) < 0.0d0) cycle
+       do ispin=1,2
+        do i=icore+1,iocc
+         ii=(ispin-1)*iall(0,0,0)+i
+         do istat=1,npoles(i,1)
+         if (poles(istat,i) > 0.0d0) cycle
+         do jspin=1,2
+          do j=icore+1,iocc
+           jj=(jspin-1)*iall(0,0,0)+j
+           do jstat=1,npoles(j,1)
+           if (poles(jstat,j) > 0.0d0) cycle
+! -----------------------------------
+           qp1(p)=qp1(p)-0.5d0*c_eri(ii,jj,pp,aa)*c_eri(pp,aa,ii,jj) &
+              /(poles(istat,i)+poles(jstat,j)-omega2-poles(astat,a)) &
+              *residues(istat,i)*residues(jstat,j)*residues(astat,a)
+! -----------------------------------
+          enddo
+          enddo
+         enddo
+        enddo
+        enddo
+       enddo
+      enddo
+      enddo
+     enddo
+
+    enddo
+   enddo
+
+!  write(400,'(F7.3,20F15.5)') omega2,(max(min(3d0,qp1(i)),-3d0),i=icore+1,iall(0,0,0)-ivirtcore)
+
+   enddo ! frequency loop
+
+112 continue
+
+! /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ SCAN
+
+   deallocate(npoles2,poles2,residues2)
+   deallocate(npoles,poles,residues)
+   deallocate(hmin,hmax,hmin2,hmax2)
+
+111 continue
 
 ! ===================================================================
+
+   omega2=omega
+! /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ SCAN
+!  do iomega=-3000,3000
+!  omega2=dfloat(iomega)/1000.0d0
+! /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ SCAN
 
    write(*,'(A)') "********************"
    write(*,'(A)') "* 2nd-order vertex *"
    write(*,'(A)') "********************"
-   write(*,'(A,E20.10)') 'OMEGA = ',OMEGA
+   write(*,'(A,E20.10)') 'OMEGA = ',OMEGA2
 
    tabpi=0.0d0
    sqaij=0.0d0
 
-   do mloop=1,20
-   write(*,*) "S & U amplitude eq loop",mloop
+   do mloop=1,21
+!  write(*,*) "S & U amplitude eq loop",mloop
  
    do aspin=1,2
     do a=iocc+1,iall(0,0,0)-ivirtcore
@@ -4231,7 +4620,7 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
           do i=icore+1,iocc
            ii=(ispin-1)*iall(0,0,0)+i
 ! -----------------------------------
-           tabpi2(aa,bb,pp,ii)=c_eri(aa,bb,pp,ii)/(omega+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+           tabpi2(aa,bb,pp,ii)=c_eri(aa,bb,pp,ii)/(omega2+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
 ! -----------------------------------
            do cspin=1,2
             do c=iocc+1,iall(0,0,0)-ivirtcore
@@ -4241,9 +4630,9 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
                kk=(kspin-1)*iall(0,0,0)+k
 ! -----------------------------------
                tabpi2(aa,bb,pp,ii)=tabpi2(aa,bb,pp,ii)-c_eri(aa,kk,ccc,ii)*tabpi(ccc,bb,pp,kk) &
-                                  /(omega+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+                                  /(omega2+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
                tabpi2(aa,bb,pp,ii)=tabpi2(aa,bb,pp,ii)+c_eri(bb,kk,ccc,ii)*tabpi(ccc,aa,pp,kk) &
-                                  /(omega+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+                                  /(omega2+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
 ! -----------------------------------
               enddo
              enddo
@@ -4257,7 +4646,7 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
                dd=(dspin-1)*iall(0,0,0)+d
 ! -----------------------------------
                tabpi2(aa,bb,pp,ii)=tabpi2(aa,bb,pp,ii)+0.5d0*c_eri(aa,bb,ccc,dd)*tabpi(ccc,dd,pp,ii) &
-                                  /(omega+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+                                  /(omega2+epsilon(i,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
 ! -----------------------------------
               enddo
              enddo
@@ -4285,7 +4674,7 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
           do j=icore+1,iocc
            jj=(jspin-1)*iall(0,0,0)+j
 ! -----------------------------------
-           sqaij2(qq,aa,ii,jj)=c_eri(qq,aa,ii,jj)/(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega-epsilon(a,0,0,0))
+           sqaij2(qq,aa,ii,jj)=c_eri(qq,aa,ii,jj)/(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega2-epsilon(a,0,0,0))
 ! -----------------------------------
            do cspin=1,2
             do c=iocc+1,iall(0,0,0)-ivirtcore
@@ -4295,9 +4684,9 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
                kk=(kspin-1)*iall(0,0,0)+k
 ! -----------------------------------
                sqaij2(qq,aa,ii,jj)=sqaij2(qq,aa,ii,jj)-c_eri(kk,aa,ii,ccc)*sqaij(qq,ccc,kk,jj) &
-                                  /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega-epsilon(a,0,0,0))
+                                  /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega2-epsilon(a,0,0,0))
                sqaij2(qq,aa,ii,jj)=sqaij2(qq,aa,ii,jj)+c_eri(kk,aa,jj,ccc)*sqaij(qq,ccc,kk,ii) &
-                                  /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega-epsilon(a,0,0,0))
+                                  /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega2-epsilon(a,0,0,0))
 ! -----------------------------------
               enddo
              enddo
@@ -4311,7 +4700,7 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
                ll=(lspin-1)*iall(0,0,0)+l
 ! -----------------------------------
                sqaij2(qq,aa,ii,jj)=sqaij2(qq,aa,ii,jj)+0.5d0*c_eri(kk,ll,ii,jj)*sqaij(qq,aa,kk,ll) &
-                                  /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega-epsilon(a,0,0,0))
+                                  /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega2-epsilon(a,0,0,0))
 ! -----------------------------------
               enddo
              enddo
@@ -4398,12 +4787,12 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
 !   enddo
 !  enddo
 
-   if (mloop == 20) write(6,'(A,F15.10)') 'VERTEX2 self-energy at omega = ',omega
+   if (mloop == 20) write(6,'(A,F15.10)') 'VERTEX2 self-energy at omega = ',omega2
    if (mloop == 20) call dump5(tda,iall(0,0,0))
 
    enddo ! ... S & U amplitude equation loop
 
-   write(6,'(A,F15.10)') 'VERTEX2 diagonal self-energy at omega = ',omega
+   write(6,'(A,F15.10)') 'VERTEX2 diagonal self-energy at omega = ',omega2
    do i=icore+1,iall(0,0,0)-ivirtcore
     if (i==iocc) then
      write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+tda(i,i),' HOMO'
@@ -4414,14 +4803,18 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
     endif
    enddo
 
+! /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ SCAN
+!  write(400,'(F7.3,20F15.5)') omega2,(max(min(9d0,epsilon(i,0,0,0)+tda(i,i)),-9d0),i=icore+1,iall(0,0,0)-ivirtcore)
+! /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ SCAN
+
    ! 2nd-order vertex energy
 
    tabpi=0.0d0
    sqaij=0.0d0
    uabij=0.0d0
 
-   do mloop=1,20
-   write(*,*) "T amplitude equation loop",mloop
+   do mloop=1,21
+!  write(*,*) "T amplitude equation loop",mloop
  
    do aspin=1,2
     do a=iocc+1,iall(0,0,0)-ivirtcore
@@ -4626,9 +5019,9 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
            jj=(jspin-1)*iall(0,0,0)+j
 ! -----------------------------------
            tda(pp,qq)=tda(pp,qq)-0.25d0*c_eri(ii,jj,pp,ccc)*c_eri(qq,ccc,aa,bb)*uabij(aa,bb,ii,jj) &
-                                /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega-epsilon(c,0,0,0)) &
+                                /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega2-epsilon(c,0,0,0)) &
                                 -0.25d0*c_eri(ii,jj,qq,ccc)*c_eri(pp,ccc,aa,bb)*uabij(aa,bb,ii,jj) &
-                                /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega-epsilon(c,0,0,0))
+                                /(epsilon(i,0,0,0)+epsilon(j,0,0,0)-omega2-epsilon(c,0,0,0))
 ! -----------------------------------
            enddo
            enddo
@@ -4658,9 +5051,9 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
            kk=(kspin-1)*iall(0,0,0)+k
 ! -----------------------------------
            tda(pp,qq)=tda(pp,qq)+0.25d0*c_eri(qq,kk,aa,bb)*c_eri(ii,jj,pp,kk)*uabij(aa,bb,ii,jj) &
-                                /(omega+epsilon(k,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0)) &
+                                /(omega2+epsilon(k,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0)) &
                                 +0.25d0*c_eri(pp,kk,aa,bb)*c_eri(ii,jj,qq,kk)*uabij(aa,bb,ii,jj) &
-                                /(omega+epsilon(k,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
+                                /(omega2+epsilon(k,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0))
 ! -----------------------------------
            enddo
            enddo
@@ -4690,9 +5083,9 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
            kk=(kspin-1)*iall(0,0,0)+k
 ! -----------------------------------
            tda(pp,qq)=tda(pp,qq)+c_eri(ii,kk,pp,bb)*c_eri(qq,jj,aa,kk)*uabij(aa,bb,ii,jj) &
-                                /(epsilon(i,0,0,0)+epsilon(k,0,0,0)-omega-epsilon(b,0,0,0)) &
+                                /(epsilon(i,0,0,0)+epsilon(k,0,0,0)-omega2-epsilon(b,0,0,0)) &
                                 +c_eri(ii,kk,qq,bb)*c_eri(pp,jj,aa,kk)*uabij(aa,bb,ii,jj) &
-                                /(epsilon(i,0,0,0)+epsilon(k,0,0,0)-omega-epsilon(b,0,0,0))
+                                /(epsilon(i,0,0,0)+epsilon(k,0,0,0)-omega2-epsilon(b,0,0,0))
 ! -----------------------------------
            enddo
            enddo
@@ -4722,9 +5115,9 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
            jj=(jspin-1)*iall(0,0,0)+j
 ! -----------------------------------
            tda(pp,qq)=tda(pp,qq)-c_eri(qq,jj,aa,ccc)*c_eri(ii,ccc,pp,bb)*uabij(aa,bb,ii,jj) &
-                                /(omega+epsilon(j,0,0,0)-epsilon(a,0,0,0)-epsilon(c,0,0,0)) &
+                                /(omega2+epsilon(j,0,0,0)-epsilon(a,0,0,0)-epsilon(c,0,0,0)) &
                                 -c_eri(pp,jj,aa,ccc)*c_eri(ii,ccc,qq,bb)*uabij(aa,bb,ii,jj) &
-                                /(omega+epsilon(j,0,0,0)-epsilon(a,0,0,0)-epsilon(c,0,0,0))
+                                /(omega2+epsilon(j,0,0,0)-epsilon(a,0,0,0)-epsilon(c,0,0,0))
 ! -----------------------------------
            enddo
            enddo
@@ -4875,10 +5268,10 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
    enddo
 
    v3=tda
-   write(6,'(A,F15.10)') 'VERTEX3 self-energy at omega = ',omega
+   write(6,'(A,F15.10)') 'VERTEX3 self-energy at omega = ',omega2
    call dump5(v3,iall(0,0,0))
 
-   write(6,'(A,F15.10)') 'VERTEX3 diagonal self-energy at omega = ',omega
+   write(6,'(A,F15.10)') 'VERTEX3 diagonal self-energy at omega = ',omega2
    do i=icore+1,iall(0,0,0)-ivirtcore
     if (i==iocc) then
      write(6,'(I3,F20.14,A)') i,epsilon(i,0,0,0)+v3(i,i),' HOMO'
@@ -4888,7 +5281,16 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
      write(6,'(I3,F20.14)') i,epsilon(i,0,0,0)+v3(i,i)
     endif
    enddo
+
+! /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ SCAN
+!  write(500,'(F7.3,20F15.5)') omega2,(max(min(9d0,epsilon(i,0,0,0)+v3(i,i)),-9d0),i=icore+1,iall(0,0,0)-ivirtcore)
+
+!  enddo
+! /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ SCAN
+
    ! ... vertex dressing
+
+!stop
 
 ! **************
 ! 2nd-order edge
@@ -6638,7 +7040,7 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
 
    deallocate(tabpi,sqaij,uabij)
    deallocate(tabpi2,sqaij2,uabij2)
-   deallocate(tda,tda2,qp1,qp2,qp3)
+   deallocate(tda,tda2,qp1,qp2,qp3,res1)
    deallocate(gf2,e2,e3,v3,v2e,v3e2,v3v2e)
 
    goto 10

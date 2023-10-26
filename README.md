@@ -162,7 +162,7 @@ Mandatory input in bold letters.
 * DELTAH (deprecated) (grid spacing in Cartesian grid-based HF & MP2)
 * GEMINAL (F12 = Slater-type correlation factor in Becke-grid-based MP2; R12 = linear correlation factor)
 * LMAX (angular momentum quantum number of spherical harmonic basis in Becke-grid-based MP2)
-* MBGFALG (1 = recursion 1 & $\lambda$ variation; 2 = recursions 1 & 2; 3 = recursions 1 & 2 & 3; -1 = recursion 1 $\omega$ scan; 4 = recursions 1 & 2 & 3 & $\lambda$ variation)
+* MBGFALG (1 = recursion 1 & $\lambda$ variation; 2 = recursions 1 & 2; 3 = recursions 1 & 2 & 3; -1 = recursion 1 $\omega$ scan; 4 = recursions 1 & 2 & 3 & $\lambda$ variation; 99 = exact; -99 = exact scan; 999 = exact all poles & residues)
 * MP2ALG (1 = fast big memory; 2 = medium speed medium memory; 3 = slow small memory)
 * DIAGONAL (T = diagonal approximation to self-energy)
 * DYSONCONV (GF convergence criterion)                                       
