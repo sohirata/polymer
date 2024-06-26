@@ -10,8 +10,9 @@ SUBROUTINE HIGHORDER_CORRELATION
 
    IMPLICIT NONE
    DOUBLE PRECISION :: OMEGA
-   INTEGER,PARAMETER :: ISCAN=300 ! NUMBER OF FREQ POINTS IN EACH SIDE OF OMEGA 
-   INTEGER,PARAMETER :: ISELF=2    ! 1: SELF-ENERGY ; 2: SELF-ENERGY & GREEN'S FUNCTION ; 3: IP ; 4: EA ; 5: ENERGY
+   INTEGER,PARAMETER :: ISCAN=2000    ! NUMBER OF FREQ POINTS IN EACH SIDE OF OMEGA 
+   INTEGER,PARAMETER :: ISCANSTEP=100 ! SCAN INTERVAL = 1 eV / ISCANSTEP
+   INTEGER,PARAMETER :: ISELF=2       ! 1: SELF-ENERGY ; 2: SELF-ENERGY & GREEN'S FUNCTION ; 3: IP ; 4: EA ; 5: ENERGY
    INTEGER :: I,J,K,L,JSELF
    INTEGER :: NROOTS,NTRIALS
    INTEGER :: MOP,MOQ
@@ -21,7 +22,8 @@ SUBROUTINE HIGHORDER_CORRELATION
    DOUBLE PRECISION,ALLOCATABLE :: SELF(:,:,:)
    DOUBLE PRECISION :: C
    INTEGER,ALLOCATABLE :: INDX(:)
-   DOUBLE PRECISION :: DIAG(IALL(0,0,0),0:IOPTN(97)-1),EIGN(IALL(0,0,0),0:IOPTN(97)-1),GREN(IALL(0,0,0),0:IOPTN(97)-1)
+   DOUBLE PRECISION :: DIAG(IALL(0,0,0),0:IOPTN(97)-1),EIGN(IALL(0,0,0),0:IOPTN(97)-1)
+   DOUBLE PRECISION :: GREN(IALL(0,0,0),0:IOPTN(97)-1),GDYS(IALL(0,0,0),0:IOPTN(97)-1)
    DOUBLE PRECISION :: OMEGA2
    DOUBLE PRECISION,ALLOCATABLE :: ER(:),EI(:),VR(:,:),VL(:,:),WK(:)
    INTEGER :: INFO
@@ -50,7 +52,7 @@ SUBROUTINE HIGHORDER_CORRELATION
 ! HIGH-ORDER GF
 ! ---------------------------------------------------------------
    IF (IOPTN(97) > 0) THEN
-    IF (ICORE /= 0) CALL PABORT('FROZEN CORE IS DANGEROUS FOR MBGF')
+    IF (ICORE /= 0) CALL WARNING('FROZEN CORE IS DANGEROUS FOR MBGF')
     OMEGA=DOPTN(87)
     WRITE(6,'(/,A)') '***********************************************************'
     WRITE(6,'(A,F15.10,A)') '* GENERAL-ORDER MBGF CALCULATION AT OMEGA=',OMEGA,       ' *'
@@ -90,11 +92,11 @@ SUBROUTINE HIGHORDER_CORRELATION
       WRITE(300+J,'(2I5)') ISCAN*2+1,IOPTN(97)-1
      ENDDO
      DO I=-ISCAN,ISCAN
-      OMEGA2=OMEGA+DFLOAT(I)/DFLOAT(ISCAN/3)
+      OMEGA2=OMEGA+DFLOAT(I)/DFLOAT(ISCANSTEP)
       WRITE(6,'(/,A)') '************************'
       WRITE(6,'(A,F12.5,A)') '* OMEGA = ',OMEGA2,' *'
       WRITE(6,'(A)') '************************'
-      CALL HIGHORDER_GF_REDUX1(OMEGA2,IOPTN(97),DIAG,EIGN,GREN,IALL(0,0,0))
+      CALL HIGHORDER_GF_REDUX1(OMEGA2,IOPTN(97),DIAG,EIGN,GREN,GDYS,IALL(0,0,0))
       DO J=ICORE+1,IALL(0,0,0)-IVIRTCORE
        DO K=1,IOPTN(97)-1
         IF (DIAG(J,K) > 1.0D6)  DIAG(J,K)=9.99999D5
@@ -103,20 +105,26 @@ SUBROUTINE HIGHORDER_CORRELATION
         IF (EIGN(J,K) < -1.0D6) EIGN(J,K)=-9.99999D5
         IF (GREN(J,K) > 1.0D6)  GREN(J,K)=9.99999D5
         IF (GREN(J,K) < -1.0D6) GREN(J,K)=-9.99999D5
+        IF (GDYS(J,K) > 1.0D6)  GDYS(J,K)=9.99999D5
+        IF (GDYS(J,K) < -1.0D6) GDYS(J,K)=-9.99999D5
        ENDDO
        WRITE(200+J,'(F20.10,20F20.10)') OMEGA2,(DIAG(J,K),K=1,IOPTN(97)-1)
        WRITE(300+J,'(F20.10,20F20.10)') OMEGA2,(EIGN(J,K),K=1,IOPTN(97)-1)
        WRITE(400+J,'(F20.10,20F20.10)') OMEGA2,(GREN(J,K),K=1,IOPTN(97)-1)
+       WRITE(500+J,'(F20.10,20F20.10)') OMEGA2,(GDYS(J,K),K=1,IOPTN(97)-1)
       ENDDO
      ENDDO
+     WRITE(6,'(A)') "fort.20X contains the diagonal self-energy for the Xth orbital"
+     WRITE(6,'(A)') "fort.30X contains the Xth eigenvalue of the self-energy matrix"
+     WRITE(6,'(A)') "fort.40X contains the diagonal Green's function for the Xth orbital"
+     WRITE(6,'(A)') "fort.50X contains the diagonal Dyson-Green's function for the Xth orbital"
      WRITE(6,'(A)') '../misc/dyson < fort.20X (with diagonal approx)'
      WRITE(6,'(A)') '../misc/dyson < fort.30X (w/o  diagonal approx)'
-     WRITE(6,'(A)') "fort.40X contains the diagonal Green's function for the Xth orbital"
     ENDIF
     ! ***************
     ! * RECURSION 1 *
     ! ***************
-    IF ((IOPTN(104)>=1).AND.(IOPTN(104)<=4)) CALL HIGHORDER_GF_REDUX1(OMEGA,IOPTN(97),DIAG,EIGN,GREN,IALL(0,0,0))
+    IF ((IOPTN(104)>=1).AND.(IOPTN(104)<=4)) CALL HIGHORDER_GF_REDUX1(OMEGA,IOPTN(97),DIAG,EIGN,GREN,GDYS,IALL(0,0,0))
     IF ((IOPTN(104)>=2).AND.(IOPTN(104)<=4)) THEN
      ! ********
      ! * HCPT *
@@ -148,7 +156,7 @@ SUBROUTINE HIGHORDER_CORRELATION
     IF (IOPTN(104)==99) JSCAN=0
     IF (IOPTN(104)==-99) JSCAN=ISCAN
     DO J=-JSCAN,JSCAN
-     OMEGA2=OMEGA+DFLOAT(J)/DFLOAT(ISCAN/3)
+     OMEGA2=OMEGA+DFLOAT(J)/DFLOAT(ISCANSTEP)
      WRITE(6,'(/,A)') "**************************************"
      WRITE(6,'(A,F12.5,A)')   "* EXACT MBGF AT OMEGA = ",OMEGA2," *"
      WRITE(6,'(A,/)') "**************************************"

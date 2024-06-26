@@ -1947,7 +1947,7 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
    DOUBLE PRECISION,ALLOCATABLE :: zarrow(:,:),VL(:,:),VR(:,:),EREAL(:),EIMAG(:),WK(:),hmin(:),hmax(:),hmin2(:),hmax2(:)
    double precision,allocatable :: sg2(:,:),res(:,:),poles(:,:),residues(:,:),poles2(:,:),residues2(:,:)
    integer,allocatable :: npoles(:,:),npoles2(:,:)
-   double precision :: ressum,residue,gm1,gm2,gm3
+   double precision :: ressum,ipressum,residue,gm1,gm2,gm3
    INTEGER :: INFO
    integer :: iomega
    double precision :: omegamin,omegamid,omegamax
@@ -1968,7 +1968,86 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
 
 ! from here to
 
-!  goto 10
+   goto 10
+
+! --- comment out from here ...
+   goto 702
+   ! 2h1p
+   do i=icore+1,iocc
+   do j=icore+1,iocc
+   do a=iocc+1,iall(0,0,0)-ivirtcore
+    write(702,*) epsilon(i,0,0,0)+epsilon(j,0,0,0)-epsilon(a,0,0,0)
+   enddo
+   enddo
+   enddo
+   ! 2p1h
+   do i=icore+1,iocc
+   do a=iocc+1,iall(0,0,0)-ivirtcore
+   do b=iocc+1,iall(0,0,0)-ivirtcore
+    write(702,*) epsilon(a,0,0,0)+epsilon(b,0,0,0)-epsilon(i,0,0,0)
+   enddo
+   enddo
+   enddo
+   ! 3h2p
+   do i=icore+1,iocc
+   do j=icore+1,iocc
+   do k=icore+1,iocc
+   do a=iocc+1,iall(0,0,0)-ivirtcore
+   do b=iocc+1,iall(0,0,0)-ivirtcore
+    write(703,*) epsilon(i,0,0,0)+epsilon(j,0,0,0)+epsilon(k,0,0,0)-epsilon(a,0,0,0)-epsilon(b,0,0,0)
+   enddo
+   enddo
+   enddo
+   enddo
+   enddo
+   ! 3p2h
+   do i=icore+1,iocc
+   do j=icore+1,iocc
+   do a=iocc+1,iall(0,0,0)-ivirtcore
+   do b=iocc+1,iall(0,0,0)-ivirtcore
+   do c=iocc+1,iall(0,0,0)-ivirtcore
+    write(703,*) epsilon(a,0,0,0)+epsilon(b,0,0,0)+epsilon(c,0,0,0)-epsilon(i,0,0,0)-epsilon(j,0,0,0)
+   enddo
+   enddo
+   enddo
+   enddo
+   enddo
+   ! 4h3p
+   do i=icore+1,iocc
+   do j=icore+1,iocc
+   do k=icore+1,iocc
+   do l=icore+1,iocc
+   do a=iocc+1,iall(0,0,0)-ivirtcore
+   do b=iocc+1,iall(0,0,0)-ivirtcore
+   do c=iocc+1,iall(0,0,0)-ivirtcore
+    write(704,*) epsilon(i,0,0,0)+epsilon(j,0,0,0)+epsilon(k,0,0,0)+epsilon(l,0,0,0) &
+                -epsilon(a,0,0,0)-epsilon(b,0,0,0)-epsilon(c,0,0,0)
+   enddo
+   enddo
+   enddo
+   enddo
+   enddo
+   enddo
+   enddo
+   ! 4p3h
+   do i=icore+1,iocc
+   do j=icore+1,iocc
+   do k=icore+1,iocc
+   do a=iocc+1,iall(0,0,0)-ivirtcore
+   do b=iocc+1,iall(0,0,0)-ivirtcore
+   do c=iocc+1,iall(0,0,0)-ivirtcore
+   do d=iocc+1,iall(0,0,0)-ivirtcore
+    write(704,*) epsilon(a,0,0,0)+epsilon(b,0,0,0)+epsilon(c,0,0,0)+epsilon(d,0,0,0) &
+                -epsilon(i,0,0,0)-epsilon(j,0,0,0)-epsilon(k,0,0,0)
+   enddo
+   enddo
+   enddo
+   enddo
+   enddo
+   enddo
+   enddo
+702 continue
+! --- ... to here
 
    WRITE(*,'(A)') "************************************************"
    WRITE(*,'(A)') "* Algebraic implementations of MBGF(2) and (3) *"
@@ -3504,6 +3583,7 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
    gm1=0.0d0
    gm2=0.0d0
    gm3=0.0d0
+   ipressum=0.0d0
    do p=icore+1,iall(0,0,0)-ivirtcore
     write(*,'(A,I3)') 'Orbital:',p
     write(*,'(A4,2A20)') 'ROOT','POLE','RESIDUE'
@@ -3566,8 +3646,8 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
       ressum=ressum+residues(astat,p)
       write(*,'(I4,2F20.14)') astat,poles(astat,p),residues(astat,p)
       if (poles(astat,p) < 0.0d0) then
+       ipressum=ipressum+residues(astat,p)
        gm2=gm2+(poles(astat,p)+H(p,p))*residues(astat,p)
-!      gm2=gm2+(epsilon(p,0,0,0)+H(p,p))*residues(astat,p)
        gm1=gm1+0.5d0*(poles(astat,p)-EPSILON(p,0,0,0))*residues(astat,p)
       endif
      endif
@@ -3576,7 +3656,8 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
     npoles(p,2)=astat
     write(*,'(A4,A20,F20.14)') 'SUM',' ',ressum
    enddo
-   write(*,'(A4,A20,2F20.14)') ' ','Galitskii-Migdal (alt)',gm1,gm1+EHFKS
+!  write(*,'(A4,A20,2F20.14)') ' ','Galitskii-Migdal (alt)',gm1,gm1+EHFKS
+   write(*,'(A4,A20,2F20.14)') ' ','IP RESIDUE SUM',ipressum
    write(*,'(A4,A20,2F20.14)') ' ','Galitskii-Migdal',gm2+NUCLEAR_REPULSION-EHFKS,gm2+NUCLEAR_REPULSION
    deallocate(zarrow,VL,EREAL,EIMAG,WK,VR)
 
@@ -3768,6 +3849,8 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
    poles=0.0d0
    residues=0.0d0
    ressum=0.0d0
+   ipressum=0.0d0
+   gm1=0.0d0
    gm2=0.0d0
    jstat=0
    do istat=1,ntot
@@ -3782,17 +3865,26 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
       poles(jstat,p)=ereal(istat)
       residues(jstat,p)=vr(p-icore,istat)**2
      enddo
-     ressum=ressum+residue
     endif
+    ressum=ressum+residue
     if (ereal(istat) < 0.0d0) then
+     ipressum=ipressum+residue
+     gm1=gm1+ereal(istat)*residue
      do p=icore+1,iall(0,0,0)-ivirtcore
       gm2=gm2+0.5d0*(ereal(istat)-epsilon(p,0,0,0))*vr(p-icore,istat)**2
+     enddo
+     do p=icore+1,iall(0,0,0)-ivirtcore
+     do q=icore+1,iall(0,0,0)-ivirtcore
+      gm1=gm1+h(p,q)*vr(p-icore,istat)*vr(q-icore,istat)
+     enddo
      enddo
     endif
    enddo
    npoles=jstat
-   write(*,'(A4,A20,F20.14)') 'SUM',' ',ressum
-   write(*,'(A4,A20,2F20.14)') ' ','Galitskii-Migdal',gm2,gm2+EHFKS
+   write(*,'(A4,A20,F20.14)') ' ','RESIDUE SUM',ressum
+   write(*,'(A4,A20,F20.14)') ' ','IP RESIDUE SUM',ipressum
+   write(*,'(A4,A20,2F20.14)') ' ','Galitskii-Migdal',gm1+NUCLEAR_REPULSION-EHFKS,gm1+NUCLEAR_REPULSION
+!  write(*,'(A4,A20,2F20.14)') ' ','Galitskii-Migdal',gm2,gm2+EHFKS
 
    deallocate(zarrow,VL,EREAL,EIMAG,WK,VR)
 
@@ -3988,9 +4080,9 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
     enddo
     gm3=0.0d0
     do i=icore+1,iocc
-     gm3=gm3+0.5d0*(qp1(i))*1.0d0/(1.0d0-qp3(i))
+     gm3=gm3+(h(i,i)+epsilon(i,0,0,0)+qp1(i))*1.0d0/(1.0d0-qp3(i))
     enddo
-    write(*,'(A4,A20,F20.14)') ' ','Galitskii (useless)',gm3
+    write(*,'(A4,A20,2F20.14)') ' ','Galitskii-Migdal',gm3+NUCLEAR_REPULSION-EHFKS,gm3+NUCLEAR_REPULSION
    endif
 
    enddo
@@ -4096,11 +4188,18 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
    endif
 
    enddo ! Dyson loop
-   if (qp1(r) < 0.0d0) gm3=gm3+0.5d0*(qp1(r)-epsilon(r,0,0,0))*1.0d0/(1.0d0-qp3(r))
+   if (qp1(r) < 0.0d0) then
+    do p=icore+1,iall(0,0,0)-ivirtcore
+     do q=icore+1,iall(0,0,0)-ivirtcore
+      gm3=gm3+h(r,r)*vr(p-icore,r-icore)*vr(q-icore,r-icore)*1.0d0/(1.0d0-qp3(r))
+     enddo
+    enddo
+    gm3=gm3+qp1(r)*1.0d0/(1.0d0-qp3(r))
+   endif
 
    enddo 
    enddo ! Target orbital loop
-   write(*,'(A4,A20,F20.14)') ' ','Galitskii (useless)',gm3
+   write(*,'(A4,A20,2F20.14)') ' ','Galitskii-Migdal',gm3+NUCLEAR_REPULSION-EHFKS,gm3+NUCLEAR_REPULSION
 
    deallocate(sg2,res)
    deallocate(VL,EREAL,EIMAG,WK,VR)
@@ -4164,9 +4263,9 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
 
    gm3=0.0d0
    do p=icore+1,iocc
-    gm3=gm3+0.5d0*(qp1(p))
+    gm3=gm3+(h(p,p)+epsilon(p,0,0,0)+qp1(p))
    enddo
-   write(*,'(A4,A20,F20.14)') ' ','Galitskii (useless)',gm3
+   write(*,'(A4,A20,2F20.14)') ' ','Galitskii-Migdal',gm3+NUCLEAR_REPULSION-EHFKS,gm3+NUCLEAR_REPULSION
 
    write(*,'(A)') "*******************"
    write(*,'(A)') "* Pole bracketing *"
@@ -4198,8 +4297,8 @@ SUBROUTINE HIGHORDER_MP_IP(ORDER)
      enddo
     enddo
    enddo
-   hmin(1)=-99.9d0
-   hmax(istat+1)=99.9d0
+   hmin(1)=-999.9d0
+   hmax(istat+1)=999.9d0
 !  if (istat /= (ntot-1)/8) call pabort('bug')
    CALL PIKSRT_EVALONLY(istat+1,hmin)
    CALL PIKSRT_EVALONLY(istat+1,hmax)
@@ -4319,7 +4418,7 @@ write(6,*) 'Self-consistent cycle=',mloop
 !   write(*,'(i3,f20.14)') i,hmax(i)
 !  enddo
    nregion=1
-   hmin2(nregion)=-99.9d0
+   hmin2(nregion)=-999.9d0
    hmax2(nregion)=hmax(1)
    do i=2,iregion
     if (dabs(hmax(i-1)-hmax(i)) > 1.0d-14) then
@@ -4331,7 +4430,7 @@ write(6,*) 'Self-consistent cycle=',mloop
 !  write(*,*) 'nregion=',nregion
    nregion=nregion+1
    hmin2(nregion)=hmax2(nregion-1)
-   hmax2(nregion)=99.9d0
+   hmax2(nregion)=999.9d0
    write(6,'(A8,2A20)') 'REGION','MIN','MAX'
    do iregion=1,nregion
      write(6,'(I8,2F20.14)') iregion,hmin2(iregion),hmax2(iregion)
@@ -4340,6 +4439,7 @@ write(6,*) 'Self-consistent cycle=',mloop
 ! ... Determine the regions
 ! -------------------------
 
+   ipressum=0.0d0
    do pspin=1,1 ! alpha spin only
     do p=icore+1,iall(0,0,0)-ivirtcore
      pp=(pspin-1)*iall(0,0,0)+p
@@ -4445,6 +4545,7 @@ write(6,*) 'Orbital=',p
       residues2(npoles2(p,1),p)=res1(p)
 !     write(6,'(A,F20.15,A,F20.15)') '  root = ',omegamid,' : residue = ',res1(p)
       ressum=ressum+res1(p)
+      if (omegamid < 0.0d0) ipressum=ipressum+res1(p)
       exit
      endif
 !write(6,*) 'Min:',omegamin,omegamin-qp1(p)
@@ -4474,9 +4575,9 @@ write(6,*) 'Orbital=',p
      enddo ! -- loop over brackets
 
      do iregion=1,npoles2(p,1)
-      write(6,'(I3,2F20.14)') iregion,poles2(iregion,p),residues2(iregion,p)
+      write(6,'(I8,2F20.14)') iregion,poles2(iregion,p),residues2(iregion,p)
      enddo
-     write(6,'(A3,A20,F20.14)') ' ',' ',ressum
+     write(6,'(A8,A20,F20.14)') ' ',' ',ressum
 
     enddo
    enddo
@@ -4484,11 +4585,12 @@ write(6,*) 'Orbital=',p
    gm1=0.0d0
    do p=icore+1,iall(0,0,0)-ivirtcore
     do iregion=1,npoles2(p,1)
-     if (poles2(iregion,p) < 0.0d0) gm1=gm1+0.5d0*(poles2(iregion,p)-epsilon(p,0,0,0))*residues2(iregion,p)
+     if (poles2(iregion,p) < 0.0d0) gm1=gm1+(h(p,p)+poles2(iregion,p))*residues2(iregion,p)
      write(800+mloop,'(2F20.14)') poles2(iregion,p),residues2(iregion,p)
     enddo
    enddo
-   write(*,'(A4,A20,2F20.14)') ' ','Galitskii-Migdal',gm1,gm1+EHFKS
+   write(*,'(A4,A20,2F20.14)') ' ','IP RESIDUE SUM',ipressum
+   write(*,'(A4,A20,2F20.14)') ' ','Galitskii-Migdal',gm1+NUCLEAR_REPULSION-EHFKS,gm1+NUCLEAR_REPULSION
    
    npoles=npoles2
    poles=poles2
