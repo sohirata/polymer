@@ -329,29 +329,29 @@ SUBROUTINE PRINT_ENERGYBANDS(IALG)
        CYCLE
       ELSE IF (I == M) THEN
        IF (TEMP == 0.0D0) THEN
-        WRITE(6,'(A5,3X,11F8.4)') ' HOMO',(E(I,-J*NMOD,0,0),J=L*11,L*11+10)
+        WRITE(6,'(A5,3X,11F8.5)') ' HOMO',(E(I,-J*NMOD,0,0),J=L*11,L*11+10)
         IF (IALG == 3) &
          WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,-J*NMOD,0,0),J=L*11,L*11+10)
        ELSE
-        WRITE(6,'(I5,3X,11F8.4)') I,(E(I,-J*NMOD,0,0),J=L*11,L*11+10)
+        WRITE(6,'(I5,3X,11F8.5)') I,(E(I,-J*NMOD,0,0),J=L*11,L*11+10)
         WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,-J*NMOD,0,0)-FERMI)/BOLTZMANN/TEMP)+1),J=L*11,L*11+10)
        ENDIF
       ELSE IF (I == M+1) THEN
        IF (TEMP == 0.0D0) THEN
-        WRITE(6,'(A5,3X,11F8.4)') ' LUMO',(E(I,-J*NMOD,0,0),J=L*11,L*11+10)
+        WRITE(6,'(A5,3X,11F8.5)') ' LUMO',(E(I,-J*NMOD,0,0),J=L*11,L*11+10)
         IF (IALG == 3) &
          WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,-J*NMOD,0,0),J=L*11,L*11+10)
        ELSE
-        WRITE(6,'(I5,3X,11F8.4)') I,(E(I,-J*NMOD,0,0),J=L*11,L*11+10)
+        WRITE(6,'(I5,3X,11F8.5)') I,(E(I,-J*NMOD,0,0),J=L*11,L*11+10)
         WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,-J*NMOD,0,0)-FERMI)/BOLTZMANN/TEMP)+1),J=L*11,L*11+10)
        ENDIF
       ELSE
        IF (TEMP == 0.0D0) THEN
-        WRITE(6,'(I5,3X,11F8.4)') I,(E(I,-J*NMOD,0,0),J=L*11,L*11+10)
+        WRITE(6,'(I5,3X,11F8.5)') I,(E(I,-J*NMOD,0,0),J=L*11,L*11+10)
         IF (IALG == 3) &
          WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,-J*NMOD,0,0),J=L*11,L*11+10)
        ELSE
-        WRITE(6,'(I5,3X,11F8.4)') I,(E(I,-J*NMOD,0,0),J=L*11,L*11+10)
+        WRITE(6,'(I5,3X,11F8.5)') I,(E(I,-J*NMOD,0,0),J=L*11,L*11+10)
         WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,-J*NMOD,0,0)-FERMI)/BOLTZMANN/TEMP)+1),J=L*11,L*11+10)
        ENDIF
       ENDIF
@@ -368,29 +368,29 @@ SUBROUTINE PRINT_ENERGYBANDS(IALG)
      CYCLE
     ELSE IF (I == M) THEN
      IF (TEMP == 0.0D0) THEN
-      WRITE(6,'(A5,3X,11F8.4)') ' HOMO',(E(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
+      WRITE(6,'(A5,3X,11F8.5)') ' HOMO',(E(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
       IF (IALG == 3) &
        WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
      ELSE
-      WRITE(6,'(I5,3X,11F8.4)') I,(E(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
+      WRITE(6,'(I5,3X,11F8.5)') I,(E(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
       WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,-J*NMOD,0,0)-FERMI)/BOLTZMANN/TEMP)+1),J=KX*11,KVCX/NMOD)
      ENDIF
     ELSE IF (I == M+1) THEN
      IF (TEMP == 0.0D0) THEN
-      WRITE(6,'(A5,3X,11F8.4)') ' LUMO',(E(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
+      WRITE(6,'(A5,3X,11F8.5)') ' LUMO',(E(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
       IF (IALG == 3) &
        WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
      ELSE
-      WRITE(6,'(I5,3X,11F8.4)') I,(E(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
+      WRITE(6,'(I5,3X,11F8.5)') I,(E(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
       WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,-J*NMOD,0,0)-FERMI)/BOLTZMANN/TEMP)+1),J=KX*11,KVCX/NMOD)
      ENDIF
     ELSE
      IF (TEMP == 0.0D0) THEN
-      WRITE(6,'(I5,3X,11F8.4)') I,(E(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
+      WRITE(6,'(I5,3X,11F8.5)') I,(E(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
       IF (IALG == 3) &
        WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
      ELSE
-      WRITE(6,'(I5,3X,11F8.4)') I,(E(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
+      WRITE(6,'(I5,3X,11F8.5)') I,(E(I,-J*NMOD,0,0),J=KX*11,KVCX/NMOD)
       WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,-J*NMOD,0,0)-FERMI)/BOLTZMANN/TEMP)+1),J=KX*11,KVCX/NMOD)
      ENDIF
     ENDIF
@@ -410,29 +410,29 @@ SUBROUTINE PRINT_ENERGYBANDS(IALG)
        CYCLE
       ELSE IF (I == M) THEN
        IF (TEMP == 0.0D0) THEN
-        WRITE(6,'(A5,3X,11F8.4)') ' HOMO',(E(I,0,-J*NMOD,0),J=L*11,L*11+10)
+        WRITE(6,'(A5,3X,11F8.5)') ' HOMO',(E(I,0,-J*NMOD,0),J=L*11,L*11+10)
         IF (IALG == 3) &
          WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,-J*NMOD,0),J=L*11,L*11+10)
        ELSE
-        WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,-J*NMOD,0),J=L*11,L*11+10)
+        WRITE(6,'(I5,3X,11F8.5)') I,(E(I,0,-J*NMOD,0),J=L*11,L*11+10)
         WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,-J*NMOD,0)-FERMI)/BOLTZMANN/TEMP)+1),J=L*11,L*11+10)
        ENDIF
       ELSE IF (I == M+1) THEN
        IF (TEMP == 0.0D0) THEN
-        WRITE(6,'(A5,3X,11F8.4)') ' LUMO',(E(I,0,-J*NMOD,0),J=L*11,L*11+10)
+        WRITE(6,'(A5,3X,11F8.5)') ' LUMO',(E(I,0,-J*NMOD,0),J=L*11,L*11+10)
         IF (IALG == 3) &
          WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,-J*NMOD,0),J=L*11,L*11+10)
        ELSE
-        WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,-J*NMOD,0),J=L*11,L*11+10)
+        WRITE(6,'(I5,3X,11F8.5)') I,(E(I,0,-J*NMOD,0),J=L*11,L*11+10)
         WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,-J*NMOD,0)-FERMI)/BOLTZMANN/TEMP)+1),J=L*11,L*11+10)
        ENDIF
       ELSE
        IF (TEMP == 0.0D0) THEN
-        WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,-J*NMOD,0),J=L*11,L*11+10)
+        WRITE(6,'(I5,3X,11F8.5)') I,(E(I,0,-J*NMOD,0),J=L*11,L*11+10)
         IF (IALG == 3) &
          WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,-J*NMOD,0),J=L*11,L*11+10)
        ELSE
-        WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,-J*NMOD,0),J=L*11,L*11+10)
+        WRITE(6,'(I5,3X,11F8.5)') I,(E(I,0,-J*NMOD,0),J=L*11,L*11+10)
         WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,-J*NMOD,0)-FERMI)/BOLTZMANN/TEMP)+1),J=L*11,L*11+10)
        ENDIF
       ENDIF
@@ -449,29 +449,29 @@ SUBROUTINE PRINT_ENERGYBANDS(IALG)
      CYCLE
     ELSE IF (I == M) THEN
      IF (TEMP == 0.0D0) THEN
-      WRITE(6,'(A5,3X,11F8.4)') ' HOMO',(E(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
+      WRITE(6,'(A5,3X,11F8.5)') ' HOMO',(E(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
       IF (IALG == 3) &
        WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
      ELSE
-      WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
+      WRITE(6,'(I5,3X,11F8.5)') I,(E(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
       WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,-J*NMOD,0)-FERMI)/BOLTZMANN/TEMP)+1),J=KY*11,KVCY/NMOD)
      ENDIF
     ELSE IF (I == M+1) THEN
      IF (TEMP == 0.0D0) THEN
-      WRITE(6,'(A5,3X,11F8.4)') ' LUMO',(E(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
+      WRITE(6,'(A5,3X,11F8.5)') ' LUMO',(E(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
       IF (IALG == 3) &
        WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
      ELSE
-      WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
+      WRITE(6,'(I5,3X,11F8.5)') I,(E(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
       WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,-J*NMOD,0)-FERMI)/BOLTZMANN/TEMP)+1),J=KY*11,KVCY/NMOD)
      ENDIF
     ELSE
      IF (TEMP == 0.0D0) THEN
-      WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
+      WRITE(6,'(I5,3X,11F8.5)') I,(E(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
       IF (IALG == 3) &
        WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
      ELSE
-      WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
+      WRITE(6,'(I5,3X,11F8.5)') I,(E(I,0,-J*NMOD,0),J=KY*11,KVCY/NMOD)
       WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,-J*NMOD,0)-FERMI)/BOLTZMANN/TEMP)+1),J=KY*11,KVCY/NMOD)
      ENDIF
     ENDIF
@@ -491,29 +491,29 @@ SUBROUTINE PRINT_ENERGYBANDS(IALG)
        CYCLE
       ELSE IF (I == M) THEN
        IF (TEMP == 0.0D0) THEN
-        WRITE(6,'(A5,3X,11F8.4)') ' HOMO',(E(I,0,0,-J*NMOD),J=L*11,L*11+10)
+        WRITE(6,'(A5,3X,11F8.5)') ' HOMO',(E(I,0,0,-J*NMOD),J=L*11,L*11+10)
         IF (IALG == 3) &
          WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,0,-J*NMOD),J=L*11,L*11+10)
        ELSE
-        WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,0,-J*NMOD),J=L*11,L*11+10)
+        WRITE(6,'(I5,3X,11F8.5)') I,(E(I,0,0,-J*NMOD),J=L*11,L*11+10)
         WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,0,-J*NMOD)-FERMI)/BOLTZMANN/TEMP)+1),J=L*11,L*11+10)
        ENDIF
       ELSE IF (I == M+1) THEN
        IF (TEMP == 0.0D0) THEN
-        WRITE(6,'(A5,3X,11F8.4)') ' LUMO',(E(I,0,0,-J*NMOD),J=L*11,L*11+10)
+        WRITE(6,'(A5,3X,11F8.5)') ' LUMO',(E(I,0,0,-J*NMOD),J=L*11,L*11+10)
         IF (IALG == 3) &
          WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,0,-J*NMOD),J=L*11,L*11+10)
        ELSE
-        WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,0,-J*NMOD),J=L*11,L*11+10)
+        WRITE(6,'(I5,3X,11F8.5)') I,(E(I,0,0,-J*NMOD),J=L*11,L*11+10)
         WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,0,-J*NMOD)-FERMI)/BOLTZMANN/TEMP)+1),J=L*11,L*11+10)
        ENDIF
       ELSE
        IF (TEMP == 0.0D0) THEN
-        WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,0,-J*NMOD),J=L*11,L*11+10)
+        WRITE(6,'(I5,3X,11F8.5)') I,(E(I,0,0,-J*NMOD),J=L*11,L*11+10)
         IF (IALG == 3) &
          WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,0,-J*NMOD),J=L*11,L*11+10)
        ELSE
-        WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,0,-J*NMOD),J=L*11,L*11+10)
+        WRITE(6,'(I5,3X,11F8.5)') I,(E(I,0,0,-J*NMOD),J=L*11,L*11+10)
         WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,0,-J*NMOD)-FERMI)/BOLTZMANN/TEMP)+1),J=L*11,L*11+10)
        ENDIF
       ENDIF
@@ -530,29 +530,29 @@ SUBROUTINE PRINT_ENERGYBANDS(IALG)
      CYCLE
     ELSE IF (I == M) THEN
      IF (TEMP == 0.0D0) THEN
-      WRITE(6,'(A5,3X,11F8.4)') ' HOMO',(E(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
+      WRITE(6,'(A5,3X,11F8.5)') ' HOMO',(E(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
       IF (IALG == 3) &
        WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
      ELSE
-      WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
+      WRITE(6,'(I5,3X,11F8.5)') I,(E(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
       WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,0,-J*NMOD)-FERMI)/BOLTZMANN/TEMP)+1),J=KZ*11,KVCZ/NMOD)
      ENDIF
     ELSE IF (I == M+1) THEN
      IF (TEMP == 0.0D0) THEN
-      WRITE(6,'(A5,3X,11F8.4)') ' LUMO',(E(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
+      WRITE(6,'(A5,3X,11F8.5)') ' LUMO',(E(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
       IF (IALG == 3) &
        WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
      ELSE
-      WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
+      WRITE(6,'(I5,3X,11F8.5)') I,(E(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
       WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,0,-J*NMOD)-FERMI)/BOLTZMANN/TEMP)+1),J=KZ*11,KVCZ/NMOD)
      ENDIF
     ELSE
      IF (TEMP == 0.0D0) THEN
-      WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
+      WRITE(6,'(I5,3X,11F8.5)') I,(E(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
       IF (IALG == 3) &
        WRITE(6,'(8X,11(" (",F5.3,")"))') (DPOLE(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
      ELSE
-      WRITE(6,'(I5,3X,11F8.4)') I,(E(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
+      WRITE(6,'(I5,3X,11F8.5)') I,(E(I,0,0,-J*NMOD),J=KZ*11,KVCZ/NMOD)
       WRITE(6,'(8X,11(" (",F5.3,")"))') (2.0D0/(DEXP((E(I,0,0,-J*NMOD)-FERMI)/BOLTZMANN/TEMP)+1),J=KZ*11,KVCZ/NMOD)
      ENDIF
     ENDIF

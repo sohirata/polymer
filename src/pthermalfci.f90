@@ -13,17 +13,41 @@ SUBROUTINE THERMAL_CORRELATION
    DOUBLE PRECISION,PARAMETER :: DELTALAMBDA=0.01D0
    DOUBLE PRECISION :: B(-3:8,4),C
    DOUBLE PRECISION,ALLOCATABLE :: HCPT(:,:)
-   INTEGER :: I
+   INTEGER :: I,J
 
    NALL=2**(2*(IALL(0,0,0)-IVIRTCORE-ICORE))
    ALLOCATE(HCPT(NALL,0:2))
 
+   I=1
+   CALL THERMAL_GRANDCANONICAL(1.0D0,B(I,1),B(I,2),B(I,3),B(I,4),0.0D0,.TRUE.)
+   !***********************************************
+   ! THERMAL FERMI-DIRAC WITH N, N-1, N+1 ELECTRONS
+   !***********************************************
+   CALL THERMAL_GRANDCANONICAL(0.0D0,B(I,1),B(I,2),B(I,3),B(I,4),0.0D0,.TRUE.)
+   CALL THERMAL_GRANDCANONICAL(0.0D0,B(I,1),B(I,2),B(I,3),B(I,4),-1.0D0,.TRUE.)
+   CALL THERMAL_GRANDCANONICAL(0.0D0,B(I,1),B(I,2),B(I,3),B(I,4),+1.0D0,.TRUE.)
+
+   !***************************************
+   ! THERMAL FCI WITH N, N-1, N+1 ELECTRONS
+   !***************************************
+   ! SCAN ---
+!  DO J=-20,20
+!   CALL THERMAL_GRANDCANONICAL(0.0D0,B(I,1),B(I,2),B(I,3),B(I,4),DFLOAT(J)/20.0D0,.TRUE.)
+!   CALL THERMAL_GRANDCANONICAL(1.0D0,B(I,1),B(I,2),B(I,3),B(I,4),DFLOAT(J)/20.0D0,.TRUE.)
+!  ENDDO
+   ! --- SCAN 
+   CALL THERMAL_GRANDCANONICAL(1.0D0,B(I,1),B(I,2),B(I,3),B(I,4),0.0D0,.TRUE.)
+   CALL THERMAL_GRANDCANONICAL(1.0D0,B(I,1),B(I,2),B(I,3),B(I,4),-1.0D0,.TRUE.)
+   CALL THERMAL_GRANDCANONICAL(1.0D0,B(I,1),B(I,2),B(I,3),B(I,4),+1.0D0,.TRUE.)
+   DO I=-3,8
+    CALL THERMAL_GRANDCANONICAL(DFLOAT(I)*DELTALAMBDA,B(I,1),B(I,2),B(I,3),B(I,4),0.0D0,.FALSE.)
+   ENDDO
+   
+   !***********************
+   ! TSDA0 WITH N ELECTRONS
+   !***********************
    CALL TSDA_GRANDCANONICAL(1.0D0,B(I,1),B(I,2),B(I,3),B(I,4),.TRUE.)
 
-   CALL THERMAL_GRANDCANONICAL(1.0D0,B(I,1),B(I,2),B(I,3),B(I,4),.TRUE.)
-   DO I=-3,8
-    CALL THERMAL_GRANDCANONICAL(DFLOAT(I)*DELTALAMBDA,B(I,1),B(I,2),B(I,3),B(I,4),.FALSE.)
-   ENDDO
 
    WRITE(6,'(/,A,/)') "/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\"
    WRITE(6,'(A)')     "LAMBDA-VARIATION FOR THERMODYNAMIC QUANTITIES IN GRAND CANONICAL ENSEMBLE "
@@ -152,7 +176,7 @@ END SUBROUTINE
 
 
 
-SUBROUTINE THERMAL_GRANDCANONICAL(LAMBDA,MU,OOO,UUU,SSS,LPRINT)
+SUBROUTINE THERMAL_GRANDCANONICAL(LAMBDA,MU,OOO,UUU,SSS,NION,LPRINT)
 ! PERFORM THERMAL FULL CI IN GRAND CANONICAL ENSEMBLE
 
    USE CONSTANTS
@@ -167,6 +191,7 @@ SUBROUTINE THERMAL_GRANDCANONICAL(LAMBDA,MU,OOO,UUU,SSS,LPRINT)
    LOGICAL :: LPRINT
    DOUBLE PRECISION :: LAMBDA
    INTEGER :: NALL_CHECK,I
+   DOUBLE PRECISION :: NION  ! ADD/SUBTRACT NUMBER OF ELECTRONS
    DOUBLE PRECISION :: NBAR  ! MEAN NUMBER OF ELECTRONS
    DOUBLE PRECISION :: XI    ! GRAND PARTITION FUNCTION
    DOUBLE PRECISION :: MU    ! CHEMICAL POTENTIAL
@@ -190,6 +215,11 @@ SUBROUTINE THERMAL_GRANDCANONICAL(LAMBDA,MU,OOO,UUU,SSS,LPRINT)
     WRITE(6,'(A,F20.6,A)') 'LAMBDA    = ',LAMBDA
     WRITE(6,'(A,E20.6,A)') 'TEMP      = ',DOPTN(98),' K'
     WRITE(6,'(A,F20.6,A)') 'FERMI     = ',FERMI,' HARTREE'
+    IF (NION /= 0.0D0) THEN
+     WRITE(6,'(A)')    '*************************'
+     WRITE(6,'(A,F10.3)') 'NUMBER OF ELECTRONS = ',DFLOAT(IOCC*2)+NION
+     WRITE(6,'(A)')    '*************************'
+    ENDIF
    ENDIF
 
    ALLOCATE(H(IALLMAX-IVIRTCORE,IALLMAX-IVIRTCORE))
@@ -240,7 +270,7 @@ SUBROUTINE THERMAL_GRANDCANONICAL(LAMBDA,MU,OOO,UUU,SSS,LPRINT)
 !  WRITE(6,'(A,F20.15)') 'SHIFT = ',ESHIFT
 
    ! CALCULATE XI & MU
-   NBAR=DFLOAT(IOCC*2)
+   NBAR=DFLOAT(IOCC*2)+NION
    BETA=1.0D0/BOLTZMANN/DOPTN(98)
    MUMAX=FERMI+DSQRT(DOPTN(98)/1.0D4)
    MUMIN=FERMI-DSQRT(DOPTN(98)/1.0D4)
@@ -302,6 +332,11 @@ SUBROUTINE THERMAL_GRANDCANONICAL(LAMBDA,MU,OOO,UUU,SSS,LPRINT)
    CALL CALCTHERM(BETA,MU,NBAR,XI,OOO,UUU,SSS)
 
    IF (LPRINT) THEN
+    IF (NION /= 0.0D0) THEN
+     WRITE(6,'(A)')    '*************************'
+     WRITE(6,'(A,F10.3)') 'NUMBER OF ELECTRONS = ',DFLOAT(IOCC*2)+NION
+     WRITE(6,'(A)')    '*************************'
+    ENDIF
     WRITE(6,'(/,A,F20.10)')          'LAMBDA                        =',LAMBDA
     WRITE(6,'(A,E20.10,A)')          'TEMPERATURE                   =',DOPTN(98),' K'
     WRITE(6,'(A,F20.10,A)')          'BETA                          =',BETA,' HARTREE**(-1)'
@@ -312,6 +347,9 @@ SUBROUTINE THERMAL_GRANDCANONICAL(LAMBDA,MU,OOO,UUU,SSS,LPRINT)
     WRITE(6,'(A,F20.10,A)')          'U (INTERNAL ENERGY)           =',UUU,' HARTREE'
     WRITE(6,'(A,F20.10,A)')          'S (ENTROPY)                   =',SSS,' kB'
    ENDIF
+!  SCAN ---
+!  WRITE(6,'(A,F10.3,2F20.10)') 'SCAN:',DFLOAT(IOCC*2)+NION,OOO,UUU
+!  --- SCAN
      
    DEALLOCATE(ALLE,ALLN,H,G)
 
@@ -1342,8 +1380,9 @@ SUBROUTINE THERMAL_MBPT_ANALYTICAL
    DOUBLE PRECISION :: MU0,MU1,MU2,MU3
    DOUBLE PRECISION :: OOO0,OOO1,OOO2,OOO3
    DOUBLE PRECISION :: UUU0,UUU1,UUU2,UUU1_2,UUU3
+   DOUBLE PRECISION :: SSS0,SSS1,SSS2,SSS3
    DOUBLE PRECISION,ALLOCATABLE :: FMINUS(:),FPLUS(:),IIJJ(:)
-   INTEGER :: I,J,K,L
+   INTEGER :: I,J,K,L,M
    INTEGER :: P,Q,R,S,T,U
    DOUBLE PRECISION :: NUMER,DENOM,DENOM1,DENOM2
    DOUBLE PRECISION :: DEBUG,NSAVE,DEBUG2,DEBUG3
@@ -1352,6 +1391,16 @@ SUBROUTINE THERMAL_MBPT_ANALYTICAL
    DOUBLE PRECISION,ALLOCATABLE :: MU1M(:,:),MU2M(:,:),MU3M(:,:)
    DOUBLE PRECISION,ALLOCATABLE :: G2(:,:,:,:),H2(:,:)
    DOUBLE PRECISION,ALLOCATABLE :: FMINUS2(:),FPLUS2(:),IIJJ2(:)
+! -- THERMAL QP(2) THEORY
+   LOGICAL,PARAMETER :: LPRINT = .FALSE.
+   LOGICAL :: LTHFREF ! (TRUE = THERMAL HF REF ; FALSE = ZERO-T HF REF)
+   INTEGER :: ITER
+   INTEGER,PARAMETER :: MAXITER = 100
+   DOUBLE PRECISION :: MU_QP,OMEGA_QP,LAMBDA_QP,U_QP,S_QP,OMEGA_HF,U_HF,S_HF,MU_QP_PREVIOUS,SUMFPFP
+   DOUBLE PRECISION,ALLOCATABLE :: EPS_QP(:),FMINUS_QP(:),FPLUS_QP(:),EPS_HF(:),HCORE2(:,:),EPS_HF_MTRX(:,:)
+   DOUBLE PRECISION,ALLOCATABLE :: EPS_TMP(:)
+   DOUBLE PRECISION :: SUM1,SUM2,LOG1,LOG2,THERMALIP,THERMALEA,MU_IP,MU_EA
+! -- THERMAL QP(2) THEORY
    DOUBLE PRECISION :: SIGMA_H,SIGMA_L
 double precision :: tmp1,tmp2,tmp3,tmp4
 
@@ -1381,7 +1430,7 @@ double precision :: tmp1,tmp2,tmp3,tmp4
    ! SPIN-ORBITAL & ANTISYMMETRIZED INTEGRALS IN PHYSICIST NOTATION
    O=IALLMAX-IVIRTCORE
    ALLOCATE(F2(2*O,2*O),EPS2(2*O),FOCKT(2*O,2*O))
-   ALLOCATE(G2(2*O,2*O,2*O,2*O),H2(2*O,2*O))
+   ALLOCATE(G2(2*O,2*O,2*O,2*O),H2(2*O,2*O),HCORE2(2*O,2*O))
    ALLOCATE(FMINUS2(1:2*O),FPLUS2(1:2*O),IIJJ2(2*O))
    DO I=1,O
     EPS2(I)=EPSILON(I,0,0,0)
@@ -1438,9 +1487,21 @@ double precision :: tmp1,tmp2,tmp3,tmp4
      H2(I+O,J+O)=H2(I,J)
     ENDDO
    ENDDO
+   HCORE2=0.0D0
+   DO I=1,O
+    DO J=1,O
+     HCORE2(I,J)=H(I,J)
+     HCORE2(I+O,J+O)=H(I,J)
+    ENDDO
+   ENDDO
+
+
 
 
    ! THERMAL PERTURBATION THEORY
+
+
+
 
    WRITE(6,'(/,A)') '/\/\/\/\/\/\/\'
    WRITE(6,'(A)')   '| ANALYTICAL |'
@@ -1462,10 +1523,12 @@ double precision :: tmp1,tmp2,tmp3,tmp4
     OOO0=OOO0+2.0D0*(EPSILON(I,0,0,0)-FERMI)+2.0D0*DLOG(FMINUS(I))/BETA
     UUU0=UUU0+2.0D0*EPSILON(I,0,0,0)*FMINUS(I)
    ENDDO
+   SSS0=BETA*(UUU0-OOO0-MU0*NBAR)
 
    WRITE(6,'(/,A,F20.10,A)')        'MU (FERMI-DIRAC)              =',MU0,' HARTREE'
    WRITE(6,'(A,F20.10,A)')          'OMEGA (FERMI-DIRAC)           =',OOO0,' HARTREE'
    WRITE(6,'(A,F20.10,A)')          'U (FERMI-DIRAC)               =',UUU0,' HARTREE'
+   WRITE(6,'(A,F20.10,A)')          'S (FERMI-DIRAC)               =',SSS0,' kB'
 
    OOO1=OOO0
    UUU1=UUU0
@@ -1475,10 +1538,12 @@ double precision :: tmp1,tmp2,tmp3,tmp4
      UUU1=UUU1-(2.0D0*G(I,I,J,J)-G(I,J,J,I))*FMINUS(I)*FMINUS(J)
     ENDDO
    ENDDO
+   SSS1=BETA*(UUU1-OOO1-MU0*NBAR)
 
    WRITE(6,'(/,A,F20.10,A)')        'MU (TSDA1)                    =',MU0,' HARTREE'
    WRITE(6,'(A,F20.10,A)')          'OMEGA (TSDA1)                 =',OOO1,' HARTREE'
    WRITE(6,'(A,F20.10,A)')          'U (TSDA1)                     =',UUU1,' HARTREE'
+   WRITE(6,'(A,F20.10,A)')          'S (TSDA1)                     =',SSS1,' kB'
 
 !  OOO2=0.0D0
 !  DO I=1,IALL(0,0,0)-IVIRTCORE
@@ -1495,6 +1560,667 @@ double precision :: tmp1,tmp2,tmp3,tmp4
 !  WRITE(6,'(/,A,F20.10,A)')        'MU (TSDA:HIGH-T)              =',MU0,' HARTREE'
 !  WRITE(6,'(A,F20.10,A)')          'OMEGA (TSDA:HIGH-T)           =',OOO1,' HARTREE'
 !  WRITE(6,'(A,F20.10,A)')          'U (TSDA:HIGH-T)               =',UUU1,' HARTREE'
+
+   ! CALCULATE OMEGA WITH TQPT
+   WRITE(6,'(/,A)') '************************************'
+   WRITE(6,'(A)')   '* THERMAL QUASI-PARTICLE(2) THEORY *'
+   WRITE(6,'(A)')   '************************************'
+
+   ALLOCATE(EPS_QP(1:2*O),FMINUS_QP(1:2*O),FPLUS_QP(1:2*O),EPS_HF(1:2*O),EPS_HF_MTRX(2*O,2*O),EPS_TMP(1:2*O))
+   IF (DOPTN(98) == DOPTN(108)) THEN
+    WRITE(6,'(/,A)') 'THERMAL HF REFERENCE'
+    LTHFREF=.TRUE.
+   ELSE IF (DOPTN(108) == 0.0D0) THEN
+    WRITE(6,'(/,A)') 'ZERO-TEMPERATURE HF REFERENCE'
+    LTHFREF=.FALSE.
+   ELSE
+    CALL PABORT('NOT YET IMPLEMENTED')
+   ENDIF
+! INITIAL GUESS (THERMAL/ZERO-T HF)
+   MU_QP=FERMI
+   SUM1=0.0D0
+   SUM2=0.0D0
+   WRITE(6,'(/,A3,4A20)') 'ORB','EPS HF','F_MINUS','F_PLUS','dF/dN'
+   SUMFPFP=0.0D0
+   DO P=1,2*O
+    FMINUS_QP(P)=1.0D0/(1.0D0+DEXP(BETA*(EPS2(P)-MU_QP)))
+    FPLUS_QP(P)=1.0D0-FMINUS_QP(P)
+    SUM1=SUM1+FMINUS_QP(P)
+    SUM2=SUM2+FPLUS_QP(P)
+    SUMFPFP=SUMFPFP+FMINUS_QP(P)*FPLUS_QP(P)
+   ENDDO
+   DO P=1,2*O
+    EPS_HF(P)=HCORE2(P,P)
+    DO Q=1,2*O
+     EPS_HF(P)=EPS_HF(P)+G2(P,Q,P,Q)*FMINUS_QP(Q)
+    ENDDO
+   ENDDO
+   DO P=1,2*O
+    DO Q=1,2*O
+     EPS_HF_MTRX(P,Q)=HCORE2(P,Q)
+     DO R=1,2*O
+      EPS_HF_MTRX(P,Q)=EPS_HF_MTRX(P,Q)+G2(P,R,Q,R)*FMINUS_QP(R)
+     ENDDO
+    ENDDO
+   ENDDO
+   THERMALIP=0.0D0
+   THERMALEA=0.0D0
+   DO P=1,2*O
+    IF (LTHFREF) THEN
+     WRITE(6,'(I3,4F20.10)') P,EPS_HF(P),FMINUS_QP(P),FPLUS_QP(P),FMINUS_QP(P)*FPLUS_QP(P)/SUMFPFP
+     THERMALIP=THERMALIP+FMINUS_QP(P)*FPLUS_QP(P)/SUMFPFP*EPS_HF(P) !*FMINUS_QP(P)
+     THERMALEA=THERMALEA+FMINUS_QP(P)*FPLUS_QP(P)/SUMFPFP*EPS_HF(P) !*FPLUS_QP(P)
+    ELSE
+     WRITE(6,'(I3,4F20.10)') P,EPS2(P),  FMINUS_QP(P),FPLUS_QP(P),FMINUS_QP(P)*FPLUS_QP(P)/SUMFPFP
+     THERMALIP=THERMALIP+FMINUS_QP(P)*FPLUS_QP(P)/SUMFPFP*EPS2(P) !*FMINUS_QP(P)
+     THERMALEA=THERMALEA+FMINUS_QP(P)*FPLUS_QP(P)/SUMFPFP*EPS2(P) !*FPLUS_QP(P)
+    ENDIF
+   ENDDO
+   WRITE(6,'(3X,20X,2F20.10)') SUM1,SUM2
+   U_QP=NUCLEAR_REPULSION
+   S_QP=0.0D0
+   DO P=1,2*O
+    U_QP=U_QP+EPS_HF(P)*FMINUS_QP(P)
+    DO Q=1,2*O
+     U_QP=U_QP-0.5D0*G2(P,Q,P,Q)*FMINUS_QP(P)*FMINUS_QP(Q)
+    ENDDO
+    IF (FMINUS_QP(P) > 1.0D-30) S_QP=S_QP-FMINUS_QP(P)*DLOG(FMINUS_QP(P))
+    IF (FPLUS_QP(P)  > 1.0D-30) S_QP=S_QP-FPLUS_QP(P) *DLOG(FPLUS_QP(P))
+   ENDDO
+   OMEGA_QP=U_QP-MU_QP*NBAR-S_QP/BETA
+
+   IF (LTHFREF) THEN
+!   CAUTION: These are random initial guesses and should not be taken seriously.
+!            In particular, FERMI may not be set when zero-T HF reference is used.
+    WRITE(6,'(/,A,F20.10,A)')          'OMEGA(HF)                     =',OMEGA_QP,' HARTREE'
+    WRITE(6,'(A,F20.10,A)')            'U(HF)                         =',U_QP,    ' HARTREE'
+    WRITE(6,'(A,F20.10,A)')            'S(HF)                         =',S_QP,    ' kB'
+    WRITE(6,'(A,F20.10,A)')            'MU(HF)                        =',MU_QP,   ' HARTREE'
+    WRITE(6,'(A,F20.10,A)')            'Ave. IP(HF),EA(HF)            =',THERMALIP,   ' HARTREE'
+
+    ! SCAN ---
+!   DO J=-20,20
+    ! --- SCAN
+
+    ! MU_IP
+    MU_IP=0.0D0
+    MUMAX=MU_QP-DSQRT(DOPTN(98)/1.0D4)
+    MUMIN=MU_QP+DSQRT(DOPTN(98)/1.0D4)
+    MUMID=(MUMAX+MUMIN)/2.0D0
+    NBERR=1.0D9
+    IF (LPRINT) THEN
+     WRITE(6,'(/,A)') '----------------------------------------------------------------------------'
+     WRITE(6,'(A)') '  TREND         N   (  MU MIN  )      N   (  MU MID  )      N   (  MU MAX  )'
+     WRITE(6,'(A)') '----------------------------------------------------------------------------'
+    ENDIF
+    DO WHILE ((NBERR > 1.0D-10).OR.(MUMAX-MUMIN > 1.0D-6))
+     NBMAX=0.0D0
+     NBMIN=0.0D0
+     NBMID=0.0D0
+     DO P=1,2*O
+      NBMAX=NBMAX+1.0D0/(1.0D0+DEXP(BETA*(EPS_HF(P)-MUMAX)))
+      NBMIN=NBMIN+1.0D0/(1.0D0+DEXP(BETA*(EPS_HF(P)-MUMIN)))
+      NBMID=NBMID+1.0D0/(1.0D0+DEXP(BETA*(EPS_HF(P)-MUMID)))
+     ENDDO
+     IF ((NBMAX > NBMID).AND.(NBMID > NBMIN)) THEN
+      IF (LPRINT) &
+      WRITE(6,'(A,3(F10.6,A,F10.6,A))') 'INCREASING',NBMIN,'(',MUMIN,')',NBMID,'(',MUMID,')',NBMAX,'(',MUMAX,')'
+! SCAN ---
+      IF (NBAR-1.0D0 > NBMAX) THEN
+!     IF (NBAR+DFLOAT(J)/20.0D0 > NBMAX) THEN
+! --- SCAN
+       MUMIN=MUMAX
+       MUMAX=MUMAX+(MUMAX-MUMID)
+! SCAN ---
+      ELSE IF (NBAR-1.0D0 > NBMID) THEN
+!     ELSE IF (NBAR+DFLOAT(J)/20.0D0 > NBMID) THEN
+! --- SCAN
+       MUMIN=MUMID
+! SCAN ---
+      ELSE IF (NBAR-1.0D0 > NBMIN) THEN
+!     ELSE IF (NBAR+DFLOAT(J)/20.0D0 > NBMIN) THEN
+! --- SCAN
+       MUMAX=MUMID
+      ELSE
+       MUMAX=MUMIN
+       MUMIN=MUMIN-(MUMID-MUMIN)
+      ENDIF
+      MUMID=(MUMAX+MUMIN)/2.0D0
+     ELSE IF ((NBMAX < NBMID).AND.(NBMID < NBMIN)) THEN
+      IF (LPRINT) &
+      WRITE(6,'(A,3(F10.6,A,F10.6,A))') 'DECREASING',NBMIN,'(',MUMIN,')',NBMID,'(',MUMID,')',NBMAX,'(',MUMAX,')'
+! SCAN ---
+      IF (NBAR-1.0D0 < NBMAX) THEN
+!     IF (NBAR+DFLOAT(J)/20.0D0 < NBMAX) THEN
+! --- SCAN
+       MUMIN=MUMAX
+       MUMAX=MUMAX+(MUMAX-MUMID)
+! SCAN ---
+      ELSE IF (NBAR-1.0D0 < NBMID) THEN
+!     ELSE IF (NBAR+DFLOAT(J)/20.0D0 < NBMID) THEN
+! --- SCAN
+       MUMIN=MUMID
+! SCAN ---
+      ELSE IF (NBAR-1.0D0 < NBMIN) THEN
+!     ELSE IF (NBAR+DFLOAT(J)/20.0D0 < NBMIN) THEN
+! --- SCAN
+       MUMAX=MUMID
+      ELSE
+       MUMAX=MUMIN
+       MUMIN=MUMIN-(MUMID-MUMIN)
+      ENDIF
+      MUMID=(MUMAX+MUMIN)/2.0D0
+     ELSE
+      IF (LPRINT) &
+      WRITE(6,'(A,3(F10.6,A,F10.6,A))') 'CONCAV/VEX',NBMIN,'(',MUMIN,')',NBMID,'(',MUMID,')',NBMAX,'(',MUMAX,')'
+      CALL WARNING('BISECTION FAILED')
+      MUMIN=1.0D99
+      EXIT
+     ENDIF
+! SCAN ---
+     NBERR=DABS(NBAR-1.0D0-NBMID)
+!    NBERR=DABS(NBAR+DFLOAT(J)/20.0D0-NBMID)
+! --- SCAN
+    ENDDO
+    IF (LPRINT) &
+    WRITE(6,'(A)') '----------------------------------------------------------------------------'
+    MU_IP=MUMIN
+    THERMALIP=0.0D0
+    DO P=1,2*O
+     THERMALIP=THERMALIP+EPS_HF(P)*1.0D0/(1.0D0+DEXP(BETA*(EPS_HF(P)-MU_QP)))
+     THERMALIP=THERMALIP-EPS_HF(P)*1.0D0/(1.0D0+DEXP(BETA*(EPS_HF(P)-MU_IP)))
+    ENDDO
+! SCAN ---
+    WRITE(6,'(/,A,F20.10,A)')          'MU(HF) FOR CATION             =',MU_IP,   ' HARTREE'
+    WRITE(6,'(A,F20.10,A)')            'IP(HF)                        =',THERMALIP,   ' HARTREE'
+!   WRITE(6,'(A,F10.3,F20.10)') 'SCAN:',NBAR+DFLOAT(J)/20.0D0,THERMALIP
+!   ENDDO
+! --- SCAN
+
+    ! MU_EA
+    MU_EA=0.0D0
+    MUMAX=MU_QP-DSQRT(DOPTN(98)/1.0D4)
+    MUMIN=MU_QP+DSQRT(DOPTN(98)/1.0D4)
+    MUMID=(MUMAX+MUMIN)/2.0D0
+    NBERR=1.0D9
+    IF (LPRINT) THEN
+     WRITE(6,'(/,A)') '----------------------------------------------------------------------------'
+     WRITE(6,'(A)') '  TREND         N   (  MU MIN  )      N   (  MU MID  )      N   (  MU MAX  )'
+     WRITE(6,'(A)') '----------------------------------------------------------------------------'
+    ENDIF
+    DO WHILE ((NBERR > 1.0D-10).OR.(MUMAX-MUMIN > 1.0D-6))
+     NBMAX=0.0D0
+     NBMIN=0.0D0
+     NBMID=0.0D0
+     DO P=1,2*O
+      NBMAX=NBMAX+1.0D0/(1.0D0+DEXP(BETA*(EPS_HF(P)-MUMAX)))
+      NBMIN=NBMIN+1.0D0/(1.0D0+DEXP(BETA*(EPS_HF(P)-MUMIN)))
+      NBMID=NBMID+1.0D0/(1.0D0+DEXP(BETA*(EPS_HF(P)-MUMID)))
+     ENDDO
+     IF ((NBMAX > NBMID).AND.(NBMID > NBMIN)) THEN
+      IF (LPRINT) &
+      WRITE(6,'(A,3(F10.6,A,F10.6,A))') 'INCREASING',NBMIN,'(',MUMIN,')',NBMID,'(',MUMID,')',NBMAX,'(',MUMAX,')'
+      IF (NBAR+1.0D0 > NBMAX) THEN
+       MUMIN=MUMAX
+       MUMAX=MUMAX+(MUMAX-MUMID)
+      ELSE IF (NBAR+1.0D0 > NBMID) THEN
+       MUMIN=MUMID
+      ELSE IF (NBAR+1.0D0 > NBMIN) THEN
+       MUMAX=MUMID
+      ELSE
+       MUMAX=MUMIN
+       MUMIN=MUMIN-(MUMID-MUMIN)
+      ENDIF
+      MUMID=(MUMAX+MUMIN)/2.0D0
+     ELSE IF ((NBMAX < NBMID).AND.(NBMID < NBMIN)) THEN
+      IF (LPRINT) &
+      WRITE(6,'(A,3(F10.6,A,F10.6,A))') 'DECREASING',NBMIN,'(',MUMIN,')',NBMID,'(',MUMID,')',NBMAX,'(',MUMAX,')'
+      IF (NBAR+1.0D0 < NBMAX) THEN
+       MUMIN=MUMAX
+       MUMAX=MUMAX+(MUMAX-MUMID)
+      ELSE IF (NBAR+1.0D0 < NBMID) THEN
+       MUMIN=MUMID
+      ELSE IF (NBAR+1.0D0 < NBMIN) THEN
+       MUMAX=MUMID
+      ELSE
+       MUMAX=MUMIN
+       MUMIN=MUMIN-(MUMID-MUMIN)
+      ENDIF
+      MUMID=(MUMAX+MUMIN)/2.0D0
+     ELSE
+      IF (LPRINT) &
+      WRITE(6,'(A,3(F10.6,A,F10.6,A))') 'CONCAV/VEX',NBMIN,'(',MUMIN,')',NBMID,'(',MUMID,')',NBMAX,'(',MUMAX,')'
+      CALL WARNING('BISECTION FAILED')
+      MUMIN=1.0D99
+      EXIT
+     ENDIF
+     NBERR=DABS(NBAR+1.0D0-NBMID)
+    ENDDO
+    IF (LPRINT) &
+    WRITE(6,'(A)') '----------------------------------------------------------------------------'
+    MU_EA=MUMIN
+    THERMALEA=0.0D0
+    DO P=1,2*O
+     THERMALEA=THERMALEA-EPS_HF(P)*1.0D0/(1.0D0+DEXP(BETA*(EPS_HF(P)-MU_QP)))
+     THERMALEA=THERMALEA+EPS_HF(P)*1.0D0/(1.0D0+DEXP(BETA*(EPS_HF(P)-MU_EA)))
+    ENDDO
+    WRITE(6,'(/,A,F20.10,A)')          'MU(HF) FOR CATION             =',MU_EA,   ' HARTREE'
+    WRITE(6,'(A,F20.10,A)')            'EA(HF)                        =',THERMALEA,   ' HARTREE'
+ 
+   ENDIF
+
+!  THERMAL QP2 ITERATION
+   MU_QP_PREVIOUS=MU_QP
+   WRITE(6,'(/,A,/)') 'ENTERING THERMAL QP2 ITERATION'
+!  ------------------------------
+   DO ITER=1,MAXITER
+!  ------------------------------
+   IF (ITER == MAXITER) THEN
+    WRITE(6,'(A)') '****** MAXITER REACHED'
+    WRITE(6,'(A)') '****** MAXITER REACHED'
+    WRITE(6,'(A)') '****** MAXITER REACHED'
+    WRITE(6,'(A)') '****** MAXITER REACHED'
+    EXIT
+   ENDIF
+   WRITE(6,'(A,I3,A,F20.10)') 'THERMAL QP2 ITERATION:',ITER,' MU(QP2) = ',MU_QP_PREVIOUS
+   IF (LTHFREF)      EPS_TMP=EPS_HF
+   IF (.NOT.LTHFREF) EPS_TMP=EPS2
+   IF (LPRINT) WRITE(6,'(/,A3,4A20)') 'ORB','EPS HF','EPS QP','F_MINUS','F_PLUS'
+   ! EPS_QP
+   DO P=1,2*O
+    EPS_QP(P)=EPS_HF(P)
+    DO Q=1,2*O
+     IF (DABS(EPS_TMP(P)-EPS_TMP(Q)) > 1.0D-10) THEN
+      EPS_QP(P)=EPS_QP(P)+EPS_HF_MTRX(Q,P)*EPS_HF_MTRX(P,Q)*FPLUS_QP(Q)/(EPS_TMP(P)-EPS_TMP(Q))
+      EPS_QP(P)=EPS_QP(P)-EPS_HF_MTRX(Q,P)*EPS_HF_MTRX(P,Q)*FMINUS_QP(Q)/(EPS_TMP(Q)-EPS_TMP(P))
+      DO R=1,2*O
+       EPS_QP(P)=EPS_QP(P)+G2(Q,R,P,R)*EPS_HF_MTRX(P,Q)*FMINUS_QP(P)*FPLUS_QP(Q)/(EPS_TMP(P)-EPS_TMP(Q))
+       EPS_QP(P)=EPS_QP(P)+EPS_HF_MTRX(Q,P)*G2(P,R,Q,R)*FMINUS_QP(P)*FPLUS_QP(Q)/(EPS_TMP(P)-EPS_TMP(Q))
+      ENDDO 
+     ELSE
+!!      CAUTION: There are always very many anomalous diagrams. When included in self-energy,
+!!               they cause massive numerical problems especially at low temperature.
+!!      WRITE(6,'(A,4I3)') 'ANOMALOUS DIAGRAM! @ ',P,Q,R,S
+!    EPS_QP(P)=EPS_QP(P)-BETA*EPS_HF_MTRX(Q,P)*EPS_HF_MTRX(P,Q)*FPLUS_QP(Q)
+!    EPS_QP(P)=EPS_QP(P)+BETA*EPS_HF_MTRX(Q,P)*EPS_HF_MTRX(P,Q)*FMINUS_QP(Q)
+!    DO R=1,2*O
+!     EPS_QP(P)=EPS_QP(P)-BETA*G2(Q,R,P,R)*EPS_HF_MTRX(P,Q)*FMINUS_QP(P)*FPLUS_QP(Q)
+!     EPS_QP(P)=EPS_QP(P)-BETA*EPS_HF_MTRX(Q,P)*G2(P,R,Q,R)*FMINUS_QP(P)*FPLUS_QP(Q)
+!    ENDDO 
+     ENDIF
+    ENDDO
+    DO Q=1,2*O
+     DO R=1,2*O
+      DO S=1,2*O
+       IF (DABS(EPS_TMP(P)+EPS_TMP(Q)-EPS_TMP(R)-EPS_TMP(S)) > 1.0D-10) THEN
+        EPS_QP(P)=EPS_QP(P)+0.5D0*G2(P,Q,R,S)*G2(R,S,P,Q)*FMINUS_QP(Q)*FPLUS_QP(R)*FPLUS_QP(S) &
+                                 /(EPS_TMP(P)+EPS_TMP(Q)-EPS_TMP(R)-EPS_TMP(S)) &
+                           -0.5D0*G2(R,S,P,Q)*G2(P,Q,R,S)*FPLUS_QP(Q)*FMINUS_QP(R)*FMINUS_QP(S) &
+                                 /(EPS_TMP(R)+EPS_TMP(S)-EPS_TMP(P)-EPS_TMP(Q)) 
+       ELSE
+!!      CAUTION: There are always very many anomalous diagrams. When included in self-energy,
+!!               they cause massive numerical problems especially at low temperature.
+!debug       IF ((FMINUS_QP(Q)*FPLUS_QP(R)*FPLUS_QP(S) > 1.0D-6).OR. &
+!debug          (FPLUS_QP(Q)*FMINUS_QP(R)*FMINUS_QP(S) > 1.0D-6)) &
+!debug       WRITE(6,'(A,4I3,2F20.10)') 'ANOMALOUS DIAGRAM! @ ',P,Q,R,S, FMINUS_QP(Q)*FPLUS_QP(R)*FPLUS_QP(S), &
+!debug          FPLUS_QP(Q)*FMINUS_QP(R)*FMINUS_QP(S)
+!       EPS_QP(P)=EPS_QP(P)-0.5D0*BETA*G2(P,Q,R,S)*G2(R,S,P,Q)*FMINUS_QP(Q)*FPLUS_QP(R)*FPLUS_QP(S) &
+!                          +0.5D0*BETA*G2(R,S,P,Q)*G2(P,Q,R,S)*FPLUS_QP(Q)*FMINUS_QP(R)*FMINUS_QP(S)
+       ENDIF
+      ENDDO
+     ENDDO
+    ENDDO
+    IF (LTHFREF) THEN
+     DO Q=1,2*O
+      DO R=1,2*O
+       DO S=1,2*O
+        DO T=1,2*O
+          IF (DABS(EPS_TMP(T)+EPS_TMP(Q)-EPS_TMP(R)-EPS_TMP(S)) > 1.0D-10) THEN
+           EPS_QP(P)=EPS_QP(P)-0.5D0*G2(Q,P,Q,P)*G2(T,Q,R,S)*G2(R,S,T,Q) &
+                                    *FMINUS_QP(T)*FMINUS_QP(Q)*FPLUS_QP(R)*FPLUS_QP(S) &
+                                    /(EPS_TMP(T)+EPS_TMP(Q)-EPS_TMP(R)-EPS_TMP(S))**2 &
+                              +0.5D0*G2(R,P,R,P)*G2(T,Q,R,S)*G2(R,S,T,Q) &
+                                    *FMINUS_QP(T)*FMINUS_QP(Q)*FPLUS_QP(R)*FPLUS_QP(S) &
+                                    /(EPS_TMP(T)+EPS_TMP(Q)-EPS_TMP(R)-EPS_TMP(S))**2
+          ENDIF
+         ENDDO
+        ENDDO
+       ENDDO
+      ENDDO
+     ENDIF
+    IF (LPRINT) WRITE(6,'(I3,4F20.10)') P,EPS_HF(P),EPS_QP(P),FMINUS_QP(P),FPLUS_QP(P)
+   ENDDO
+   IF (LPRINT) WRITE(6,'(3X,40X,F20.10)') SUM1
+   ! MU_QP
+   MU_QP=0.0D0
+   MUMAX=MU_QP_PREVIOUS-DSQRT(DOPTN(98)/1.0D4)
+   MUMIN=MU_QP_PREVIOUS+DSQRT(DOPTN(98)/1.0D4)
+   MUMID=(MUMAX+MUMIN)/2.0D0
+   NBERR=1.0D9
+   IF (LPRINT) THEN
+    WRITE(6,'(/,A)') '----------------------------------------------------------------------------'
+    WRITE(6,'(A)') '  TREND         N   (  MU MIN  )      N   (  MU MID  )      N   (  MU MAX  )'
+    WRITE(6,'(A)') '----------------------------------------------------------------------------'
+   ENDIF
+   DO WHILE ((NBERR > 1.0D-10).OR.(MUMAX-MUMIN > 1.0D-6))
+    NBMAX=0.0D0
+    NBMIN=0.0D0
+    NBMID=0.0D0
+    DO P=1,2*O
+     NBMAX=NBMAX+1.0D0/(1.0D0+DEXP(BETA*(EPS_QP(P)-MUMAX)))
+     NBMIN=NBMIN+1.0D0/(1.0D0+DEXP(BETA*(EPS_QP(P)-MUMIN)))
+     NBMID=NBMID+1.0D0/(1.0D0+DEXP(BETA*(EPS_QP(P)-MUMID)))
+    ENDDO
+    IF ((NBMAX > NBMID).AND.(NBMID > NBMIN)) THEN
+     IF (LPRINT) &
+     WRITE(6,'(A,3(F10.6,A,F10.6,A))') 'INCREASING',NBMIN,'(',MUMIN,')',NBMID,'(',MUMID,')',NBMAX,'(',MUMAX,')'
+     IF (NBAR > NBMAX) THEN
+      MUMIN=MUMAX
+      MUMAX=MUMAX+(MUMAX-MUMID)
+     ELSE IF (NBAR > NBMID) THEN
+      MUMIN=MUMID
+     ELSE IF (NBAR > NBMIN) THEN
+      MUMAX=MUMID
+     ELSE
+      MUMAX=MUMIN
+      MUMIN=MUMIN-(MUMID-MUMIN)
+     ENDIF
+     MUMID=(MUMAX+MUMIN)/2.0D0
+    ELSE IF ((NBMAX < NBMID).AND.(NBMID < NBMIN)) THEN
+     IF (LPRINT) &
+     WRITE(6,'(A,3(F10.6,A,F10.6,A))') 'DECREASING',NBMIN,'(',MUMIN,')',NBMID,'(',MUMID,')',NBMAX,'(',MUMAX,')'
+     IF (NBAR < NBMAX) THEN
+      MUMIN=MUMAX
+      MUMAX=MUMAX+(MUMAX-MUMID)
+     ELSE IF (NBAR < NBMID) THEN
+      MUMIN=MUMID
+     ELSE IF (NBAR < NBMIN) THEN
+      MUMAX=MUMID
+     ELSE
+      MUMAX=MUMIN
+      MUMIN=MUMIN-(MUMID-MUMIN)
+     ENDIF
+     MUMID=(MUMAX+MUMIN)/2.0D0
+    ELSE
+     IF (LPRINT) &
+     WRITE(6,'(A,3(F10.6,A,F10.6,A))') 'CONCAV/VEX',NBMIN,'(',MUMIN,')',NBMID,'(',MUMID,')',NBMAX,'(',MUMAX,')'
+     CALL WARNING('BISECTION FAILED')
+     MUMIN=1.0D99
+     EXIT
+    ENDIF
+    NBERR=DABS(NBAR-NBMID)
+   ENDDO
+   IF (LPRINT) &
+   WRITE(6,'(A)') '----------------------------------------------------------------------------'
+   MU_QP=MUMIN
+   SUM1=0.0D0
+   SUM2=0.0D0
+   IF (LPRINT) WRITE(6,'(/,A3,3A20)') 'ORB','EPS HF','F_MINUS','F_PLUS'
+   DO P=1,2*O
+    FMINUS_QP(P)=1.0D0/(1.0D0+DEXP(BETA*(EPS_QP(P)-MU_QP)))
+    FPLUS_QP(P)=1.0D0-FMINUS_QP(P)
+    SUM1=SUM1+FMINUS_QP(P)
+    SUM2=SUM2+FPLUS_QP(P)
+   ENDDO
+   DO P=1,2*O
+    EPS_HF(P)=HCORE2(P,P)
+    DO Q=1,2*O
+     EPS_HF(P)=EPS_HF(P)+G2(P,Q,P,Q)*FMINUS_QP(Q)
+    ENDDO
+    IF (LPRINT) WRITE(6,'(I3,3F20.10)') P,EPS_QP(P),FMINUS_QP(P),FPLUS_QP(P)
+   ENDDO
+   DO P=1,2*O
+    DO Q=1,2*O
+     EPS_HF_MTRX(P,Q)=HCORE2(P,Q)
+     DO R=1,2*O
+      EPS_HF_MTRX(P,Q)=EPS_HF_MTRX(P,Q)+G2(P,R,Q,R)*FMINUS_QP(R)
+     ENDDO
+    ENDDO
+   ENDDO
+   IF (LPRINT) WRITE(6,'(3X,20X,2F20.10)') SUM1,SUM2
+   ! OMEGA_QP,U_QP,S_QP
+   IF (LTHFREF)      EPS_TMP=EPS_HF
+   IF (.NOT.LTHFREF) EPS_TMP=EPS2
+   U_QP=NUCLEAR_REPULSION
+   S_QP=0.0D0
+   DO P=1,2*O
+    U_QP=U_QP+EPS_HF(P)*FMINUS_QP(P)
+    DO Q=1,2*O
+     U_QP=U_QP-0.5D0*G2(P,Q,P,Q)*FMINUS_QP(P)*FMINUS_QP(Q)
+    ENDDO
+   ENDDO
+   DO P=1,2*O
+    DO Q=1,2*O
+     IF (DABS(EPS_TMP(P)-EPS_TMP(Q)) > 1.0D-10) THEN
+      U_QP=U_QP+EPS_HF_MTRX(Q,P)*EPS_HF_MTRX(P,Q)/(EPS_TMP(P)-EPS_TMP(Q))*FMINUS_QP(P)*FPLUS_QP(Q)
+!    ELSE
+!     U_QP=U_QP-BETA*EPS_HF_MTRX(Q,P)*EPS_HF_MTRX(P,Q)*FMINUS_QP(P)*FPLUS_QP(Q)
+     ENDIF
+    ENDDO
+   ENDDO
+   DO P=1,2*O
+    DO Q=1,2*O
+     DO R=1,2*O
+      DO S=1,2*O
+       IF (DABS(EPS_TMP(P)+EPS_TMP(Q)-EPS_TMP(R)-EPS_TMP(S)) > 1.0D-10) THEN
+        U_QP=U_QP+0.25D0*G2(P,Q,R,S)*G2(R,S,P,Q)*FMINUS_QP(P)*FMINUS_QP(Q)*FPLUS_QP(R)*FPLUS_QP(S) &
+                  /(EPS_TMP(P)+EPS_TMP(Q)-EPS_TMP(R)-EPS_TMP(S)) 
+!      ELSE
+!       U_QP=U_QP-0.25D0*BETA*G2(P,Q,R,S)*G2(R,S,P,Q)*FMINUS_QP(P)*FMINUS_QP(Q)*FPLUS_QP(R)*FPLUS_QP(S)
+       ENDIF
+      ENDDO
+     ENDDO
+    ENDDO
+   ENDDO
+!wrte(*,'(A,F20.10)') 'U_QP(QP2) = ',U_QP
+   DO P=1,2*O
+    IF (FMINUS_QP(P) > 1.0D-30) S_QP=S_QP-FMINUS_QP(P)*DLOG(FMINUS_QP(P))
+    IF (FPLUS_QP(P)  > 1.0D-30) S_QP=S_QP-FPLUS_QP(P) *DLOG(FPLUS_QP(P))
+   ENDDO
+   OMEGA_QP=U_QP-MU_QP*NBAR-S_QP/BETA
+   IF (LPRINT) THEN
+    WRITE(6,'(/,A,F20.10,A)')          'OMEGA(QP)                     =',OMEGA_QP,' HARTREE'
+    WRITE(6,'(A,F20.10,A)')            'U(QP)                         =',U_QP,    ' HARTREE'
+    WRITE(6,'(A,F20.10,A)')            'S(QP)                         =',S_QP,    ' kB'
+    WRITE(6,'(A,F20.10,A)')            'MU(QP)                        =',MU_QP,   ' HARTREE'
+   ENDIF
+   IF (DABS(MU_QP-MU_QP_PREVIOUS) < 1.0D-8) EXIT
+   MU_QP_PREVIOUS=MU_QP
+!  ------------------------------
+   ENDDO ! ITER-LOOP
+!  ------------------------------
+   WRITE(6,'(/,A)') 'THERMAL QP2 ITERATION CONVERGED'
+   WRITE(6,'(/,A3,5A20)') 'ORB','EPS HF','EPS QP','F_MINUS','F_PLUS','dF/dN'
+   SUMFPFP=0.0D0
+   DO P=1,2*O
+    SUMFPFP=SUMFPFP+FMINUS_QP(P)*FPLUS_QP(P)
+   ENDDO
+   SUM1=0.0D0
+   THERMALIP=0.0D0
+   THERMALEA=0.0D0
+   DO P=1,2*O
+    SUM1=SUM1+FMINUS_QP(P)
+    THERMALIP=THERMALIP+EPS_QP(P)*FMINUS_QP(P)*FPLUS_QP(P)/SUMFPFP !*FMINUS_QP(P)
+    THERMALEA=THERMALEA+EPS_QP(P)*FMINUS_QP(P)*FPLUS_QP(P)/SUMFPFP !*FPLUS_QP(P)
+    WRITE(6,'(I3,5F20.10)') P,EPS_HF(P),EPS_QP(P),FMINUS_QP(P),FPLUS_QP(P),FMINUS_QP(P)*FPLUS_QP(P)/SUMFPFP
+   ENDDO
+   WRITE(6,'(3X,40X,F20.10)') SUM1
+   WRITE(6,'(/,A,F20.10,A)')          'OMEGA(QP)                     =',OMEGA_QP,' HARTREE'
+   WRITE(6,'(A,F20.10,A)')            'U(QP)                         =',U_QP,    ' HARTREE'
+   WRITE(6,'(A,F20.10,A)')            'S(QP)                         =',S_QP,    ' kB'
+   WRITE(6,'(A,F20.10,A)')            'MU(QP)                        =',MU_QP,   ' HARTREE'
+   WRITE(6,'(A,F20.10,A)')            'Ave. IP(QP),EA(QP)            =',THERMALIP,   ' HARTREE'
+
+!  SCAN ---
+!  DO J=-20,20
+!  --- SCAN
+
+   ! MU_IP
+   MU_IP=0.0D0
+   MUMAX=MU_QP-DSQRT(DOPTN(98)/1.0D4)
+   MUMIN=MU_QP+DSQRT(DOPTN(98)/1.0D4)
+   MUMID=(MUMAX+MUMIN)/2.0D0
+   NBERR=1.0D9
+   IF (LPRINT) THEN
+    WRITE(6,'(/,A)') '----------------------------------------------------------------------------'
+    WRITE(6,'(A)') '  TREND         N   (  MU MIN  )      N   (  MU MID  )      N   (  MU MAX  )'
+    WRITE(6,'(A)') '----------------------------------------------------------------------------'
+   ENDIF
+   DO WHILE ((NBERR > 1.0D-10).OR.(MUMAX-MUMIN > 1.0D-6))
+    NBMAX=0.0D0
+    NBMIN=0.0D0
+    NBMID=0.0D0
+    DO P=1,2*O
+     NBMAX=NBMAX+1.0D0/(1.0D0+DEXP(BETA*(EPS_QP(P)-MUMAX)))
+     NBMIN=NBMIN+1.0D0/(1.0D0+DEXP(BETA*(EPS_QP(P)-MUMIN)))
+     NBMID=NBMID+1.0D0/(1.0D0+DEXP(BETA*(EPS_QP(P)-MUMID)))
+    ENDDO
+    IF ((NBMAX > NBMID).AND.(NBMID > NBMIN)) THEN
+     IF (LPRINT) &
+     WRITE(6,'(A,3(F10.6,A,F10.6,A))') 'INCREASING',NBMIN,'(',MUMIN,')',NBMID,'(',MUMID,')',NBMAX,'(',MUMAX,')'
+! SCAN ---
+     IF (NBAR-1.0D0 > NBMAX) THEN
+!    IF (NBAR+DFLOAT(J)/20.0D0 > NBMAX) THEN
+! --- SCAN
+      MUMIN=MUMAX
+      MUMAX=MUMAX+(MUMAX-MUMID)
+! SCAN ---
+     ELSE IF (NBAR-1.0D0 > NBMID) THEN
+!    ELSE IF (NBAR+DFLOAT(J)/20.0D0 > NBMID) THEN
+! --- SCAN
+      MUMIN=MUMID
+! SCAN ---
+     ELSE IF (NBAR-1.0D0 > NBMIN) THEN
+!    ELSE IF (NBAR+DFLOAT(J)/20.0D0 > NBMIN) THEN
+! --- SCAN
+      MUMAX=MUMID
+     ELSE
+      MUMAX=MUMIN
+      MUMIN=MUMIN-(MUMID-MUMIN)
+     ENDIF
+     MUMID=(MUMAX+MUMIN)/2.0D0
+    ELSE IF ((NBMAX < NBMID).AND.(NBMID < NBMIN)) THEN
+     IF (LPRINT) &
+     WRITE(6,'(A,3(F10.6,A,F10.6,A))') 'DECREASING',NBMIN,'(',MUMIN,')',NBMID,'(',MUMID,')',NBMAX,'(',MUMAX,')'
+! SCAN ---
+     IF (NBAR-1.0D0 < NBMAX) THEN
+!    IF (NBAR+DFLOAT(J)/20.0D0 < NBMAX) THEN
+! --- SCAN
+      MUMIN=MUMAX
+      MUMAX=MUMAX+(MUMAX-MUMID)
+! SCAN ---
+     ELSE IF (NBAR-1.0D0 < NBMID) THEN
+!    ELSE IF (NBAR+DFLOAT(J)/20.0D0 < NBMID) THEN
+! --- SCAN
+      MUMIN=MUMID
+! SCAN ---
+     ELSE IF (NBAR-1.0D0 < NBMIN) THEN
+!    ELSE IF (NBAR+DFLOAT(J)/20.0D0 < NBMIN) THEN
+! --- SCAN
+      MUMAX=MUMID
+     ELSE
+      MUMAX=MUMIN
+      MUMIN=MUMIN-(MUMID-MUMIN)
+     ENDIF
+     MUMID=(MUMAX+MUMIN)/2.0D0
+    ELSE
+     IF (LPRINT) &
+     WRITE(6,'(A,3(F10.6,A,F10.6,A))') 'CONCAV/VEX',NBMIN,'(',MUMIN,')',NBMID,'(',MUMID,')',NBMAX,'(',MUMAX,')'
+     CALL WARNING('BISECTION FAILED')
+     MUMIN=1.0D99
+     EXIT
+    ENDIF
+! SCAN ---
+    NBERR=DABS(NBAR-1.0D0-NBMID)
+!   NBERR=DABS(NBAR+DFLOAT(J)/20.0D0-NBMID)
+! --- SCAN
+   ENDDO
+   IF (LPRINT) &
+   WRITE(6,'(A)') '----------------------------------------------------------------------------'
+   MU_IP=MUMIN
+   THERMALIP=0.0D0
+   DO P=1,2*O
+    THERMALIP=THERMALIP+EPS_QP(P)*1.0D0/(1.0D0+DEXP(BETA*(EPS_QP(P)-MU_QP)))
+    THERMALIP=THERMALIP-EPS_QP(P)*1.0D0/(1.0D0+DEXP(BETA*(EPS_QP(P)-MU_IP)))
+   ENDDO
+! SCAN ---
+   WRITE(6,'(/,A,F20.10,A)')          'MU(QP) FOR CATION             =',MU_IP,   ' HARTREE'
+   WRITE(6,'(A,F20.10,A)')            'IP(QP)                        =',THERMALIP,   ' HARTREE'
+!  WRITE(6,'(A,F10.3,F20.10)') 'SCAN:',NBAR+DFLOAT(J)/20.0D0,THERMALIP
+!  ENDDO
+! --- SCAN
+
+   ! MU_EA
+   MU_EA=0.0D0
+   MUMAX=MU_QP-DSQRT(DOPTN(98)/1.0D4)
+   MUMIN=MU_QP+DSQRT(DOPTN(98)/1.0D4)
+   MUMID=(MUMAX+MUMIN)/2.0D0
+   NBERR=1.0D9
+   IF (LPRINT) THEN
+    WRITE(6,'(/,A)') '----------------------------------------------------------------------------'
+    WRITE(6,'(A)') '  TREND         N   (  MU MIN  )      N   (  MU MID  )      N   (  MU MAX  )'
+    WRITE(6,'(A)') '----------------------------------------------------------------------------'
+   ENDIF
+   DO WHILE ((NBERR > 1.0D-10).OR.(MUMAX-MUMIN > 1.0D-6))
+    NBMAX=0.0D0
+    NBMIN=0.0D0
+    NBMID=0.0D0
+    DO P=1,2*O
+     NBMAX=NBMAX+1.0D0/(1.0D0+DEXP(BETA*(EPS_QP(P)-MUMAX)))
+     NBMIN=NBMIN+1.0D0/(1.0D0+DEXP(BETA*(EPS_QP(P)-MUMIN)))
+     NBMID=NBMID+1.0D0/(1.0D0+DEXP(BETA*(EPS_QP(P)-MUMID)))
+    ENDDO
+    IF ((NBMAX > NBMID).AND.(NBMID > NBMIN)) THEN
+     IF (LPRINT) &
+     WRITE(6,'(A,3(F10.6,A,F10.6,A))') 'INCREASING',NBMIN,'(',MUMIN,')',NBMID,'(',MUMID,')',NBMAX,'(',MUMAX,')'
+     IF (NBAR+1.0D0 > NBMAX) THEN
+      MUMIN=MUMAX
+      MUMAX=MUMAX+(MUMAX-MUMID)
+     ELSE IF (NBAR+1.0D0 > NBMID) THEN
+      MUMIN=MUMID
+     ELSE IF (NBAR+1.0D0 > NBMIN) THEN
+      MUMAX=MUMID
+     ELSE
+      MUMAX=MUMIN
+      MUMIN=MUMIN-(MUMID-MUMIN)
+     ENDIF
+     MUMID=(MUMAX+MUMIN)/2.0D0
+    ELSE IF ((NBMAX < NBMID).AND.(NBMID < NBMIN)) THEN
+     IF (LPRINT) &
+     WRITE(6,'(A,3(F10.6,A,F10.6,A))') 'DECREASING',NBMIN,'(',MUMIN,')',NBMID,'(',MUMID,')',NBMAX,'(',MUMAX,')'
+     IF (NBAR+1.0D0 < NBMAX) THEN
+      MUMIN=MUMAX
+      MUMAX=MUMAX+(MUMAX-MUMID)
+     ELSE IF (NBAR+1.0D0 < NBMID) THEN
+      MUMIN=MUMID
+     ELSE IF (NBAR+1.0D0 < NBMIN) THEN
+      MUMAX=MUMID
+     ELSE
+      MUMAX=MUMIN
+      MUMIN=MUMIN-(MUMID-MUMIN)
+     ENDIF
+     MUMID=(MUMAX+MUMIN)/2.0D0
+    ELSE
+     IF (LPRINT) &
+     WRITE(6,'(A,3(F10.6,A,F10.6,A))') 'CONCAV/VEX',NBMIN,'(',MUMIN,')',NBMID,'(',MUMID,')',NBMAX,'(',MUMAX,')'
+     CALL WARNING('BISECTION FAILED')
+     MUMIN=1.0D99
+     EXIT
+    ENDIF
+    NBERR=DABS(NBAR+1.0D0-NBMID)
+   ENDDO
+   IF (LPRINT) &
+   WRITE(6,'(A)') '----------------------------------------------------------------------------'
+   MU_EA=MUMIN
+   THERMALEA=0.0D0
+   DO P=1,2*O
+    THERMALEA=THERMALEA-EPS_QP(P)*1.0D0/(1.0D0+DEXP(BETA*(EPS_QP(P)-MU_QP)))
+    THERMALEA=THERMALEA+EPS_QP(P)*1.0D0/(1.0D0+DEXP(BETA*(EPS_QP(P)-MU_EA)))
+   ENDDO
+   WRITE(6,'(/,A,F20.10,A)')          'MU(QP) FOR ANION              =',MU_EA,   ' HARTREE'
+   WRITE(6,'(A,F20.10,A)')            'EA(QP)                        =',THERMALEA,   ' HARTREE'
+
+   DEALLOCATE(EPS_QP,FMINUS_QP,FPLUS_QP,EPS_HF,EPS_HF_MTRX,EPS_TMP)
 
 goto 999
    ! CALCULATE OMEGA WITH FIXED MU
@@ -1554,10 +2280,13 @@ goto 999
     OOO0=OOO0+2.0D0*(EPSILON(I,0,0,0)-FERMI)+2.0D0*DLOG(FMINUS(I))/BETA
     UUU0=UUU0+2.0D0*EPSILON(I,0,0,0)*FMINUS(I)
    ENDDO
+   SSS0=BETA*(UUU0-OOO0-MU0*NBAR)
 
    WRITE(6,'(/,A,F20.10,A)')        'MU(0)                         =',MU0,' HARTREE'
    WRITE(6,'(A,F20.10,A)')          'OMEGA(0)                      =',OOO0,' HARTREE'
    WRITE(6,'(A,F20.10,A)')          'U(0)                          =',UUU0,' HARTREE'
+   WRITE(6,'(A,F20.10,A)')          'S(0)                          =',SSS0,' kB'
+   WRITE(6,'(A,F20.10,A)')          'TS(0)                         =',SSS0/BETA,' HARTREE'
 
    OOO0=NUCLEAR_REPULSION
    UUU0=NUCLEAR_REPULSION
@@ -1730,10 +2459,13 @@ goto 999
 !write(*,'(i3,2f20.15)') i,-BETA*FOCKT(I,I)*EPS2(I)*FMINUS2(I)*FPLUS2(I),BETA*MU1*EPS2(I)*FMINUS2(I)*FPLUS2(I)
    ENDDO
 !write(*,'(3x,2f20.15)') NUMER,DENOM
-
+   SSS1=BETA*(UUU1-OOO1-MU1*NBAR)
+ 
    WRITE(6,'(A,F20.10,A)')          'MU(1) AGAIN                   =',MU1,' HARTREE'
    WRITE(6,'(A,F20.10,A)')          'OMEGA(1)                      =',OOO1,' HARTREE'
    WRITE(6,'(A,F20.10,A)')          'U(1)                          =',UUU1,' HARTREE'
+   WRITE(6,'(A,F20.10,A)')          'S(1)                          =',SSS1,' kB'
+   WRITE(6,'(A,F20.10,A)')          'TS(1)                         =',SSS1/BETA,' HARTREE'
    WRITE(6,'(A,F20.10,A)')          'U(1) AGAIN                    =',UUU1_2,' HARTREE'
 
    OOO1=0.0D0
@@ -1751,6 +2483,7 @@ goto 999
    WRITE(6,'(A,F20.10,A)')          'MU(0)+MU(1)                   =',MU0+MU1,' HARTREE'
    WRITE(6,'(A,F20.10,A)')          'OMEGA(0)+OMEGA(1)             =',OOO0+OOO1,' HARTREE'
    WRITE(6,'(A,F20.10,A)')          'U(0)+U(1)                     =',UUU0+UUU1,' HARTREE'
+   WRITE(6,'(A,F20.10,A)')          'S(0)+S(1)                     =',SSS0+SSS1,' kB'
 ! =================== 2ND ORDER 
 
    ! SECOND ORDER (PERTURBED MU)
@@ -2246,6 +2979,7 @@ goto 999
    ENDDO
    MU2=NUMER/DENOM
    WRITE(6,'(A,F20.10,A)')        'MU(2) AGAIN                   =',MU2,' HARTREE'
+   WRITE(6,'(A,F20.10,A)')        'MU(0)+MU(1)+MU(2)             =',MU0+MU1+MU2,' HARTREE'
 
 !write(*,*) 'Omega2 breakdown'
    OOO2=0.0D0
@@ -2305,7 +3039,8 @@ goto 999
 !write(*,'(i3,f20.15,a)') 0,tmp3,' mu1 terms SUM'
    OOO2=NUMER-MU2*NBAR
    WRITE(6,'(A,F20.10,A)')          'OMEGA(2)                      =',OOO2,' HARTREE'
-   OOO2=NUMER
+   WRITE(6,'(A,F20.10,A)')          'OMEGA(0)+OMEGA(1)+OMEGA(2)    =',OOO0+OOO1+OOO2,' HARTREE'
+!  OOO2=NUMER
 !  WRITE(6,'(A,F20.10,A)')          'OMEGA(2)+MU2 NBAR             =',OOO2,' HARTREE'
 
    UUU2=NUMER ! Contains Omega(2)+mu(2)Nbar
@@ -2382,6 +3117,7 @@ goto 999
    ENDDO
    UUU2=UUU2+BETA*NUMER
    WRITE(6,'(A,F20.10,A)')          'U(2)                          =',UUU2,' HARTREE'
+   WRITE(6,'(A,F20.10,A)')          'U(0)+U(1)+U(2)                =',UUU0+UUU1+UUU2,' HARTREE'
 
 !write(*,*) 'U2 breakdown'
    UUU2=0.0D0
@@ -2448,7 +3184,11 @@ goto 999
     NUMER=NUMER+BETA*MU2*EPS2(I)*FMINUS2(I)*FPLUS2(I)
    ENDDO
    UUU2=NUMER
+   SSS2=BETA*(UUU2-OOO2-MU2*NBAR)
    WRITE(6,'(A,F20.10,A)')          'U(2) AGAIN                    =',UUU2,' HARTREE'
+   WRITE(6,'(A,F20.10,A)')          'S(2)                          =',SSS2,' kB'
+   WRITE(6,'(A,F20.10,A)')          'TS(2)                         =',SSS2/BETA,' HARTREE'
+   WRITE(6,'(A,F20.10,A)')          'S(0)+S(1)+S(2)                =',SSS0+SSS1+SSS2,' kB'
 
 ! =================== 3RD ORDER 
 
@@ -5653,7 +6393,7 @@ goto 999
 ! ... to here
 
 
-   DEALLOCATE(FPLUS,FMINUS,IIJJ,H,G,IIJJ2,FPLUS2,FMINUS2,F2,G2,EPS2,FOCKT,H2)
+   DEALLOCATE(FPLUS,FMINUS,IIJJ,H,G,IIJJ2,FPLUS2,FMINUS2,F2,G2,EPS2,FOCKT,H2,HCORE2)
 
    RETURN
 END SUBROUTINE
@@ -5760,6 +6500,7 @@ SUBROUTINE CALCTHERM(BETA,MU,NBAR,XI,OOO,UUU,SSS)
    DOUBLE PRECISION :: OOO
    DOUBLE PRECISION :: UUU
    DOUBLE PRECISION :: SSS
+   DOUBLE PRECISION :: SSS2
    INTEGER :: I
 
    XI=0.0D0
@@ -5774,10 +6515,16 @@ SUBROUTINE CALCTHERM(BETA,MU,NBAR,XI,OOO,UUU,SSS)
     UUU=UUU+(ALLE(I)-MU*ALLN(I))*DEXP(-BETA*(ALLE(I)-ESHIFT-MU*DFLOAT(ALLN(I))))/XI
    ENDDO
 
-   SSS=0.0D0
+   SSS2=0.0D0
    DO I=1,NALL
-    SSS=SSS-DEXP(-BETA*(ALLE(I)-ESHIFT-MU*DFLOAT(ALLN(I))))/XI*DLOG(DEXP(-BETA*(ALLE(I)-ESHIFT-MU*DFLOAT(ALLN(I))))/XI)
+    SSS2=SSS2-DEXP(-BETA*(ALLE(I)-ESHIFT-MU*DFLOAT(ALLN(I))))/XI*DLOG(DEXP(-BETA*(ALLE(I)-ESHIFT-MU*DFLOAT(ALLN(I))))/XI)
    ENDDO
+
+   SSS=(UUU-OOO-MU*NBAR)*BETA
+
+!  IF (SSS /= SSS2) THEN
+!   WRITE(6,'(A,3E20.10)') 'ENTROPY ERROR ',SSS,SSS2,SSS-SSS2
+!  ENDIF
 
    RETURN
 END SUBROUTINE
