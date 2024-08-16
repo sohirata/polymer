@@ -30,12 +30,12 @@ SUBROUTINE THERMAL_CORRELATION
    !***************************************
    ! THERMAL FCI WITH N, N-1, N+1 ELECTRONS
    !***************************************
-   ! SCAN ---
+! SCAN ---
 !  DO J=-20,20
 !   CALL THERMAL_GRANDCANONICAL(0.0D0,B(I,1),B(I,2),B(I,3),B(I,4),DFLOAT(J)/20.0D0,.TRUE.)
 !   CALL THERMAL_GRANDCANONICAL(1.0D0,B(I,1),B(I,2),B(I,3),B(I,4),DFLOAT(J)/20.0D0,.TRUE.)
 !  ENDDO
-   ! --- SCAN 
+! --- SCAN 
    CALL THERMAL_GRANDCANONICAL(1.0D0,B(I,1),B(I,2),B(I,3),B(I,4),0.0D0,.TRUE.)
    CALL THERMAL_GRANDCANONICAL(1.0D0,B(I,1),B(I,2),B(I,3),B(I,4),-1.0D0,.TRUE.)
    CALL THERMAL_GRANDCANONICAL(1.0D0,B(I,1),B(I,2),B(I,3),B(I,4),+1.0D0,.TRUE.)
@@ -347,9 +347,9 @@ SUBROUTINE THERMAL_GRANDCANONICAL(LAMBDA,MU,OOO,UUU,SSS,NION,LPRINT)
     WRITE(6,'(A,F20.10,A)')          'U (INTERNAL ENERGY)           =',UUU,' HARTREE'
     WRITE(6,'(A,F20.10,A)')          'S (ENTROPY)                   =',SSS,' kB'
    ENDIF
-!  SCAN ---
+! SCAN ---
 !  WRITE(6,'(A,F10.3,2F20.10)') 'SCAN:',DFLOAT(IOCC*2)+NION,OOO,UUU
-!  --- SCAN
+! --- SCAN
      
    DEALLOCATE(ALLE,ALLN,H,G)
 
@@ -1399,7 +1399,9 @@ SUBROUTINE THERMAL_MBPT_ANALYTICAL
    DOUBLE PRECISION :: MU_QP,OMEGA_QP,LAMBDA_QP,U_QP,S_QP,OMEGA_HF,U_HF,S_HF,MU_QP_PREVIOUS,SUMFPFP
    DOUBLE PRECISION,ALLOCATABLE :: EPS_QP(:),FMINUS_QP(:),FPLUS_QP(:),EPS_HF(:),HCORE2(:,:),EPS_HF_MTRX(:,:)
    DOUBLE PRECISION,ALLOCATABLE :: EPS_TMP(:)
-   DOUBLE PRECISION :: SUM1,SUM2,LOG1,LOG2,THERMALIP,THERMALEA,MU_IP,MU_EA
+   DOUBLE PRECISION :: SUM1,SUM2,LOG1,LOG2,THERMALIP,THERMALEA,MU_IP,MU_EA,U_IP,U_EA
+   DOUBLE PRECISION,ALLOCATABLE :: FMINUS_IP(:),FPLUS_IP(:),FMINUS_EA(:),FPLUS_EA(:)
+   DOUBLE PRECISION,ALLOCATABLE :: EPS_IP(:),EPS_IP_MTRX(:,:),EPS_EA(:),EPS_EA_MTRX(:,:)
 ! -- THERMAL QP(2) THEORY
    DOUBLE PRECISION :: SIGMA_H,SIGMA_L
 double precision :: tmp1,tmp2,tmp3,tmp4
@@ -1567,6 +1569,8 @@ double precision :: tmp1,tmp2,tmp3,tmp4
    WRITE(6,'(A)')   '************************************'
 
    ALLOCATE(EPS_QP(1:2*O),FMINUS_QP(1:2*O),FPLUS_QP(1:2*O),EPS_HF(1:2*O),EPS_HF_MTRX(2*O,2*O),EPS_TMP(1:2*O))
+   ALLOCATE(FMINUS_IP(1:2*O),FPLUS_IP(1:2*O),FMINUS_EA(1:2*O),FPLUS_EA(1:2*O))
+   ALLOCATE(EPS_IP(2*O),EPS_IP_MTRX(2*O,2*O),EPS_EA(2*O),EPS_EA_MTRX(2*O,2*O))
    IF (DOPTN(98) == DOPTN(108)) THEN
     WRITE(6,'(/,A)') 'THERMAL HF REFERENCE'
     LTHFREF=.TRUE.
@@ -1636,11 +1640,11 @@ double precision :: tmp1,tmp2,tmp3,tmp4
     WRITE(6,'(A,F20.10,A)')            'U(HF)                         =',U_QP,    ' HARTREE'
     WRITE(6,'(A,F20.10,A)')            'S(HF)                         =',S_QP,    ' kB'
     WRITE(6,'(A,F20.10,A)')            'MU(HF)                        =',MU_QP,   ' HARTREE'
-    WRITE(6,'(A,F20.10,A)')            'Ave. IP(HF),EA(HF)            =',THERMALIP,   ' HARTREE'
+    WRITE(6,'(A,F20.10,A)')            'dU/dN at N                    =',THERMALIP,   ' HARTREE'
 
-    ! SCAN ---
+! SCAN ---
 !   DO J=-20,20
-    ! --- SCAN
+! --- SCAN
 
     ! MU_IP
     MU_IP=0.0D0
@@ -1666,8 +1670,8 @@ double precision :: tmp1,tmp2,tmp3,tmp4
       IF (LPRINT) &
       WRITE(6,'(A,3(F10.6,A,F10.6,A))') 'INCREASING',NBMIN,'(',MUMIN,')',NBMID,'(',MUMID,')',NBMAX,'(',MUMAX,')'
 ! SCAN ---
-      IF (NBAR-1.0D0 > NBMAX) THEN
-!     IF (NBAR+DFLOAT(J)/20.0D0 > NBMAX) THEN
+!     IF (NBAR-1.0D0 > NBMAX) THEN
+      IF (NBAR+DFLOAT(J)/20.0D0 > NBMAX) THEN
 ! --- SCAN
        MUMIN=MUMAX
        MUMAX=MUMAX+(MUMAX-MUMID)
@@ -1725,15 +1729,29 @@ double precision :: tmp1,tmp2,tmp3,tmp4
     IF (LPRINT) &
     WRITE(6,'(A)') '----------------------------------------------------------------------------'
     MU_IP=MUMIN
+    DO P=1,2*O
+     FMINUS_IP(P)=1.0D0/(1.0D0+DEXP(BETA*(EPS_HF(P)-MU_IP)))
+     FPLUS_IP(P)=1.0D0-FMINUS_IP(P)
+    ENDDO
     THERMALIP=0.0D0
     DO P=1,2*O
      THERMALIP=THERMALIP+EPS_HF(P)*1.0D0/(1.0D0+DEXP(BETA*(EPS_HF(P)-MU_QP)))
      THERMALIP=THERMALIP-EPS_HF(P)*1.0D0/(1.0D0+DEXP(BETA*(EPS_HF(P)-MU_IP)))
     ENDDO
+    SUMFPFP=0.0D0
+    DO P=1,2*O
+     SUMFPFP=SUMFPFP+FMINUS_IP(P)*FPLUS_IP(P)
+    ENDDO
+    SUM1=0.0D0
+    DO P=1,2*O
+     SUM1=SUM1+EPS_HF(P)*FMINUS_IP(P)*FPLUS_IP(P)/SUMFPFP
+    ENDDO
+
 ! SCAN ---
     WRITE(6,'(/,A,F20.10,A)')          'MU(HF) FOR CATION             =',MU_IP,   ' HARTREE'
     WRITE(6,'(A,F20.10,A)')            'IP(HF)                        =',THERMALIP,   ' HARTREE'
-!   WRITE(6,'(A,F10.3,F20.10)') 'SCAN:',NBAR+DFLOAT(J)/20.0D0,THERMALIP
+    WRITE(6,'(A,F20.10,A)')            'dU/dN at N-1                  =',SUM1,   ' HARTREE'
+!   WRITE(6,'(A,F10.3,2F20.10)') 'SCAN:',NBAR+DFLOAT(J)/20.0D0,THERMALIP,SUM1
 !   ENDDO
 ! --- SCAN
 
@@ -1801,11 +1819,25 @@ double precision :: tmp1,tmp2,tmp3,tmp4
     MU_EA=MUMIN
     THERMALEA=0.0D0
     DO P=1,2*O
+     FMINUS_EA(P)=1.0D0/(1.0D0+DEXP(BETA*(EPS_HF(P)-MU_EA)))
+     FPLUS_EA(P)=1.0D0-FMINUS_EA(P)
+    ENDDO
+    DO P=1,2*O
      THERMALEA=THERMALEA-EPS_HF(P)*1.0D0/(1.0D0+DEXP(BETA*(EPS_HF(P)-MU_QP)))
      THERMALEA=THERMALEA+EPS_HF(P)*1.0D0/(1.0D0+DEXP(BETA*(EPS_HF(P)-MU_EA)))
     ENDDO
+    SUMFPFP=0.0D0
+    DO P=1,2*O
+     SUMFPFP=SUMFPFP+FMINUS_EA(P)*FPLUS_EA(P)
+    ENDDO
+    SUM1=0.0D0
+    DO P=1,2*O
+     SUM1=SUM1+EPS_HF(P)*FMINUS_EA(P)*FPLUS_EA(P)/SUMFPFP
+    ENDDO
+
     WRITE(6,'(/,A,F20.10,A)')          'MU(HF) FOR CATION             =',MU_EA,   ' HARTREE'
     WRITE(6,'(A,F20.10,A)')            'EA(HF)                        =',THERMALEA,   ' HARTREE'
+    WRITE(6,'(A,F20.10,A)')            'dU/dN at N+1                  =',SUM1,   ' HARTREE'
  
    ENDIF
 
@@ -2049,7 +2081,7 @@ double precision :: tmp1,tmp2,tmp3,tmp4
    WRITE(6,'(A,F20.10,A)')            'U(QP)                         =',U_QP,    ' HARTREE'
    WRITE(6,'(A,F20.10,A)')            'S(QP)                         =',S_QP,    ' kB'
    WRITE(6,'(A,F20.10,A)')            'MU(QP)                        =',MU_QP,   ' HARTREE'
-   WRITE(6,'(A,F20.10,A)')            'Ave. IP(QP),EA(QP)            =',THERMALIP,   ' HARTREE'
+   WRITE(6,'(A,F20.10,A)')            'dU/dN at N                    =',THERMALIP,   ' HARTREE'
 
 !  SCAN ---
 !  DO J=-20,20
@@ -2138,15 +2170,70 @@ double precision :: tmp1,tmp2,tmp3,tmp4
    IF (LPRINT) &
    WRITE(6,'(A)') '----------------------------------------------------------------------------'
    MU_IP=MUMIN
+   DO P=1,2*O
+    FMINUS_IP(P)=1.0D0/(1.0D0+DEXP(BETA*(EPS_QP(P)-MU_IP)))
+    FPLUS_IP(P)=1.0D0-FMINUS_IP(P)
+   ENDDO
+   DO P=1,2*O
+    EPS_IP(P)=HCORE2(P,P)
+    DO Q=1,2*O 
+     EPS_IP(P)=EPS_IP(P)+G2(P,Q,P,Q)*FMINUS_IP(Q)
+    ENDDO
+   ENDDO
+   DO P=1,2*O
+    DO Q=1,2*O
+     EPS_IP_MTRX(P,Q)=HCORE2(P,Q)
+     DO R=1,2*O
+      EPS_IP_MTRX(P,Q)=EPS_IP_MTRX(P,Q)+G2(P,R,Q,R)*FMINUS_IP(R)
+     ENDDO
+    ENDDO
+   ENDDO
+   IF (LTHFREF)      EPS_TMP=EPS_IP
+   IF (.NOT.LTHFREF) EPS_TMP=EPS2     
+   U_IP=NUCLEAR_REPULSION
    THERMALIP=0.0D0
    DO P=1,2*O
-    THERMALIP=THERMALIP+EPS_QP(P)*1.0D0/(1.0D0+DEXP(BETA*(EPS_QP(P)-MU_QP)))
-    THERMALIP=THERMALIP-EPS_QP(P)*1.0D0/(1.0D0+DEXP(BETA*(EPS_QP(P)-MU_IP)))
+    U_IP=U_IP+EPS_IP(P)*FMINUS_IP(P)  
+    THERMALIP=THERMALIP+EPS_QP(P)*(FMINUS_QP(P)-FMINUS_IP(P)) 
+    DO Q=1,2*O
+     U_IP=U_IP-0.5D0*G2(P,Q,P,Q)*FMINUS_IP(P)*FMINUS_IP(Q)
+    ENDDO
    ENDDO
+   DO P=1,2*O
+    DO Q=1,2*O
+     IF (DABS(EPS_TMP(P)-EPS_TMP(Q)) > 1.0D-10) THEN
+      U_IP=U_IP+EPS_IP_MTRX(Q,P)*EPS_IP_MTRX(P,Q)/(EPS_TMP(P)-EPS_TMP(Q))*FMINUS_IP(P)*FPLUS_IP(Q)
+     ENDIF
+    ENDDO
+   ENDDO
+   DO P=1,2*O
+    DO Q=1,2*O
+     DO R=1,2*O
+      DO S=1,2*O
+       IF (DABS(EPS_TMP(P)+EPS_TMP(Q)-EPS_TMP(R)-EPS_TMP(S)) > 1.0D-10) THEN
+        U_IP=U_IP+0.25D0*G2(P,Q,R,S)*G2(R,S,P,Q)*FMINUS_IP(P)*FMINUS_IP(Q)*FPLUS_IP(R)*FPLUS_IP(S) &
+                  /(EPS_TMP(P)+EPS_TMP(Q)-EPS_TMP(R)-EPS_TMP(S))
+       ENDIF
+      ENDDO
+     ENDDO
+    ENDDO
+   ENDDO
+
+   SUMFPFP=0.0D0
+   DO P=1,2*O
+    SUMFPFP=SUMFPFP+FMINUS_IP(P)*FPLUS_IP(P)
+   ENDDO
+   SUM1=0.0D0
+   DO P=1,2*O
+    SUM1=SUM1+EPS_QP(P)*FMINUS_IP(P)*FPLUS_IP(P)/SUMFPFP
+   ENDDO
+
 ! SCAN ---
    WRITE(6,'(/,A,F20.10,A)')          'MU(QP) FOR CATION             =',MU_IP,   ' HARTREE'
-   WRITE(6,'(A,F20.10,A)')            'IP(QP)                        =',THERMALIP,   ' HARTREE'
-!  WRITE(6,'(A,F10.3,F20.10)') 'SCAN:',NBAR+DFLOAT(J)/20.0D0,THERMALIP
+   WRITE(6,'(A,F20.10,A)')            'IP(QP) (FD formula)           =',THERMALIP,   ' HARTREE'
+   WRITE(6,'(A,F20.10,A)')            'IP(QP) (QP formula)           =',U_QP-U_IP,   ' HARTREE'
+   WRITE(6,'(A,F20.10,A)')            'dU/dN at N-1                  =',SUM1,   ' HARTREE'
+!  WRITE(6,'(A,F10.3,2F20.10)') 'SCAN:',NBAR+DFLOAT(J)/20.0D0,THERMALIP,SUM1
 !  ENDDO
 ! --- SCAN
 
@@ -2212,15 +2299,71 @@ double precision :: tmp1,tmp2,tmp3,tmp4
    IF (LPRINT) &
    WRITE(6,'(A)') '----------------------------------------------------------------------------'
    MU_EA=MUMIN
+   DO P=1,2*O
+    FMINUS_EA(P)=1.0D0/(1.0D0+DEXP(BETA*(EPS_QP(P)-MU_EA)))
+    FPLUS_EA(P)=1.0D0-FMINUS_EA(P)
+   ENDDO
+   DO P=1,2*O
+    EPS_EA(P)=HCORE2(P,P)
+    DO Q=1,2*O 
+     EPS_EA(P)=EPS_EA(P)+G2(P,Q,P,Q)*FMINUS_EA(Q)
+    ENDDO
+   ENDDO
+   DO P=1,2*O
+    DO Q=1,2*O
+     EPS_EA_MTRX(P,Q)=HCORE2(P,Q)
+     DO R=1,2*O
+      EPS_EA_MTRX(P,Q)=EPS_EA_MTRX(P,Q)+G2(P,R,Q,R)*FMINUS_EA(R)
+     ENDDO
+    ENDDO
+   ENDDO
+   IF (LTHFREF)      EPS_TMP=EPS_EA
+   IF (.NOT.LTHFREF) EPS_TMP=EPS2
+   U_EA=NUCLEAR_REPULSION
    THERMALEA=0.0D0
    DO P=1,2*O
-    THERMALEA=THERMALEA-EPS_QP(P)*1.0D0/(1.0D0+DEXP(BETA*(EPS_QP(P)-MU_QP)))
-    THERMALEA=THERMALEA+EPS_QP(P)*1.0D0/(1.0D0+DEXP(BETA*(EPS_QP(P)-MU_EA)))
+    THERMALEA=THERMALEA+EPS_QP(P)*(FMINUS_EA(P)-FMINUS_QP(P)) 
+    U_EA=U_EA+EPS_EA(P)*FMINUS_EA(P)
+    DO Q=1,2*O
+     U_EA=U_EA-0.5D0*G2(P,Q,P,Q)*FMINUS_EA(P)*FMINUS_EA(Q)
+    ENDDO
    ENDDO
+   DO P=1,2*O
+    DO Q=1,2*O
+     IF (DABS(EPS_TMP(P)-EPS_TMP(Q)) > 1.0D-10) THEN
+      U_EA=U_EA+EPS_EA_MTRX(Q,P)*EPS_EA_MTRX(P,Q)/(EPS_TMP(P)-EPS_TMP(Q))*FMINUS_EA(P)*FPLUS_EA(Q)
+     ENDIF
+    ENDDO
+   ENDDO
+   DO P=1,2*O
+    DO Q=1,2*O   
+     DO R=1,2*O
+      DO S=1,2*O
+       IF (DABS(EPS_TMP(P)+EPS_TMP(Q)-EPS_TMP(R)-EPS_TMP(S)) > 1.0D-10) THEN
+        U_EA=U_EA+0.25D0*G2(P,Q,R,S)*G2(R,S,P,Q)*FMINUS_EA(P)*FMINUS_EA(Q)*FPLUS_EA(R)*FPLUS_EA(S) &
+                  /(EPS_TMP(P)+EPS_TMP(Q)-EPS_TMP(R)-EPS_TMP(S))
+       ENDIF
+      ENDDO
+     ENDDO
+    ENDDO
+   ENDDO
+
+   SUMFPFP=0.0D0
+   DO P=1,2*O
+    SUMFPFP=SUMFPFP+FMINUS_EA(P)*FPLUS_EA(P)
+   ENDDO
+   SUM1=0.0D0
+   DO P=1,2*O
+    SUM1=SUM1+EPS_QP(P)*FMINUS_EA(P)*FPLUS_EA(P)/SUMFPFP
+   ENDDO
+
    WRITE(6,'(/,A,F20.10,A)')          'MU(QP) FOR ANION              =',MU_EA,   ' HARTREE'
-   WRITE(6,'(A,F20.10,A)')            'EA(QP)                        =',THERMALEA,   ' HARTREE'
+   WRITE(6,'(A,F20.10,A)')            'EA(QP) (FD formula)           =',THERMALEA,   ' HARTREE'
+   WRITE(6,'(A,F20.10,A)')            'EA(QP) (QP formula)           =',U_EA-U_QP,   ' HARTREE'
+   WRITE(6,'(A,F20.10,A)')            'dU/dN at N+1                  =',SUM1,   ' HARTREE'
 
    DEALLOCATE(EPS_QP,FMINUS_QP,FPLUS_QP,EPS_HF,EPS_HF_MTRX,EPS_TMP)
+   DEALLOCATE(FMINUS_IP,FPLUS_IP,FMINUS_EA,FPLUS_EA,EPS_IP,EPS_IP_MTRX,EPS_EA,EPS_EA_MTRX)
 
 goto 999
    ! CALCULATE OMEGA WITH FIXED MU
