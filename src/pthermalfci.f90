@@ -1865,21 +1865,13 @@ double precision :: tmp1,tmp2,tmp3,tmp4
      IF (DABS(EPS_TMP(P)-EPS_TMP(Q)) > 1.0D-10) THEN
       EPS_QP(P)=EPS_QP(P)+EPS_HF_MTRX(Q,P)*EPS_HF_MTRX(P,Q)*FPLUS_QP(Q)/(EPS_TMP(P)-EPS_TMP(Q))
       EPS_QP(P)=EPS_QP(P)-EPS_HF_MTRX(Q,P)*EPS_HF_MTRX(P,Q)*FMINUS_QP(Q)/(EPS_TMP(Q)-EPS_TMP(P))
-      DO R=1,2*O
-       EPS_QP(P)=EPS_QP(P)+G2(Q,R,P,R)*EPS_HF_MTRX(P,Q)*FMINUS_QP(P)*FPLUS_QP(Q)/(EPS_TMP(P)-EPS_TMP(Q))
-       EPS_QP(P)=EPS_QP(P)+EPS_HF_MTRX(Q,P)*G2(P,R,Q,R)*FMINUS_QP(P)*FPLUS_QP(Q)/(EPS_TMP(P)-EPS_TMP(Q))
-      ENDDO 
-     ELSE
-!!      CAUTION: There are always very many anomalous diagrams. When included in self-energy,
-!!               they cause massive numerical problems especially at low temperature.
-!!      WRITE(6,'(A,4I3)') 'ANOMALOUS DIAGRAM! @ ',P,Q,R,S
-!    EPS_QP(P)=EPS_QP(P)-BETA*EPS_HF_MTRX(Q,P)*EPS_HF_MTRX(P,Q)*FPLUS_QP(Q)
-!    EPS_QP(P)=EPS_QP(P)+BETA*EPS_HF_MTRX(Q,P)*EPS_HF_MTRX(P,Q)*FMINUS_QP(Q)
-!    DO R=1,2*O
-!     EPS_QP(P)=EPS_QP(P)-BETA*G2(Q,R,P,R)*EPS_HF_MTRX(P,Q)*FMINUS_QP(P)*FPLUS_QP(Q)
-!     EPS_QP(P)=EPS_QP(P)-BETA*EPS_HF_MTRX(Q,P)*G2(P,R,Q,R)*FMINUS_QP(P)*FPLUS_QP(Q)
-!    ENDDO 
      ENDIF
+     DO R=1,2*O
+      IF (DABS(EPS_TMP(R)-EPS_TMP(Q)) > 1.0D-10) THEN
+       EPS_QP(P)=EPS_QP(P)+G2(Q,P,R,P)*EPS_HF_MTRX(R,Q)*FMINUS_QP(R)*FPLUS_QP(Q)/(EPS_TMP(R)-EPS_TMP(Q))
+       EPS_QP(P)=EPS_QP(P)+EPS_HF_MTRX(Q,R)*G2(R,P,Q,P)*FMINUS_QP(R)*FPLUS_QP(Q)/(EPS_TMP(R)-EPS_TMP(Q))
+      ENDIF
+     ENDDO 
     ENDDO
     DO Q=1,2*O
      DO R=1,2*O
@@ -1889,15 +1881,6 @@ double precision :: tmp1,tmp2,tmp3,tmp4
                                  /(EPS_TMP(P)+EPS_TMP(Q)-EPS_TMP(R)-EPS_TMP(S)) &
                            -0.5D0*G2(R,S,P,Q)*G2(P,Q,R,S)*FPLUS_QP(Q)*FMINUS_QP(R)*FMINUS_QP(S) &
                                  /(EPS_TMP(R)+EPS_TMP(S)-EPS_TMP(P)-EPS_TMP(Q)) 
-       ELSE
-!!      CAUTION: There are always very many anomalous diagrams. When included in self-energy,
-!!               they cause massive numerical problems especially at low temperature.
-!debug       IF ((FMINUS_QP(Q)*FPLUS_QP(R)*FPLUS_QP(S) > 1.0D-6).OR. &
-!debug          (FPLUS_QP(Q)*FMINUS_QP(R)*FMINUS_QP(S) > 1.0D-6)) &
-!debug       WRITE(6,'(A,4I3,2F20.10)') 'ANOMALOUS DIAGRAM! @ ',P,Q,R,S, FMINUS_QP(Q)*FPLUS_QP(R)*FPLUS_QP(S), &
-!debug          FPLUS_QP(Q)*FMINUS_QP(R)*FMINUS_QP(S)
-!       EPS_QP(P)=EPS_QP(P)-0.5D0*BETA*G2(P,Q,R,S)*G2(R,S,P,Q)*FMINUS_QP(Q)*FPLUS_QP(R)*FPLUS_QP(S) &
-!                          +0.5D0*BETA*G2(R,S,P,Q)*G2(P,Q,R,S)*FPLUS_QP(Q)*FMINUS_QP(R)*FMINUS_QP(S)
        ENDIF
       ENDDO
      ENDDO
@@ -2111,8 +2094,8 @@ double precision :: tmp1,tmp2,tmp3,tmp4
      IF (LPRINT) &
      WRITE(6,'(A,3(F10.6,A,F10.6,A))') 'INCREASING',NBMIN,'(',MUMIN,')',NBMID,'(',MUMID,')',NBMAX,'(',MUMAX,')'
 ! SCAN ---
-     IF (NBAR-1.0D0 > NBMAX) THEN
-!    IF (NBAR+DFLOAT(J)/20.0D0 > NBMAX) THEN
+!    IF (NBAR-1.0D0 > NBMAX) THEN
+     IF (NBAR+DFLOAT(J)/20.0D0 > NBMAX) THEN
 ! --- SCAN
       MUMIN=MUMAX
       MUMAX=MUMAX+(MUMAX-MUMID)
