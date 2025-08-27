@@ -49,6 +49,12 @@ SUBROUTINE HIGHORDER_CORRELATION
     DEALLOCATE(MP_STORED)
    ENDIF
 ! ---------------------------------------------------------------
+! HIGH-ORDER DEGENERATE MP
+! ---------------------------------------------------------------
+   IF ((IOPTN(49) > 0).AND.(IOPTN(97) == 0).AND.LOPTN(109)) THEN
+    CALL DEGENERATE_MP(IOPTN(49))
+   ENDIF
+! ---------------------------------------------------------------
 ! HIGH-ORDER GF
 ! ---------------------------------------------------------------
    IF (IOPTN(97) > 0) THEN
@@ -518,10 +524,11 @@ write(*,*) "\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     ENDIF
    ENDIF
 ! ---------------------------------------------------------------
-! HIGH-ORDER CC & EOM-CC
+! HIGH-ORDER CC
 ! ---------------------------------------------------------------
    IF (IOPTN(53) >= MAX(IOPTN(52),1)) THEN
-    DO I=MAX(IOPTN(52),1),MIN(IOPTN(53),2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE))
+!   DO I=MAX(IOPTN(52),1),MIN(IOPTN(53),2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE))
+    DO I=MAX(IOPTN(52),1),IOPTN(53)
      IF (IOPTN(54) > 0) THEN
       IF (I == MAX(IOPTN(52),1)) CALL HIGHORDER_CC(I,.FALSE.,.TRUE.,.FALSE.)
       IF (I /= MAX(IOPTN(52),1)) CALL HIGHORDER_CC(I,.TRUE.,.TRUE.,.FALSE.)
@@ -530,9 +537,14 @@ write(*,*) "\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
       IF (I /= MAX(IOPTN(52),1)) CALL HIGHORDER_CC(I,.TRUE.,.FALSE.,.FALSE.)
      ENDIF
      IF (LOPTN(65)) CALL HIGHORDER_CC(I,.TRUE.,.TRUE.,.TRUE.)
+     IF (LOPTN(109)) THEN
+      CALL DEGENERATE_CI(I) ! FULL CI
+      CALL DEGENERATE_CC(I)
+     ENDIF 
     ENDDO
    ELSE IF ((IOPTN(52) >= MAX(IOPTN(53),1)).AND.(IOPTN(53) /= 0)) THEN
-    DO I=MIN(IOPTN(52),2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE)),MAX(IOPTN(53),1),-1
+!   DO I=MIN(IOPTN(52),2*MIN(IOCC-ICORE,IALL(0,0,0)-IOCC-IVIRTCORE)),MAX(IOPTN(53),1),-1
+    DO I=IOPTN(52),MAX(IOPTN(53),1),-1
      IF (IOPTN(54) > 0) THEN
       IF (I == MAX(IOPTN(52),1)) CALL HIGHORDER_CC(I,.FALSE.,.TRUE.,.FALSE.)
       IF (I /= MAX(IOPTN(52),1)) CALL HIGHORDER_CC(I,.TRUE.,.TRUE.,.FALSE.)
@@ -541,8 +553,15 @@ write(*,*) "\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
       IF (I /= MAX(IOPTN(52),1)) CALL HIGHORDER_CC(I,.TRUE.,.FALSE.,.FALSE.)
      ENDIF
      IF (LOPTN(65)) CALL HIGHORDER_CC(I,.TRUE.,.TRUE.,.TRUE.)
+     IF (LOPTN(109)) THEN
+      CALL DEGENERATE_CI(I) ! FULL CI
+      CALL DEGENERATE_CC(I)
+     ENDIF 
     ENDDO
    ENDIF
+! ---------------------------------------------------------------
+! HIGH-ORDER EOM-CC
+! ---------------------------------------------------------------
    IF (IOPTN(59) > 0) THEN
     IF (IOPTN(53) == 0) CALL PABORT('CC CALCULATION MUST PRECEED EOMCC CALCULATION')
     IF ((.NOT.LOPTN(60)).AND.(.NOT.LOPTN(61))) THEN
@@ -819,7 +838,7 @@ SUBROUTINE TWO_ELECTRON_INTEGRALS
      ENDDO
     ENDDO
    ENDDO
-   WRITE(6,'(A,F20.15,A)') 'ZERO-TEMPERATURE MP2 ENERGY = ',EMP2,' HARTREE'
+   WRITE(6,'(A,F20.15,A)') 'MP2 ENERGY = ',EMP2,' HARTREE'
 
    RETURN
 END SUBROUTINE
@@ -1652,6 +1671,8 @@ SUBROUTINE HIGHORDER_MP(ORDER)
    USE FULLCI
 
    IMPLICIT NONE
+   LOGICAL,PARAMETER :: LTOMONAGA = .FALSE.
+   DOUBLE PRECISION,ALLOCATABLE :: TEPS(:)
    INTEGER,PARAMETER :: MAXFILE = 100
    INTEGER :: ORDER
    INTEGER :: MOI,MOJ
@@ -1679,6 +1700,22 @@ SUBROUTINE HIGHORDER_MP(ORDER)
    OPEN(50,FILE=TRIM(COPTN(1))//'.fi0',FORM='UNFORMATTED')
    OPEN(51,FILE=TRIM(COPTN(1))//'.fo0',FORM='UNFORMATTED')
 
+   ALLOCATE(TEPS(1:IALL(0,0,0)))
+   TEPS(:)=EPSILON(:,0,0,0)
+   IF (LTOMONAGA) THEN
+    TEPS(1)=-7.25520068332896D0
+    TEPS(2)=-0.55477505254599D0
+    TEPS(3)=-0.25684391057854D0
+    TEPS(4)=0.27479957146139D0
+    TEPS(5)=0.27479957146139D0
+    WRITE(6,'(A)') '*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!'
+    WRITE(6,'(A)') '                  TOMONAGA RENORMALIZATION IS BEING APPLIED '
+    DO I=1,IALL(0,0,0)
+     WRITE(6,'(A,I2,A,F20.10)') '                  EPSILON(',I,') = ',TEPS(I)
+    ENDDO
+    WRITE(6,'(A)') '*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!'
+   ENDIF
+
    ! INITIALIZE WAVEFUNCTION TO THE HARTREE-FOCK DETERMINANT
    EMP=NUCLEAR_REPULSION
    VEC1=0.0D0
@@ -1689,7 +1726,7 @@ SUBROUTINE HIGHORDER_MP(ORDER)
    ! DMP(0)
    DMP(0)=0.0D0
    DO MOI=1,IOCC
-    DMP(0)=DMP(0)+2.0D0*EPSILON(MOI,0,0,0)
+    DMP(0)=DMP(0)+2.0D0*TEPS(MOI)
    ENDDO
    EMP=EMP+DMP(0)
    WRITE(6,'(I2,F20.10,A,F20.10,F12.1)') 0,DMP(0),'     ---------------',EMP,0.0
@@ -1741,7 +1778,7 @@ SUBROUTINE HIGHORDER_MP(ORDER)
     MP_STORED(IFILE+1)=EMP
     CALL CPU_TIME(ICPUS)
     CALL PFLUSH(6)
-    IF (DABS(DMP(IFILE+1)) < 1.0D-15) EXIT
+!   IF (DABS(DMP(IFILE+1)) < 1.0D-15) EXIT
     VEC1=-VEC1
     REWIND(50)
     DO K=0,IFILE
@@ -1750,14 +1787,14 @@ SUBROUTINE HIGHORDER_MP(ORDER)
       HA=0.0D0
       IF (K == IFILE) THEN
        DO I=1,IALL(0,0,0)-IVIRTCORE
-        IF (BTEST(CFHALF(IA),I-1)) HA=HA+EPSILON(I,0,0,0)
+        IF (BTEST(CFHALF(IA),I-1)) HA=HA+TEPS(I)
        ENDDO
       ENDIF
       DO IB=1,NCF
        HB=0.0D0
        IF (K == IFILE) THEN
         DO I=1,IALL(0,0,0)-IVIRTCORE
-         IF (BTEST(CFHALF(IB),I-1)) HB=HB+EPSILON(I,0,0,0)
+         IF (BTEST(CFHALF(IB),I-1)) HB=HB+TEPS(I)
         ENDDO
        ENDIF
        IF (K == IFILE) THEN
@@ -1771,12 +1808,12 @@ SUBROUTINE HIGHORDER_MP(ORDER)
     DO IA=1,NCF
      HA=0.0D0
      DO I=1,IALL(0,0,0)-IVIRTCORE
-      IF (BTEST(CFHALF(IA),I-1)) HA=HA+EPSILON(I,0,0,0)
+      IF (BTEST(CFHALF(IA),I-1)) HA=HA+TEPS(I)
      ENDDO
      DO IB=1,NCF
       HB=0.0D0
       DO I=1,IALL(0,0,0)-IVIRTCORE
-       IF (BTEST(CFHALF(IB),I-1)) HB=HB+EPSILON(I,0,0,0)
+       IF (BTEST(CFHALF(IB),I-1)) HB=HB+TEPS(I)
       ENDDO
       IF ((IA == 1).AND.(IB == 1)) THEN
        VEC2(IB,IA)=0.0D0
@@ -1805,7 +1842,7 @@ SUBROUTINE HIGHORDER_MP(ORDER)
    ENDIF
    CLOSE(97)
 
-   DEALLOCATE(VEC1,VEC2)
+   DEALLOCATE(VEC1,VEC2,TEPS)
    CLOSE(50)
    CLOSE(51)
    RETURN
@@ -2499,6 +2536,11 @@ SUBROUTINE HIGHORDER_CC(ORDER,LGUESS,LDIIS,LXCC)
     ! FORM H EXP(T)|0> - E EXP(T)|0> OR EXP(-T) H EXP(T)|0> - E|0>
     REWIND(91)
     READ(91) VEC3
+!do ia=1,ncf
+!do ib=1,ncf
+!write(*,*) 'ia,ib = ',ia,ib,' expT|0> = ',vec3(ia,ib)
+!enddo
+!enddo
     REWIND(92)
     READ(92) VEC1
     IF (IOPTN(64) == 2) THEN
@@ -2512,7 +2554,7 @@ SUBROUTINE HIGHORDER_CC(ORDER,LGUESS,LDIIS,LXCC)
     DO IA=1,NCF
      DO IB=1,NCF
       IF (NORDER(IA)+NORDER(IB) <= ORDER) VEC2(IB,IA)=VEC1(IB,IA)-VEC3(IB,IA)*ECC
-! DEBUG FOR CCD, COMMENT OUT FROM HERE ...
+! FOR CCD, COMMENT OUT FROM HERE ...
 !     IF (NORDER(IA)+NORDER(IB) == 2) VEC2(IB,IA)=VEC1(IB,IA)-VEC3(IB,IA)*ECC
 ! ... TO HERE
      ENDDO
@@ -2705,9 +2747,12 @@ SUBROUTINE HIGHORDER_CC(ORDER,LGUESS,LDIIS,LXCC)
         VEC1(IA,IB)=0.0D0
        ELSE
         IF (IOPTN(64) == 2) THEN
-         VEC1(IA,IB)=VEC1(IA,IB)-VEC2(IA,IB)*DFLOAT(ISIGN*JSIGN*KSIGN(NORDER(IA))*KSIGN(NORDER(IB)))*DOPTN(63)
+!        VEC1(IA,IB)=VEC1(IA,IB)-VEC2(IA,IB)*DFLOAT(ISIGN*JSIGN*KSIGN(NORDER(IA))*KSIGN(NORDER(IB)))*DOPTN(63)
+         VEC1(IA,IB)=VEC1(IA,IB)+VEC2(IA,IB)*DFLOAT(ISIGN*JSIGN*KSIGN(NORDER(IA))*KSIGN(NORDER(IB)))/(HA+HB)*DOPTN(63)
         ELSE
          VEC1(IA,IB)=VEC1(IA,IB)+VEC2(IA,IB)*DFLOAT(ISIGN*JSIGN*KSIGN(NORDER(IA))*KSIGN(NORDER(IB)))/(HA+HB)*DOPTN(63)
+!write(*,*) 'ia,ib = ',ia,ib,' ha+hb = ',ha+hb, ' vec2 = ',vec2(ia,ib)
+!write(*,*) 'ia,ib = ',ia,ib,' T amp = ',vec1(ia,ib)
         ENDIF
        ENDIF
       ENDDO
@@ -2780,10 +2825,7 @@ FUNCTION COMBINATION(M,N)
    
    COMBINATION=1
    DO I=M-N+1,M
-    COMBINATION=COMBINATION*I
-   ENDDO
-   DO I=1,N
-    COMBINATION=COMBINATION/I
+    COMBINATION=COMBINATION*I/(I-M+N)
    ENDDO
    RETURN
 END FUNCTION

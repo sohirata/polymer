@@ -11,7 +11,7 @@ SUBROUTINE READ1
 
    IMPLICIT NONE
 !  INCLUDE "mpif.h"
-   INTEGER,PARAMETER :: NOPTN = 108
+   INTEGER,PARAMETER :: NOPTN = 110
    INTEGER,PARAMETER :: NTHEORY = 10
    CHARACTER(10),PARAMETER :: CNAME(NOPTN) = &
       (/'JOBNAME   ','BASISSET  ','PERIOD    ','HELIX     ','CHARGE    ',& !   1 -   5
@@ -35,7 +35,7 @@ SUBROUTINE READ1
         'POLARZ    ','SOS       ','RELATIVITY','SINANOGLU ','SALG      ',& !  91 -  95
         'SINGULAR  ','HIGHGF    ','TEMP      ','MODULO    ','NGRID     ',& !  96 - 100
         'DELTAH    ','GEMINAL   ','LMAX      ','MBGFALG   ','MP2ALG    ',& ! 101 - 105
-        'DIAGONAL  ','DYSONCONV ','TEMPHF    '                          /) ! 106 - 108
+        'DIAGONAL  ','DYSONCONV ','TEMPHF    ','DEGENERATE','TCE       '/) ! 106 - 110
    CHARACTER(10),PARAMETER :: CTHEORYNAME(NTHEORY) = &
       (/'HF        ','SNULL     ','BNULL     ','SVWN      ','BLYP      ',&
         'SLYP      ','BVWN      ','B3LYP     ','MP2FC     ','MP2FULL   '/)
@@ -43,16 +43,16 @@ SUBROUTINE READ1
    INTEGER,PARAMETER :: ITYPE(NOPTN) = (/-3,3,2,-2,-1,1,-1,-3,-1,1,1,-2,-1,-2,-2,-1,-3,-1,-2,-2,-2, &
    -2,-2,-2,-4,-2,-1,-2,-1,-4,-4,-4,-4,-4,-3,-1,-1,-2,-4,-4,-2,-1,-4,-1,-2,-4,-1,-1,-1,-1,-1,-1,-1, &
    -1,-1,-1,-1,-1,-1,-4,-4,-2,-2,-1,-4,-1,-2,-2,-4,-3,-1,-4,-4,-1,-1,-2,-2,-2,-2,-2,-1,-1,-4,-2,-2, &
-   -4,-2,-1,-4,-4,-4,-4,-4,-4,-1,-2,-1,-2,-1,-1,-2,-3,-1,-1,-1,-4,-2,-2/)
+   -4,-2,-1,-4,-4,-4,-4,-4,-4,-1,-2,-1,-2,-1,-1,-2,-3,-1,-1,-1,-4,-2,-2,-4,-3/)
    ! 1 = FORMAT(I3) ; 20 = FORMAT(F20.15) ; 21 = FORMAT(E24.15) ; 22 = FORMAT(F20.15/E24.15) ; 3 = FORMAT(A100)
    ! 4 = .TRUE. OR .FALSE.
    INTEGER,PARAMETER :: PRINT_TYPE(NOPTN) = (/3,3,22,22,1,1,1,3,1,1,1,21,1,21,20,1,3,1,20,20,20,20,20, &
    20,4,20,1,20,1,4,4,4,4,4,3,1,1,21,4,4,21,1,4,1,20,4,1,1,1,1,1,1,1,1,1,1,1,1,1,4,4,21,20,1,4,1,21,21,4,3, &
-   1,4,4,1,1,20,20,20,20,20,1,1,4,20,21,4,21,1,4,4,4,4,4,4,1,21,1,21,1,1,21,3,1,1,1,4,21,21/)
+   1,4,4,1,1,20,20,20,20,20,1,1,4,20,21,4,21,1,4,4,4,4,4,4,1,21,1,21,1,1,21,3,1,1,1,4,21,21,4,3/)
    INTEGER,PARAMETER :: PRINT_ORDER(NOPTN) = (/1,7,35,2,17,69,5,3,4,8,9,6,99,10,11,29,19,20,21,22,23,76,77,78,79,80,84,&
    24,12,85,14,15,41,38,13,16,42,18,36,37,28,26,25,27,55,33,34,30,31,32,39,40,43,44,45,46,49,50,51,52,53,54,63,64,&
    65,66,56,57,58,59,60,61,47,48,67,62,68,70,71,72,73,74,75,81,82,83,86,87,88,89,90,91,92,93,94,95,96,97,108,98,100,101,&
-   102,103,104,105,106,107/)
+   102,103,104,105,106,107,109,110/)
    INTEGER :: ITHEORY(NTHEORY)
    INTEGER :: I,J,L,M,EOF
    INTEGER :: K(NOPTN)
@@ -165,6 +165,8 @@ SUBROUTINE READ1
    LOPTN(106)=.TRUE. ! DIAGONAL APPROXIMATION TO SELF-ENERGY = T
    DOPTN(107)=0.0001D0
    DOPTN(108)=0.0D0
+   LOPTN(109)=.FALSE.
+   COPTN(110)='NONE'
 
    DO I=1,NOPTN
     K(I)=0

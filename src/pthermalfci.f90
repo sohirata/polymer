@@ -6669,13 +6669,13 @@ SUBROUTINE THERMAL_GENERATE_CONFIGURATIONSA(NE,ORDER)
    IMPLICIT NONE
    INTEGER :: NE
    INTEGER :: ORDER
-   INTEGER :: I,J,K,L,M
+   INTEGER :: I,J,K,L,K2
    INTEGER :: I1,I2,I3,I4,I5,I6,I7,I8
    INTEGER(4) :: ICF
    INTEGER :: COMBINATION
    
-   IF (ICORE > 0) WRITE(6,'(A,I3,A)') '***** WARNING : ',ICORE,' CORE ALPHA ORBITALS ARE ALWAYS OCCUPIED'
-   IF (IVIRTCORE > 0) WRITE(6,'(A,I3,A)') '***** WARNING : ',IVIRTCORE,' HIGHEST VIRTUAL ALPHA ORBITALS ARE ALWAYS UNOCCUPIED'
+!  IF (ICORE > 0) WRITE(6,'(A,I3,A)') '***** WARNING : ',ICORE,' CORE ALPHA ORBITALS ARE ALWAYS OCCUPIED'
+!  IF (IVIRTCORE > 0) WRITE(6,'(A,I3,A)') '***** WARNING : ',IVIRTCORE,' HIGHEST VIRTUAL ALPHA ORBITALS ARE ALWAYS UNOCCUPIED'
 !  WRITE(6,'(A,I3,A,I3,A)') '  THERE ARE ',NE-ICORE,' ACTIVE ALPHA ELECTRONS IN ',IALL(0,0,0)-ICORE-IVIRTCORE,' ACTIVE ORBITALS'
    NCFA=0
    DO I=0,ORDER
@@ -6686,8 +6686,7 @@ SUBROUTINE THERMAL_GENERATE_CONFIGURATIONSA(NE,ORDER)
 !  WRITE(6,'(A,I7)') '    TOTAL ALPHA CONFIGURATIONS ',NCFA
    IF (NCFA /= COMBINATION(IALL(0,0,0)-ICORE-IVIRTCORE,NE-ICORE)) CALL PABORT('AN ERROR OCCURRED IN COMBINATION FUNCTION')
 
-   ALLOCATE(CFHALFA(NCFA),NORDERA(NCFA),ADDRSSA(0:2**(IALLMAX-IVIRTCORE)))
-
+   ALLOCATE(CFHALFA(NCFA),NORDERA(NCFA),ADDRSSA(0:2**(IALL(0,0,0)-IVIRTCORE)))
  
    ADDRSSA=0
    I=0
@@ -6698,13 +6697,24 @@ SUBROUTINE THERMAL_GENERATE_CONFIGURATIONSA(NE,ORDER)
     CFHALFA(I)=ICF
     NORDERA(I)=J
     ADDRSSA(ICF)=I
-    K=0
-    M=0
-    DO L=0,IALL(0,0,0)-IVIRTCORE-1
-     IF (BTEST(ICF,L)) K=K+10**L
-     IF (BTEST(ICF,L)) M=L
-    ENDDO
-!   WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!   IF (IALL(0,0,0)-IVIRTCORE > 9) THEN
+!    K=0
+!    DO L=0,9
+!     IF (BTEST(ICF,L)) K=K+10**L
+!    ENDDO
+!    K2=0
+!    DO L=10,IALL(0,0,0)-IVIRTCORE-1
+!     IF (BTEST(ICF,L)) K2=K2+10**(L-10)
+!    ENDDO
+!    IF (K2==0) WRITE(6,'(I6,A,I3,A,I6,A,10X,I10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!    IF (K2/=0) WRITE(6,'(I6,A,I3,A,I6,A,I10,I10.10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K2,K
+!   ELSE
+!    K=0
+!    DO L=0,IALL(0,0,0)-IVIRTCORE-1
+!     IF (BTEST(ICF,L)) K=K+10**L
+!    ENDDO
+!    WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!   ENDIF
    ELSE IF (NE == 1) THEN
     DO I1=1,IALL(0,0,0)-IVIRTCORE
      J=0
@@ -6719,12 +6729,24 @@ SUBROUTINE THERMAL_GENERATE_CONFIGURATIONSA(NE,ORDER)
      CFHALFA(I)=ICF
      NORDERA(I)=J
      ADDRSSA(ICF)=I
-     K=0
-     DO L=0,IALL(0,0,0)-IVIRTCORE-1
-      IF (BTEST(ICF,L)) K=K+10**L
-      IF (BTEST(ICF,L)) M=L
-     ENDDO
-!    WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!    IF (IALL(0,0,0)-IVIRTCORE > 9) THEN
+!     K=0
+!     DO L=0,9
+!      IF (BTEST(ICF,L)) K=K+10**L
+!     ENDDO
+!     K2=0
+!     DO L=10,IALL(0,0,0)-IVIRTCORE-1
+!      IF (BTEST(ICF,L)) K2=K2+10**(L-10)
+!     ENDDO
+!     IF (K2==0) WRITE(6,'(I6,A,I3,A,I6,A,10X,I10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!     IF (K2/=0) WRITE(6,'(I6,A,I3,A,I6,A,I10,I10.10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K2,K
+!    ELSE 
+!     K=0
+!     DO L=0,IALL(0,0,0)-IVIRTCORE-1
+!      IF (BTEST(ICF,L)) K=K+10**L
+!     ENDDO
+!     WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!    ENDIF
     ENDDO
    ELSE IF (NE == 2) THEN
     DO I1=1,IALL(0,0,0)-IVIRTCORE-1
@@ -6744,12 +6766,24 @@ SUBROUTINE THERMAL_GENERATE_CONFIGURATIONSA(NE,ORDER)
       CFHALFA(I)=ICF
       NORDERA(I)=J
       ADDRSSA(ICF)=I
-      K=0
-      DO L=0,IALL(0,0,0)-IVIRTCORE-1
-       IF (BTEST(ICF,L)) K=K+10**L
-       IF (BTEST(ICF,L)) M=L
-      ENDDO
-!     WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!     IF (IALL(0,0,0)-IVIRTCORE > 9) THEN
+!      K=0
+!      DO L=0,9
+!       IF (BTEST(ICF,L)) K=K+10**L
+!      ENDDO
+!      K2=0
+!      DO L=10,IALL(0,0,0)-IVIRTCORE-1
+!       IF (BTEST(ICF,L)) K2=K2+10**(L-10)
+!      ENDDO
+!      IF (K2==0) WRITE(6,'(I6,A,I3,A,I6,A,10X,I10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!      IF (K2/=0) WRITE(6,'(I6,A,I3,A,I6,A,I10,I10.10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K2,K
+!     ELSE 
+!      K=0
+!      DO L=0,IALL(0,0,0)-IVIRTCORE-1
+!       IF (BTEST(ICF,L)) K=K+10**L
+!      ENDDO
+!      WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!     ENDIF
      ENDDO
     ENDDO
    ELSE IF (NE == 3) THEN
@@ -6774,12 +6808,24 @@ SUBROUTINE THERMAL_GENERATE_CONFIGURATIONSA(NE,ORDER)
        CFHALFA(I)=ICF
        NORDERA(I)=J
        ADDRSSA(ICF)=I
-       K=0
-       DO L=0,IALL(0,0,0)-IVIRTCORE-1
-        IF (BTEST(ICF,L)) K=K+10**L
-        IF (BTEST(ICF,L)) M=L
-       ENDDO
-!      WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!      IF (IALL(0,0,0)-IVIRTCORE > 9) THEN
+!       K=0
+!       DO L=0,9
+!        IF (BTEST(ICF,L)) K=K+10**L
+!       ENDDO
+!       K2=0
+!       DO L=10,IALL(0,0,0)-IVIRTCORE-1
+!        IF (BTEST(ICF,L)) K2=K2+10**(L-10)
+!       ENDDO
+!       IF (K2==0) WRITE(6,'(I6,A,I3,A,I6,A,10X,I10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!       IF (K2/=0) WRITE(6,'(I6,A,I3,A,I6,A,I10,I10.10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K2,K
+!      ELSE 
+!       K=0
+!       DO L=0,IALL(0,0,0)-IVIRTCORE-1
+!        IF (BTEST(ICF,L)) K=K+10**L
+!       ENDDO
+!       WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!      ENDIF
       ENDDO
      ENDDO
     ENDDO
@@ -6809,12 +6855,24 @@ SUBROUTINE THERMAL_GENERATE_CONFIGURATIONSA(NE,ORDER)
         CFHALFA(I)=ICF
         NORDERA(I)=J
         ADDRSSA(ICF)=I
-        K=0
-        DO L=0,IALL(0,0,0)-IVIRTCORE-1
-         IF (BTEST(ICF,L)) K=K+10**L
-         IF (BTEST(ICF,L)) M=L
-        ENDDO
-!       WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!       IF (IALL(0,0,0)-IVIRTCORE > 9) THEN
+!        K=0
+!        DO L=0,9
+!         IF (BTEST(ICF,L)) K=K+10**L
+!        ENDDO
+!        K2=0
+!        DO L=10,IALL(0,0,0)-IVIRTCORE-1
+!         IF (BTEST(ICF,L)) K2=K2+10**(L-10)
+!        ENDDO
+!        IF (K2==0) WRITE(6,'(I6,A,I3,A,I6,A,10X,I10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!        IF (K2/=0) WRITE(6,'(I6,A,I3,A,I6,A,I10,I10.10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K2,K
+!       ELSE 
+!        K=0
+!        DO L=0,IALL(0,0,0)-IVIRTCORE-1
+!         IF (BTEST(ICF,L)) K=K+10**L
+!        ENDDO
+!        WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!       ENDIF
        ENDDO
       ENDDO
      ENDDO
@@ -6849,12 +6907,24 @@ SUBROUTINE THERMAL_GENERATE_CONFIGURATIONSA(NE,ORDER)
          CFHALFA(I)=ICF
          NORDERA(I)=J
          ADDRSSA(ICF)=I
-         K=0
-         DO L=0,IALL(0,0,0)-IVIRTCORE-1
-          IF (BTEST(ICF,L)) K=K+10**L
-          IF (BTEST(ICF,L)) M=L
-         ENDDO
-!        WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!        IF (IALL(0,0,0)-IVIRTCORE > 9) THEN
+!         K=0
+!         DO L=0,9
+!          IF (BTEST(ICF,L)) K=K+10**L
+!         ENDDO
+!         K2=0
+!         DO L=10,IALL(0,0,0)-IVIRTCORE-1
+!          IF (BTEST(ICF,L)) K2=K2+10**(L-10)
+!         ENDDO
+!         IF (K2==0) WRITE(6,'(I6,A,I3,A,I6,A,10X,I10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!         IF (K2/=0) WRITE(6,'(I6,A,I3,A,I6,A,I10,I10.10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K2,K
+!        ELSE 
+!         K=0
+!         DO L=0,IALL(0,0,0)-IVIRTCORE-1
+!          IF (BTEST(ICF,L)) K=K+10**L
+!         ENDDO
+!         WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!        ENDIF
         ENDDO
        ENDDO
       ENDDO
@@ -6894,12 +6964,24 @@ SUBROUTINE THERMAL_GENERATE_CONFIGURATIONSA(NE,ORDER)
           CFHALFA(I)=ICF
           NORDERA(I)=J
           ADDRSSA(ICF)=I
-          K=0
-          DO L=0,IALL(0,0,0)-IVIRTCORE-1
-           IF (BTEST(ICF,L)) K=K+10**L
-           IF (BTEST(ICF,L)) M=L
-          ENDDO
-!         WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!         IF (IALL(0,0,0)-IVIRTCORE > 9) THEN
+!          K=0
+!          DO L=0,9
+!           IF (BTEST(ICF,L)) K=K+10**L
+!          ENDDO
+!          K2=0
+!          DO L=10,IALL(0,0,0)-IVIRTCORE-1
+!           IF (BTEST(ICF,L)) K2=K2+10**(L-10)
+!          ENDDO
+!          IF (K2==0) WRITE(6,'(I6,A,I3,A,I6,A,10X,I10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!          IF (K2/=0) WRITE(6,'(I6,A,I3,A,I6,A,I10,I10.10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K2,K
+!         ELSE 
+!          K=0
+!          DO L=0,IALL(0,0,0)-IVIRTCORE-1
+!           IF (BTEST(ICF,L)) K=K+10**L
+!          ENDDO
+!          WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!         ENDIF
          ENDDO
         ENDDO
        ENDDO
@@ -6944,12 +7026,24 @@ SUBROUTINE THERMAL_GENERATE_CONFIGURATIONSA(NE,ORDER)
            CFHALFA(I)=ICF
            NORDERA(I)=J
            ADDRSSA(ICF)=I
-           K=0
-           DO L=0,IALL(0,0,0)-IVIRTCORE-1
-            IF (BTEST(ICF,L)) K=K+10**L
-            IF (BTEST(ICF,L)) M=L
-           ENDDO
-!          WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!          IF (IALL(0,0,0)-IVIRTCORE > 9) THEN
+!           K=0
+!           DO L=0,9
+!            IF (BTEST(ICF,L)) K=K+10**L
+!           ENDDO
+!           K2=0
+!           DO L=10,IALL(0,0,0)-IVIRTCORE-1
+!            IF (BTEST(ICF,L)) K2=K2+10**(L-10)
+!           ENDDO
+!           IF (K2==0) WRITE(6,'(I6,A,I3,A,I6,A,10X,I10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!           IF (K2/=0) WRITE(6,'(I6,A,I3,A,I6,A,I10,I10.10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K2,K
+!          ELSE 
+!           K=0
+!           DO L=0,IALL(0,0,0)-IVIRTCORE-1
+!            IF (BTEST(ICF,L)) K=K+10**L
+!           ENDDO
+!           WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!          ENDIF
           ENDDO
          ENDDO
         ENDDO
@@ -6999,12 +7093,24 @@ SUBROUTINE THERMAL_GENERATE_CONFIGURATIONSA(NE,ORDER)
             CFHALFA(I)=ICF
             NORDERA(I)=J
             ADDRSSA(ICF)=I
-            K=0
-            DO L=0,IALL(0,0,0)-IVIRTCORE-1
-             IF (BTEST(ICF,L)) K=K+10**L
-             IF (BTEST(ICF,L)) M=L
-            ENDDO
-!           WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!           IF (IALL(0,0,0)-IVIRTCORE > 9) THEN
+!            K=0
+!            DO L=0,9
+!             IF (BTEST(ICF,L)) K=K+10**L
+!            ENDDO
+!            K2=0
+!            DO L=10,IALL(0,0,0)-IVIRTCORE-1
+!             IF (BTEST(ICF,L)) K2=K2+10**(L-10)
+!            ENDDO
+!            IF (K2==0) WRITE(6,'(I6,A,I3,A,I6,A,10X,I10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!            IF (K2/=0) WRITE(6,'(I6,A,I3,A,I6,A,I10,I10.10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K2,K
+!           ELSE 
+!            K=0
+!            DO L=0,IALL(0,0,0)-IVIRTCORE-1
+!             IF (BTEST(ICF,L)) K=K+10**L
+!            ENDDO
+!            WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!           ENDIF
            ENDDO
           ENDDO
          ENDDO
@@ -7034,13 +7140,13 @@ SUBROUTINE THERMAL_GENERATE_CONFIGURATIONSB(NE,ORDER)
    IMPLICIT NONE
    INTEGER :: NE
    INTEGER :: ORDER
-   INTEGER :: I,J,K,L,M
+   INTEGER :: I,J,K,L,K2
    INTEGER :: I1,I2,I3,I4,I5,I6,I7,I8
    INTEGER(4) :: ICF
    INTEGER :: COMBINATION
    
-   IF (ICORE > 0) WRITE(6,'(A,I3,A)') '***** WARNING : ',ICORE,' CORE BETA ORBITALS ARE ALWAYS OCCUPIED'
-   IF (IVIRTCORE > 0) WRITE(6,'(A,I3,A)') '***** WARNING : ',IVIRTCORE,' HIGHEST VIRTUAL BETA ORBITALS ARE ALWAYS UNOCCUPIED'
+!  IF (ICORE > 0) WRITE(6,'(A,I3,A)') '***** WARNING : ',ICORE,' CORE BETA ORBITALS ARE ALWAYS OCCUPIED'
+!  IF (IVIRTCORE > 0) WRITE(6,'(A,I3,A)') '***** WARNING : ',IVIRTCORE,' HIGHEST VIRTUAL BETA ORBITALS ARE ALWAYS UNOCCUPIED'
 !  WRITE(6,'(A,I3,A,I3,A)') '  THERE ARE ',NE-ICORE,' ACTIVE BETA ELECTRONS IN ',IALL(0,0,0)-ICORE-IVIRTCORE,' ACTIVE ORBITALS'
    NCFB=0
    DO I=0,ORDER
@@ -7048,11 +7154,11 @@ SUBROUTINE THERMAL_GENERATE_CONFIGURATIONSB(NE,ORDER)
 !   WRITE(6,'(I4,A,I7)') I,' EXCITATION CONFIGURATIONS ',J
     NCFB=NCFB+J
    ENDDO
-!  WRITE(6,'(A,I7)') '    TOTAL ALPHA CONFIGURATIONS ',NCFB
+!  WRITE(6,'(A,I7)') '    TOTAL  BETA CONFIGURATIONS ',NCFB
    IF (NCFB /= COMBINATION(IALL(0,0,0)-ICORE-IVIRTCORE,NE-ICORE)) CALL PABORT('AN ERROR OCCURRED IN COMBINATION FUNCTION')
 
-   ALLOCATE(CFHALFB(NCFB),NORDERB(NCFB),ADDRSSB(0:2**(IALLMAX-IVIRTCORE)))
- 
+   ALLOCATE(CFHALFB(NCFB),NORDERB(NCFB),ADDRSSB(0:2**(IALL(0,0,0)-IVIRTCORE)))
+
    ADDRSSB=0
    I=0
    IF (NE == 0) THEN
@@ -7062,13 +7168,24 @@ SUBROUTINE THERMAL_GENERATE_CONFIGURATIONSB(NE,ORDER)
     CFHALFB(I)=ICF
     NORDERB(I)=J
     ADDRSSB(ICF)=I
-    K=0
-    M=0
-    DO L=0,IALL(0,0,0)-IVIRTCORE-1
-     IF (BTEST(ICF,L)) K=K+10**L
-     IF (BTEST(ICF,L)) M=L
-    ENDDO
-!   WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!   IF (IALL(0,0,0)-IVIRTCORE > 9) THEN
+!    K=0
+!    DO L=0,9
+!     IF (BTEST(ICF,L)) K=K+10**L
+!    ENDDO
+!    K2=0
+!    DO L=10,IALL(0,0,0)-IVIRTCORE-1
+!     IF (BTEST(ICF,L)) K2=K2+10**(L-10)
+!    ENDDO
+!    IF (K2==0) WRITE(6,'(I6,A,I3,A,I6,A,10X,I10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!    IF (K2/=0) WRITE(6,'(I6,A,I3,A,I6,A,I10,I10.10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K2,K
+!   ELSE
+!    K=0
+!    DO L=0,IALL(0,0,0)-IVIRTCORE-1
+!     IF (BTEST(ICF,L)) K=K+10**L
+!    ENDDO
+!    WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!   ENDIF
    ELSE IF (NE == 1) THEN
     DO I1=1,IALL(0,0,0)-IVIRTCORE
      J=0
@@ -7083,12 +7200,24 @@ SUBROUTINE THERMAL_GENERATE_CONFIGURATIONSB(NE,ORDER)
      CFHALFB(I)=ICF
      NORDERB(I)=J
      ADDRSSB(ICF)=I
-     K=0
-     DO L=0,IALL(0,0,0)-IVIRTCORE-1
-      IF (BTEST(ICF,L)) K=K+10**L
-      IF (BTEST(ICF,L)) M=L
-     ENDDO
-!    WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!    IF (IALL(0,0,0)-IVIRTCORE > 9) THEN
+!     K=0
+!     DO L=0,9
+!      IF (BTEST(ICF,L)) K=K+10**L
+!     ENDDO
+!     K2=0
+!     DO L=10,IALL(0,0,0)-IVIRTCORE-1
+!      IF (BTEST(ICF,L)) K2=K2+10**(L-10)
+!     ENDDO
+!     IF (K2==0) WRITE(6,'(I6,A,I3,A,I6,A,10X,I10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!     IF (K2/=0) WRITE(6,'(I6,A,I3,A,I6,A,I10,I10.10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K2,K
+!    ELSE
+!     K=0
+!     DO L=0,IALL(0,0,0)-IVIRTCORE-1
+!      IF (BTEST(ICF,L)) K=K+10**L
+!     ENDDO
+!     WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!    ENDIF
     ENDDO
    ELSE IF (NE == 2) THEN
     DO I1=1,IALL(0,0,0)-IVIRTCORE-1
@@ -7108,12 +7237,24 @@ SUBROUTINE THERMAL_GENERATE_CONFIGURATIONSB(NE,ORDER)
       CFHALFB(I)=ICF
       NORDERB(I)=J
       ADDRSSB(ICF)=I
-      K=0
-      DO L=0,IALL(0,0,0)-IVIRTCORE-1
-       IF (BTEST(ICF,L)) K=K+10**L
-       IF (BTEST(ICF,L)) M=L
-      ENDDO
-!     WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!     IF (IALL(0,0,0)-IVIRTCORE > 9) THEN
+!      K=0
+!      DO L=0,9
+!       IF (BTEST(ICF,L)) K=K+10**L
+!      ENDDO
+!      K2=0
+!      DO L=10,IALL(0,0,0)-IVIRTCORE-1
+!       IF (BTEST(ICF,L)) K2=K2+10**(L-10)
+!      ENDDO
+!      IF (K2==0) WRITE(6,'(I6,A,I3,A,I6,A,10X,I10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!      IF (K2/=0) WRITE(6,'(I6,A,I3,A,I6,A,I10,I10.10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K2,K
+!     ELSE
+!      K=0
+!      DO L=0,IALL(0,0,0)-IVIRTCORE-1
+!       IF (BTEST(ICF,L)) K=K+10**L
+!      ENDDO
+!      WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!     ENDIF
      ENDDO
     ENDDO
    ELSE IF (NE == 3) THEN
@@ -7138,12 +7279,24 @@ SUBROUTINE THERMAL_GENERATE_CONFIGURATIONSB(NE,ORDER)
        CFHALFB(I)=ICF
        NORDERB(I)=J
        ADDRSSB(ICF)=I
-       K=0
-       DO L=0,IALL(0,0,0)-IVIRTCORE-1
-        IF (BTEST(ICF,L)) K=K+10**L
-        IF (BTEST(ICF,L)) M=L
-       ENDDO
-!      WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!      IF (IALL(0,0,0)-IVIRTCORE > 9) THEN
+!       K=0
+!       DO L=0,9
+!        IF (BTEST(ICF,L)) K=K+10**L
+!       ENDDO
+!       K2=0
+!       DO L=10,IALL(0,0,0)-IVIRTCORE-1
+!        IF (BTEST(ICF,L)) K2=K2+10**(L-10)
+!       ENDDO
+!       IF (K2==0) WRITE(6,'(I6,A,I3,A,I6,A,10X,I10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!       IF (K2/=0) WRITE(6,'(I6,A,I3,A,I6,A,I10,I10.10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K2,K
+!      ELSE
+!       K=0
+!       DO L=0,IALL(0,0,0)-IVIRTCORE-1
+!        IF (BTEST(ICF,L)) K=K+10**L
+!       ENDDO
+!       WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!      ENDIF
       ENDDO
      ENDDO
     ENDDO
@@ -7173,12 +7326,24 @@ SUBROUTINE THERMAL_GENERATE_CONFIGURATIONSB(NE,ORDER)
         CFHALFB(I)=ICF
         NORDERB(I)=J
         ADDRSSB(ICF)=I
-        K=0
-        DO L=0,IALL(0,0,0)-IVIRTCORE-1
-         IF (BTEST(ICF,L)) K=K+10**L
-         IF (BTEST(ICF,L)) M=L
-        ENDDO
-!       WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!       IF (IALL(0,0,0)-IVIRTCORE > 9) THEN
+!        K=0
+!        DO L=0,9
+!         IF (BTEST(ICF,L)) K=K+10**L
+!        ENDDO
+!        K2=0
+!        DO L=10,IALL(0,0,0)-IVIRTCORE-1
+!         IF (BTEST(ICF,L)) K2=K2+10**(L-10)
+!        ENDDO
+!        IF (K2==0) WRITE(6,'(I6,A,I3,A,I6,A,10X,I10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!        IF (K2/=0) WRITE(6,'(I6,A,I3,A,I6,A,I10,I10.10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K2,K
+!       ELSE
+!        K=0
+!        DO L=0,IALL(0,0,0)-IVIRTCORE-1
+!         IF (BTEST(ICF,L)) K=K+10**L
+!        ENDDO
+!        WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!       ENDIF
        ENDDO
       ENDDO
      ENDDO
@@ -7213,12 +7378,24 @@ SUBROUTINE THERMAL_GENERATE_CONFIGURATIONSB(NE,ORDER)
          CFHALFB(I)=ICF
          NORDERB(I)=J
          ADDRSSB(ICF)=I
-         K=0
-         DO L=0,IALL(0,0,0)-IVIRTCORE-1
-          IF (BTEST(ICF,L)) K=K+10**L
-          IF (BTEST(ICF,L)) M=L
-         ENDDO
-!        WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!        IF (IALL(0,0,0)-IVIRTCORE > 9) THEN
+!         K=0
+!         DO L=0,9
+!          IF (BTEST(ICF,L)) K=K+10**L
+!         ENDDO
+!         K2=0
+!         DO L=10,IALL(0,0,0)-IVIRTCORE-1
+!          IF (BTEST(ICF,L)) K2=K2+10**(L-10)
+!         ENDDO
+!         IF (K2==0) WRITE(6,'(I6,A,I3,A,I6,A,10X,I10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!         IF (K2/=0) WRITE(6,'(I6,A,I3,A,I6,A,I10,I10.10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K2,K
+!        ELSE
+!         K=0
+!         DO L=0,IALL(0,0,0)-IVIRTCORE-1
+!          IF (BTEST(ICF,L)) K=K+10**L
+!         ENDDO
+!         WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!        ENDIF
         ENDDO
        ENDDO
       ENDDO
@@ -7258,12 +7435,24 @@ SUBROUTINE THERMAL_GENERATE_CONFIGURATIONSB(NE,ORDER)
           CFHALFB(I)=ICF
           NORDERB(I)=J
           ADDRSSB(ICF)=I
-          K=0
-          DO L=0,IALL(0,0,0)-IVIRTCORE-1
-           IF (BTEST(ICF,L)) K=K+10**L
-           IF (BTEST(ICF,L)) M=L
-          ENDDO
-!         WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!         IF (IALL(0,0,0)-IVIRTCORE > 9) THEN
+!          K=0
+!          DO L=0,9
+!           IF (BTEST(ICF,L)) K=K+10**L
+!          ENDDO
+!          K2=0
+!          DO L=10,IALL(0,0,0)-IVIRTCORE-1
+!           IF (BTEST(ICF,L)) K2=K2+10**(L-10)
+!          ENDDO
+!          IF (K2==0) WRITE(6,'(I6,A,I3,A,I6,A,10X,I10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!          IF (K2/=0) WRITE(6,'(I6,A,I3,A,I6,A,I10,I10.10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K2,K
+!         ELSE
+!          K=0
+!          DO L=0,IALL(0,0,0)-IVIRTCORE-1
+!           IF (BTEST(ICF,L)) K=K+10**L
+!          ENDDO
+!          WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!         ENDIF
          ENDDO
         ENDDO
        ENDDO
@@ -7308,12 +7497,24 @@ SUBROUTINE THERMAL_GENERATE_CONFIGURATIONSB(NE,ORDER)
            CFHALFB(I)=ICF
            NORDERB(I)=J
            ADDRSSB(ICF)=I
-           K=0
-           DO L=0,IALL(0,0,0)-IVIRTCORE-1
-            IF (BTEST(ICF,L)) K=K+10**L
-            IF (BTEST(ICF,L)) M=L
-           ENDDO
-!          WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!          IF (IALL(0,0,0)-IVIRTCORE > 9) THEN
+!           K=0
+!           DO L=0,9
+!            IF (BTEST(ICF,L)) K=K+10**L
+!           ENDDO
+!           K2=0
+!           DO L=10,IALL(0,0,0)-IVIRTCORE-1
+!            IF (BTEST(ICF,L)) K2=K2+10**(L-10)
+!           ENDDO
+!           IF (K2==0) WRITE(6,'(I6,A,I3,A,I6,A,10X,I10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!           IF (K2/=0) WRITE(6,'(I6,A,I3,A,I6,A,I10,I10.10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K2,K
+!          ELSE
+!           K=0
+!           DO L=0,IALL(0,0,0)-IVIRTCORE-1
+!            IF (BTEST(ICF,L)) K=K+10**L
+!           ENDDO
+!           WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!          ENDIF
           ENDDO
          ENDDO
         ENDDO
@@ -7363,12 +7564,24 @@ SUBROUTINE THERMAL_GENERATE_CONFIGURATIONSB(NE,ORDER)
             CFHALFB(I)=ICF
             NORDERB(I)=J
             ADDRSSB(ICF)=I
-            K=0
-            DO L=0,IALL(0,0,0)-IVIRTCORE-1
-             IF (BTEST(ICF,L)) K=K+10**L
-             IF (BTEST(ICF,L)) M=L
-            ENDDO
-!           WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!           IF (IALL(0,0,0)-IVIRTCORE > 9) THEN
+!            K=0
+!            DO L=0,9
+!             IF (BTEST(ICF,L)) K=K+10**L
+!            ENDDO
+!            K2=0
+!            DO L=10,IALL(0,0,0)-IVIRTCORE-1
+!             IF (BTEST(ICF,L)) K2=K2+10**(L-10)
+!            ENDDO
+!            IF (K2==0) WRITE(6,'(I6,A,I3,A,I6,A,10X,I10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!            IF (K2/=0) WRITE(6,'(I6,A,I3,A,I6,A,I10,I10.10)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K2,K
+!           ELSE
+!            K=0
+!            DO L=0,IALL(0,0,0)-IVIRTCORE-1
+!             IF (BTEST(ICF,L)) K=K+10**L
+!            ENDDO
+!            WRITE(6,'(I6,A,I3,A,I6,A,I12)') I,' ORDER = ',J,' CF(NUM) = ',ICF,' CF(BIT) = ',K
+!           ENDIF
            ENDDO
           ENDDO
          ENDDO
@@ -7434,15 +7647,30 @@ integer :: ibsave,iasave
    ! ZERO SCRATCH PRODUCT VECTOR
    PRD=0.0D0
 
+!write(*,*) '##### NELES=',NELEA,NELEB
+!write(*,*) '##### IB=1',(BTEST(CFHALFB(1),I-1),I=1,IALL(0,0,0))
+!write(*,*) '##### IB=2',(BTEST(CFHALFB(2),I-1),I=1,IALL(0,0,0))
+!write(*,*) '##### IA=1',(BTEST(CFHALFA(1),I-1),I=1,IALL(0,0,0))
+!write(*,*) '##### IA=2',(BTEST(CFHALFA(2),I-1),I=1,IALL(0,0,0))
    ! H0
    DO IA=1,NCFA
     DO IB=1,NCFB
      DO I=1,IALL(0,0,0)-IVIRTCORE
       IF (BTEST(CFHALFA(IA),I-1)) PRD(IB,IA)=PRD(IB,IA)+EPSILON(I,0,0,0)*TRL(IB,IA)
       IF (BTEST(CFHALFB(IB),I-1)) PRD(IB,IA)=PRD(IB,IA)+EPSILON(I,0,0,0)*TRL(IB,IA)
+!if ((ib==2).and.(ia==1)) then
+!iF (BTEST(CFHALFA(IA),I-1)) write(*,*) '21 alpha',EPSILON(I,0,0,0)
+!iF (BTEST(CFHALFB(IB),I-1)) write(*,*) '21 beta ',EPSILON(I,0,0,0)
+!endif
+!if ((ib==1).and.(ia==1)) then
+!iF (BTEST(CFHALFA(IA),I-1)) write(*,*) '11 alpha',EPSILON(I,0,0,0)
+!iF (BTEST(CFHALFB(IB),I-1)) write(*,*) '11 beta ',EPSILON(I,0,0,0)
+!endif
      ENDDO
     ENDDO
    ENDDO
+!write(*,*) '#### PRD(1,1) = ',PRD(1,1)
+!write(*,*) '#### PRD(2,1) = ',PRD(2,1)
 
    ! H1 DIAGONAL ELEMENTS
    DO IA=1,NCFA
@@ -7483,6 +7711,8 @@ integer :: ibsave,iasave
      ENDDO
     ENDDO
    ENDDO
+!write(*,*) '%%%% PRD(1,1) = ',PRD(1,1)
+!write(*,*) '%%%% PRD(2,1) = ',PRD(2,1)
 
    ! ONE SPIN ORBITAL DIFFERENCE
    DO IA=1,NCFA
@@ -7858,6 +8088,26 @@ SUBROUTINE THERMAL_ONE_ELECTRON_INTEGRALS
 !  WRITE(6,'(A)') 'INTEGRAL TRANSFORMATION OF ONE-ELECTRON INTEGRALS WILL BE PERFORMED'
 
    ALLOCATE(WR(IALLMAX-IVIRTCORE,NCGS))
+! --- CHECK
+!  WRITE(6,'(A)') 'OVERLAP MATRIX'
+!  DO I=1,NCGS
+!   DO MOP=1,IALL(0,0,0)-IVIRTCORE
+!    WR(MOP,I)=0.0D0
+!    DO J=1,NCGS
+!     WR(MOP,I)=WR(MOP,I)+DREAL(CO(J,MOP,0,0,0))*S_C(J,I,0,0,0)
+!    ENDDO
+!   ENDDO
+!  ENDDO
+!  DO MOP=1,IALL(0,0,0)-IVIRTCORE
+!   DO MOQ=1,IALL(0,0,0)-IVIRTCORE
+!    H(MOP,MOQ)=0.0D0
+!    DO I=1,NCGS
+!     H(MOP,MOQ)=H(MOP,MOQ)+DREAL(CO(I,MOQ,0,0,0))*WR(MOP,I)
+!    ENDDO
+!    WRITE(6,'(2I3,F20.15)') MOP,MOQ,H(MOP,MOQ)
+!   ENDDO
+!  ENDDO 
+! --- CHECK
    DO I=1,NCGS
     DO MOP=1,IALL(0,0,0)-IVIRTCORE
      WR(MOP,I)=0.0D0
@@ -9457,6 +9707,7 @@ SUBROUTINE RESOLVENT_PRODUCT(IA,IB,INFILE,OUTFILE)
    ENDDO
 
    ! DIVIDE BY NONZERO DENOMINATOR OR ZERO BY ZERO DENOMINATOR
+!if ((ia==1).and.(ib==4)) write(*,*) 'denom'
    DO IC=1,NCFA
     DO ID=1,NCFB
      DENOM=E0
@@ -9469,6 +9720,9 @@ SUBROUTINE RESOLVENT_PRODUCT(IA,IB,INFILE,OUTFILE)
      ELSE
       TRL(ID,IC)=0.0D0
      ENDIF
+!if ((ia==1).and.(ib==4)) then
+! write(*,'(2i3,f20.10)') ic,id,denom
+!endif
     ENDDO
    ENDDO
 
@@ -9547,9 +9801,6 @@ SUBROUTINE EHC_GEN(ORDER,NALL_CHECK)
    REAL :: MEM,ICPUS,ICPUE
    DOUBLE PRECISION,ALLOCATABLE :: VEC1(:,:),VEC2(:,:),VEC3(:,:)
 
-   CALL CPU_TIME(ICPUS)
-   MEM=16.0*2.0*NCFA*NCFB
-   IF (MEM > DOPTN(28)*1000000.0) CALL PABORT('OUT OF MEMORY')
    ALLOCATE(VEC1(NCFB,NCFA),VEC2(NCFB,NCFA),VEC3(NCFB,NCFA))
 
    OPEN(50,FILE=TRIM(COPTN(1))//'.fi0',FORM='UNFORMATTED')
@@ -9572,7 +9823,6 @@ SUBROUTINE EHC_GEN(ORDER,NALL_CHECK)
       CALL THERMAL_V_PRODUCT(50,51)
       REWIND(51)
       READ(51) VEC1
-
 
       ! EHC(X,Y,I)=<0(Y)|V|I-1(X)>
       REWIND(50)
@@ -9601,7 +9851,6 @@ SUBROUTINE EHC_GEN(ORDER,NALL_CHECK)
          ENDDO
         ENDDO
        ENDDO
-
       ENDIF
 
       ! R0
@@ -9616,12 +9865,117 @@ SUBROUTINE EHC_GEN(ORDER,NALL_CHECK)
         VHC((IC-1)*NCFB+ID+NALL_CHECK,(IA-1)*NCFB+IB+NALL_CHECK,I)=VEC1(ID,IC)
        ENDDO
       ENDDO
-
      ENDDO
 
     ENDDO
    ENDDO
-   CALL CPU_TIME(ICPUE)
+
+   DEALLOCATE(VEC3,VEC2,VEC1)
+   CLOSE(50)
+   CLOSE(51)
+   RETURN
+END SUBROUTINE
+
+
+
+SUBROUTINE EHC_GEN_SUB(ORDER,NALL_CHECK,LIST,NLIST)
+! CALCULATE THE HCPT EFFECTIVE HAMILTONIAN MATRIX AT ORDER > 0
+
+   USE CONSTANTS
+   USE CONTROL
+   USE GRADIENT
+   USE STRUCTURE
+   USE INTEGRAL
+   USE BASISSET
+   USE THR_FULLCI
+
+   IMPLICIT NONE
+   INTEGER,PARAMETER :: MAXFILE = 100
+   INTEGER :: NLIST,ILIST
+   INTEGER :: LIST(NLIST)
+   INTEGER :: JTARGET
+   INTEGER :: IA,IB
+   INTEGER :: ORDER
+   INTEGER :: NALL_CHECK
+   INTEGER :: IC,ID,IE,IG
+   INTEGER :: I,J,K
+   REAL :: MEM,ICPUS,ICPUE
+   DOUBLE PRECISION,ALLOCATABLE :: VEC1(:,:),VEC2(:,:),VEC3(:,:)
+
+   ALLOCATE(VEC1(NCFB,NCFA),VEC2(NCFB,NCFA),VEC3(NCFB,NCFA))
+
+   OPEN(50,FILE=TRIM(COPTN(1))//'.fi0',FORM='UNFORMATTED')
+   OPEN(51,FILE=TRIM(COPTN(1))//'.fo0',FORM='UNFORMATTED')
+
+   JTARGET=0
+   DO IA=1,NCFA
+    DO IB=1,NCFB
+     JTARGET=JTARGET+1
+     DO ILIST=1,NLIST
+      IF (LIST(ILIST)==JTARGET) THEN
+
+       ! LOOP OVER ALL STATES
+       DO I=1,ORDER
+
+        ! V |I-1>
+        DO IC=1,NCFA
+         DO ID=1,NCFB
+          VEC3(ID,IC)=VHC((IC-1)*NCFB+ID+NALL_CHECK,(IA-1)*NCFB+IB+NALL_CHECK,I-1)
+         ENDDO
+        ENDDO
+        REWIND(50)
+        WRITE(50) VEC3
+        CALL THERMAL_V_PRODUCT(50,51)
+        REWIND(51)
+        READ(51) VEC1
+
+        ! EHC(X,Y,I)=<0(Y)|V|I-1(X)>
+        REWIND(50)
+        WRITE(50) VEC1
+        CALL ANTIRESOLVENT_PRODUCT(IA,IB,50,51)
+        REWIND(51)
+        READ(51) VEC2
+        DO IC=1,NCFA
+         DO ID=1,NCFB
+          EHC((IA-1)*NCFB+IB+NALL_CHECK,(IC-1)*NCFB+ID+NALL_CHECK,I)=VEC2(ID,IC)
+         ENDDO
+        ENDDO
+
+        IF (I > 1) THEN
+
+         ! - E(J)|I-J>, J=1,...,I-1
+         DO J=1,I-1
+          DO IC=1,NCFA
+           DO ID=1,NCFB
+            DO IE=1,NCFA
+             DO IG=1,NCFB
+              VEC1(ID,IC)=VEC1(ID,IC)-EHC((IA-1)*NCFB+IB+NALL_CHECK,(IE-1)*NCFB+IG+NALL_CHECK,J) &
+                                     *VHC((IC-1)*NCFB+ID+NALL_CHECK,(IE-1)*NCFB+IG+NALL_CHECK,I-J)
+             ENDDO
+            ENDDO
+           ENDDO
+          ENDDO
+         ENDDO
+        ENDIF
+
+        ! R0
+        REWIND(50)
+        WRITE(50) VEC1
+        CALL RESOLVENT_PRODUCT(IA,IB,50,51)
+        REWIND(51)
+        READ(51) VEC1
+
+        DO IC=1,NCFA
+         DO ID=1,NCFB
+          VHC((IC-1)*NCFB+ID+NALL_CHECK,(IA-1)*NCFB+IB+NALL_CHECK,I)=VEC1(ID,IC)
+         ENDDO
+        ENDDO
+       ENDDO
+
+      ENDIF
+     ENDDO
+    ENDDO
+   ENDDO
 
    DEALLOCATE(VEC3,VEC2,VEC1)
    CLOSE(50)
