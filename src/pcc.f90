@@ -37,20 +37,33 @@ SUBROUTINE COUPLED_CLUSTER_ENERGY
    ENDIF
 
    IF (COPTN(70) == 'CCD') THEN
-    WRITE(6,'(A)') 'COUPLED-CLUSTER DOUBLES (CCD) ENERGY CALCULATION WILL BE PERFORMED'
+    WRITE(6,'(A)') '*********************************************'
+    WRITE(6,'(A)') 'SPIN-RESTRICTED COUPLED-CLUSTER DOUBLES (CCD)'
+    WRITE(6,'(A)') '*********************************************'
    ELSE IF (COPTN(70) == 'LCCD') THEN
-    WRITE(6,'(A)') 'LINEARIZED COUPLED-CLUSTER DOUBLES (LCCD) ENERGY CALCULATION WILL BE PERFORMED'
+    WRITE(6,'(A)') '*********************************************************'
+    WRITE(6,'(A)') 'SPIN-RESTRICTED LINEARIZED COUPLED-CLUSTER DOUBLES (LCCD)'
+    WRITE(6,'(A)') '*********************************************************'
    ELSE IF (COPTN(70) == 'CCSD') THEN
-    WRITE(6,'(A)') 'COUPLED-CLUSTER SINGLES DOUBLES (CCSD) ENERGY CALCULATION WILL BE PERFORMED'
+    WRITE(6,'(A)') '******************************************************'
+    WRITE(6,'(A)') 'SPIN-RESTRICTED COUPLED-CLUSTER SINGLES DOUBLES (CCSD)'
+    WRITE(6,'(A)') '******************************************************'
    ELSE IF (COPTN(70) == 'LCCSD') THEN
-    WRITE(6,'(A)') 'LINEARIZED COUPLED-CLUSTER SINGLES DOUBLES (LCCSD) ENERGY CALCULATION WILL BE PERFORMED'
+    WRITE(6,'(A)') '******************************************************************'
+    WRITE(6,'(A)') 'SPIN-RESTRICTED LINEARIZED COUPLED-CLUSTER SINGLES DOUBLES (LCCSD)'
+    WRITE(6,'(A)') '******************************************************************'
    ELSE IF (COPTN(70) == 'QCISD') THEN
-    WRITE(6,'(A)') &
-    'QUADRATIC CONFIGURATION INTERACTION SINGLES DOUBLES (QCISD) ENERGY CALCULATION WILL BE PERFORMED'
+    WRITE(6,'(A)') '***************************************************************************'
+    WRITE(6,'(A)') 'SPIN-RESTRICTED QUADRATIC CONFIGURATION INTERACTION SINGLES DOUBLES (QCISD)'
+    WRITE(6,'(A)') '***************************************************************************'
    ELSE IF (COPTN(70) == 'D123') THEN
-    WRITE(6,'(A)') 'APPROXIMATE COUPLED-CLUSTER DOUBLES (D123) ENERGY CALCULATION WILL BE PERFORMED'
+    WRITE(6,'(A)') '**********************************************************'
+    WRITE(6,'(A)') 'SPIN-RESTRICTED APPROXIMATE COUPLED-CLUSTER DOUBLES (D123)'
+    WRITE(6,'(A)') '**********************************************************'
    ELSE IF (COPTN(70) == 'D45') THEN
-    WRITE(6,'(A)') 'APPROXIMATE COUPLED-CLUSTER DOUBLES (D45) ENERGY CALCULATION WILL BE PERFORMED'
+    WRITE(6,'(A)') '*********************************************************'
+    WRITE(6,'(A)') 'SPIN-RESTRICTED APPROXIMATE COUPLED-CLUSTER DOUBLES (D45)'
+    WRITE(6,'(A)') '*********************************************************'
    ELSE
     CALL PABORT('UNKNOWN OR UNIMPLEMENTED COUPLED-CLUSTER METHOD')
    ENDIF
@@ -67,6 +80,7 @@ SUBROUTINE COUPLED_CLUSTER_ENERGY
     IDIIS=IOPTN(54)
     WRITE(6,'(A,I3,A)') 'DIIS EXTRAPOLATION WILL BE PERFORMED ONCE IN',IDIIS,' ITERATIONS'
    ELSE
+    LDIIS=.FALSE.
     IDIIS=1
    ENDIF
 
