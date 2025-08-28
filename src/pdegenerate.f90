@@ -633,7 +633,7 @@ SUBROUTINE DEGENERATE_CC(ORDER)
            NDEGEN=0
            EXIT
           ELSE
-write(*,*) 'degeneracy detected for ',istate,jstate
+!write(*,*) 'degeneracy detected for ',istate,jstate
            NDEGEN=NDEGEN+1
            IF (NDEGEN > MAXNDEGEN) CALL PABORT('ERROR')
            REFA(NDEGEN)=K
@@ -645,9 +645,9 @@ write(*,*) 'degeneracy detected for ',istate,jstate
        IF (NDEGEN == 0) THEN
         WRITE(6,'(A)') '... ALREADY DONE'
         EXIT
-do k=1,ndegen
- write(*,*) 'degenerate ref ',k,'(',refa(k),',',refb(k),')'
-enddo
+!do k=1,ndegen
+! write(*,*) 'degenerate ref ',k,'(',refa(k),',',refb(k),')'
+!enddo
        ELSE
         CALL DCC_GEN(ORDER,REFA,REFB,NDEGEN)
        ENDIF
@@ -928,14 +928,16 @@ SUBROUTINE DCC_GEN(ORDER,ICFA,ICFB,NDEGEN)
      ENDDO
     ENDDO
 
-    WRITE(6,'(A)') 'OVERLAP MATRIX'
-    CALL DUMP5(CCS,NDEGEN)
-    CCE_PRINT=CCE
-    DO M=1,NDEGEN
-     CCE_PRINT(M,M)=CCE_PRINT(M,M)+NUCLEAR_REPULSION
-    ENDDO
-    WRITE(6,'(A)') 'HAMILTONIAN MATRIX'
-    CALL DUMP5(CCE_PRINT,NDEGEN)
+    IF (IOPTN(9) > 1) THEN
+     WRITE(6,'(A)') 'OVERLAP MATRIX'
+     CALL DUMP5(CCS,NDEGEN)
+     CCE_PRINT=CCE
+     DO M=1,NDEGEN
+      CCE_PRINT(M,M)=CCE_PRINT(M,M)+NUCLEAR_REPULSION
+     ENDDO
+     WRITE(6,'(A)') 'HAMILTONIAN MATRIX'
+     CALL DUMP5(CCE_PRINT,NDEGEN)
+    ENDIF
 
 !-------------------------------------
 !   ! SYMMETRIZE CCS AND CCE
@@ -1015,6 +1017,7 @@ SUBROUTINE DCC_GEN(ORDER,ICFA,ICFB,NDEGEN)
        DSQRT(DEVSQ1(N)),DSQRT(DEVSQ2(N)),ER(N)+NUCLEAR_REPULSION-EHFKS,ER(N)+NUCLEAR_REPULSION,' +',EI(N),'i'
      ENDIF
     ENDDO
+    WRITE(6,'(A)') '...............................................................................................'
     CALL CPU_TIME(ICPUS)
 
 !   WRITE(6,'(A,F20.10)') 'INTERNAL DEVIATION ',DSQRT(DEVSQ1)
@@ -1030,7 +1033,7 @@ SUBROUTINE DCC_GEN(ORDER,ICFA,ICFB,NDEGEN)
      EXIT
     ENDIF
     IF (MAXDEV < DOPTN(62)) THEN
-     WRITE(6,'(A)') '-----------------------------------------------------------------------------------------------'
+     WRITE(6,'(A)') '---------------------------------------- STRING-BASED -----------------------------------------'
      WRITE(6,'(A)') 'CONVERGENCE IS ACHIEVED'
      EXIT
     ENDIF

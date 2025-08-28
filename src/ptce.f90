@@ -200,7 +200,8 @@ SUBROUTINE TCE_DRIVER
     WRITE(6,'(A)') 'ILLEGAL TCE MODULE NAME ; EXITING'
     RETURN
    ENDIF
-   WRITE(6,'(A)') '  ITER       RESIDUAL    CORRELATION        TOTAL ENERGY'
+   WRITE(6,'(/,A)') '  ITER       RESIDUAL    CORRELATION        TOTAL ENERGY'
+   WRITE(6,'(A)')   '--------------------------------------------------------'
 
    ALLOCATE(I0_0(1),I0E_0(1))
    IF (LSINGLES) ALLOCATE(I0_1(NA**2),T1(NA**2))
@@ -370,6 +371,7 @@ SUBROUTINE TCE_DRIVER
 
     ECORR=I0_0(1)
     WRITE(6,'(I6,2F15.10,F20.10)') ITER,DSQRT(R1+R2+R3),ECORR,EHFKS+ECORR
+    WRITE(6,'(A)')   '........................................................'
     IF (DSQRT(R1+R2+R3) < DOPTN(62)) EXIT
 
     ! DIIS
@@ -477,8 +479,11 @@ SUBROUTINE TCE_DRIVER
 !  DEGENERATE CC
 !  -------------
 
-   IF (.NOT.LPERMUTATION) CALL PABORT('DEGENERATE CC MUST USE PERMUTATION SYMMETRY')
+   IF (.NOT.LPERMUTATION)  CALL PABORT('DEGENERATE CC MUST USE PERMUTATION SYMMETRY')
    ! Because T(ab,ij) and T(ba,ji) are always degenerate, confusing the algorithms as they appear internal excitations.
+   IF (.NOT.LDISCONNECTED) CALL PABORT('DEGENERATE CC EQUATIONS ARE DISCONNECTED')
+   ! Diagonal disconnected diagrams can be deleted, but off-diagonal ones remain (they are considered connected),
+   ! and hence the "connected" formulation does not bring much benefit in this case.
 
    IF (COPTN(110)=='CCS') THEN
     WRITE(6,'(A)') '-----------------------------------------------------------------'
@@ -785,8 +790,8 @@ SUBROUTINE TCE_DRIVER
        ENDDO
       ENDDO
      ENDIF
-     WRITE(6,'(/,A,I3)') 'FOCK MATRIX FOR DEGENERATE REF ',N
-     CALL DUMP5(D_F1(:,:,N),NA)
+!    WRITE(6,'(/,A,I3)') 'FOCK MATRIX FOR DEGENERATE REF ',N
+!    CALL DUMP5(D_F1(:,:,N),NA)
      EHF=NUCLEAR_REPULSION
      DO H1=1,NO
 !write(*,'(2i3,2f20.10)') h1,map(h1,n),F1(MAP(H1,N),MAP(H1,N)),F1(h1,h1)
@@ -855,7 +860,8 @@ SUBROUTINE TCE_DRIVER
     ALLOCATE(ER(NDEGEN),EI(NDEGEN),VR(NDEGEN,NDEGEN),VL(1,NDEGEN),WK(4*NDEGEN))
     ALLOCATE(DEVSQ1(NDEGEN),DEVSQ2(NDEGEN),DEVSQ3(NDEGEN))
 
-    WRITE(6,'(A)') '  ITER       RESIDUAL    CORRELATION        TOTAL ENERGY'
+    WRITE(6,'(/,A)') '  ITER       RESIDUAL    CORRELATION        TOTAL ENERGY'
+    WRITE(6,'(A)')   '--------------------------------------------------------'
  
     DO ITER=1,MAXITER
 !write(*,*) 'iter=',iter
@@ -939,16 +945,18 @@ SUBROUTINE TCE_DRIVER
 
      ENDDO
 
-     WRITE(6,'(A)') 'OVERLAP MATRIX'
-     CALL DUMP5(SMAT,NDEGEN)
-     TMP=HMAT
-     DO M=1,NDEGEN
-      TMP(M,M)=TMP(M,M)+EHF
-     ENDDO
-     WRITE(6,'(A)') 'HAMILTONIAN MATRIX'
-     CALL DUMP5(TMP,NDEGEN)
-!    WRITE(6,'(A)') 'HAMILTONIAN MATRIX (RAW)'
-!    CALL DUMP5(HMAT,NDEGEN)
+     IF (IOPTN(9) > 1) THEN
+      WRITE(6,'(A)') 'OVERLAP MATRIX'
+      CALL DUMP5(SMAT,NDEGEN)
+      TMP=HMAT
+      DO M=1,NDEGEN
+       TMP(M,M)=TMP(M,M)+EHF
+      ENDDO
+      WRITE(6,'(A)') 'HAMILTONIAN MATRIX'
+      CALL DUMP5(TMP,NDEGEN)
+      WRITE(6,'(A)') 'HAMILTONIAN MATRIX (RAW)'
+      CALL DUMP5(HMAT,NDEGEN)
+     ENDIF
 
      ! MULTIPLY SMAT-INVERSE WITH HMAT
      ALLOCATE(INDX(NDEGEN),B(NDEGEN,NDEGEN),BS(NDEGEN,NDEGEN),C(NDEGEN),CS(NDEGEN))
@@ -967,10 +975,12 @@ SUBROUTINE TCE_DRIVER
      DO M=1,NDEGEN
       TMP(M,M)=TMP(M,M)+EHF
      ENDDO
-!    WRITE(6,'(A)') 'ENERGY MATRIX'
-!    CALL DUMP5(TMP,NDEGEN)
-!    WRITE(6,'(A)') 'ENERGY MATRIX (RAW)'
-!    CALL DUMP5(EMAT,NDEGEN)
+     IF (IOPTN(9) > 1) THEN
+      WRITE(6,'(A)') 'ENERGY MATRIX'
+      CALL DUMP5(TMP,NDEGEN)
+      WRITE(6,'(A)') 'ENERGY MATRIX (RAW)'
+      CALL DUMP5(EMAT,NDEGEN)
+     ENDIF
 
      ! UPDATE T-AMPLITUDES
      DEVSQ1=0.0D0
@@ -1023,6 +1033,7 @@ SUBROUTINE TCE_DRIVER
       WRITE(6,'(I6,2F15.10,F20.10)') ITER,DSQRT(DEVSQ1(N)+DEVSQ2(N)+DEVSQ3(N)),ER(N),EHF+ER(N)
       IF (DSQRT(DEVSQ1(N)+DEVSQ2(N)+DEVSQ3(N)) > DOPTN(62)) LEXIST=.TRUE.
      ENDDO
+     WRITE(6,'(A)')   '........................................................'
      IF (.NOT.LEXIST) THEN
       EXIT
      ENDIF
@@ -1118,7 +1129,7 @@ SUBROUTINE TCE_DRIVER
 
     ENDDO ! END LOOP OVER ITERATIONS
     IF (ITER>=MAXITER) CALL PABORT('MAXITER REACHED')
-    WRITE(6,'(A)') '--------------------------------------------------------'
+    WRITE(6,'(A)') '------------------------- TCE --------------------------'
     WRITE(6,'(A)') 'CC ITERATION CONVERGED'
 
     DEALLOCATE(ER,EI,VR,VL,WK)
