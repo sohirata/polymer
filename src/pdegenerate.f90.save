@@ -89,11 +89,6 @@ SUBROUTINE DEGENERATE_MP(ORDER)
    CALL THERMAL_TWO_ELECTRON_INTEGRALS
 
    IF (LALL) THEN
-    IF (IALL(0,0,0)-IOCC-IVIRTCORE > 15) THEN
-     WRITE(6,'(A)') 'INTEGER*4 ARGUMENT OVERFLOW'
-     WRITE(6,'(A)') 'SKIPPING DEGENERATE MP'
-     RETURN
-    ENDIF
     NALL=2**(2*(IALL(0,0,0)-IVIRTCORE-ICORE))
    ELSE
     CALL THERMAL_GENERATE_CONFIGURATIONSA(NELEA_TARGET,MIN(NELEA_TARGET,IALL(0,0,0)-IVIRTCORE-NELEA_TARGET))
@@ -309,15 +304,12 @@ endif
          CBITSB="0"//CBITSB
         ENDIF
        ENDDO
-       WRITE(6,'(/,A,I3,A,I7,A,A,A,A,A,F15.10,A,128I7:)') '*** TARGET',JTARGET,' STRINGS ',I,&
-            ' (',TRIM(CBITSA),',',TRIM(CBITSB),')',E0(I),' DEGENERATE STATES = ',(LIST(K),K=1,JDEGEN)
+       WRITE(6,'(A,I3,A,I7,A,A,A,A,A,F15.10,A,128I7:)') 'TARGET',JTARGET,' STRINGS ',I,' (',TRIM(CBITSA),',',TRIM(CBITSB),')',&
+            E0(I),' DEGENERATE STATES = ',(LIST(K),K=1,JDEGEN)
       ENDIF
      ENDDO
     ENDDO
 
-    WRITE(6,'(A,100A15:)') '-----',('---------------',J=1,JDEGEN)
-    WRITE(6,'(A,100I15:)') 'ORDER',(LIST(J),J=1,JDEGEN)
-    WRITE(6,'(A,100A15:)') '-----',('---------------',J=1,JDEGEN)
     DO IORDER=1,ORDER
      CALL EHC_GEN_SUB(IORDER,0,LIST,JDEGEN)
      EHCSUM=EHCSUM+EHC(:,:,IORDER)
@@ -330,32 +322,27 @@ endif
        IF ((L /= J).AND.(DABS(EHCSUM(LIST(L),LIST(J))) > 1.0D-9)) LCHECK=.TRUE.
       ENDDO
      ENDDO
-!    IF (LCHECK) THEN
-!     WRITE(6,'(A,I2,A,100I5)') 'COUPLED',JDEGEN,'-FOLD DEGENERATE:',(LIST(J),J=1,JDEGEN)
-!    ELSE
-!     WRITE(6,'(A,I2,A,100I5)') 'UNCOUPLED',JDEGEN,'-FOLD DEGENERATE:',(LIST(J),J=1,JDEGEN)
-!    ENDIF
-!    WRITE(6,'(A,I3,A)') 'ORDER:',IORDER,' ACCUMULATED HIRSCHFELDER-CERTAIN ENERGY MATRIX'
+     IF (LCHECK) WRITE(*,'(A,I5,X,I2,A,100I5)') '***** STATE ',I,JDEGEN,'-FOLD DEGENERATE:',(LIST(J),J=1,JDEGEN)
+!    IF (.NOT.LCHECK) WRITE(*,'(A,I5,X,I2,A,100I5)') '===== STATE ',I,JDEGEN,'-FOLD DEGENERATE, UNCOUPLED:',(LIST(J),J=1,JDEGEN)
+     WRITE(6,'(A,I3,A)') 'ORDER:',IORDER,' ACCUMULATED HIRSCHFELDER-CERTAIN ENERGY MATRIX'
 ! *** NOTE: Diagonalization of incremental (e.g., second-order) H-C energy matrix gives
 !           correct eigenvalues, but the order of states is scrambled. Summing over eigenvalues
 !           in the order of their sizes will be incorrect. The same eigenvector for a higher
 !           perturbation order diagonalizes all lower-order H-C energy matrices.
-!    CALL DUMP5(A,JDEGEN)
+     CALL DUMP5(A,JDEGEN)
      CALL DGEEV('N','V',JDEGEN,A,JDEGEN,ER,EI,VL,1,VR,JDEGEN,WK,4*JDEGEN,INFO)
      IF (INFO /= 0) CALL PABORT('DGEEV FAILED TO DIAGONALIZE A MATRIX')
      CALL PIKSRT2(JDEGEN,JDEGEN,ER,EI,VR,WK)
-     CALL CPU_TIME(ICPUE)
-     WRITE(*,'(I5,100F15.10:)') IORDER,(ER(J),J=1,JDEGEN)
-!    DO J=1,JDEGEN
-!     WRITE(*,'(I5,2F20.10,A)') J,ER(J),EI(J),'i'
+     DO J=1,JDEGEN
+      WRITE(*,'(I5,2F20.10,A)') J,ER(J),EI(J),'i'
 !     WRITE(*,'(I5,F20.10,128F10.4:)') J,ER(J),(VR(L,J),L=1,K)
-!    ENDDO
+     ENDDO
      DEALLOCATE(A,ER,EI,VR,VL,WK)
-!    WRITE(6,'(A,I3,A,F10.2)') 'ORDER:',IORDER,' CPU/SEC =',ICPUE-ICPUS
+     CALL CPU_TIME(ICPUE)
+     WRITE(6,'(A,I3,A,F10.2)') 'ORDER:',IORDER,' CPU/SEC =',ICPUE-ICPUS
      CALL PFLUSH(6)
      CALL CPU_TIME(ICPUS)
     ENDDO
-    WRITE(6,'(A,100A15:)') '-----',('---------------',J=1,JDEGEN)
 
    ENDDO
 
@@ -459,7 +446,6 @@ SUBROUTINE DEGENERATE_CC(ORDER)
    INTEGER :: INFO
    INTEGER :: LIST(MAXNDEGEN)
    CHARACTER(40) :: CBITSA,CBITSB
-   LOGICAL :: LDONE
 
    WRITE(6,'(/,A)') '*******************************'
    WRITE(6,'(A)')   '* GENERAL-ORDER DEGENERATE CC *'
@@ -508,11 +494,6 @@ SUBROUTINE DEGENERATE_CC(ORDER)
    CALL THERMAL_TWO_ELECTRON_INTEGRALS
 
    IF (LALL) THEN
-    IF (IALL(0,0,0)-IOCC-IVIRTCORE > 15) THEN
-     WRITE(6,'(A)') 'INTEGER*4 ARGUMENT OVERFLOW'
-     WRITE(6,'(A)') 'SKIPPING DEGENERATE CC'
-     RETURN
-    ENDIF
     NALL=2**(2*(IALL(0,0,0)-IVIRTCORE-ICORE))
    ELSE
     CALL THERMAL_GENERATE_CONFIGURATIONSA(NELEA_TARGET,MIN(NELEA_TARGET,IALL(0,0,0)-IVIRTCORE-NELEA_TARGET))
@@ -617,7 +598,7 @@ SUBROUTINE DEGENERATE_CC(ORDER)
        ENDIF
        IF (JTARGET==0) CYCLE
 !if ((itarget /= 0).and.(istate /= itarget)) cycle
-       WRITE(6,'(/,A,I5)') '***** STATE ',ISTATE
+       WRITE(6,'(A,I5)') '***** STATE ',ISTATE
        CBITSA=""
        CBITSB=""
        DO K=1,IALL(0,0,0)-IVIRTCORE
@@ -633,18 +614,18 @@ SUBROUTINE DEGENERATE_CC(ORDER)
         ENDIF
        ENDDO
        WRITE(6,'(A,2(I3,A,A,A))') 'REFERENCE IS   ',I,' (',TRIM(CBITSA),')',J,' (',TRIM(CBITSB),')'
-       REFA(1)=I
-       REFB(1)=J
        NDEGEN=0
-       LDONE=.FALSE.
+       REFA(NDEGEN)=I
+       REFB(NDEGEN)=J
        DO K=1,NCFA
         DO L=1,NCFB
          JSTATE=NALL_CHECK+(K-1)*NCFB+L
          IF (DABS(E0(ISTATE)-E0(JSTATE)) < 1.0D-9) THEN
           IF (JSTATE < ISTATE) THEN
            NDEGEN=0
-           LDONE=.TRUE.
+           EXIT
           ELSE
+!write(*,*) 'degeneracy detected for ',istate,jstate
            NDEGEN=NDEGEN+1
            IF (NDEGEN > MAXNDEGEN) CALL PABORT('ERROR')
            REFA(NDEGEN)=K
@@ -653,9 +634,12 @@ SUBROUTINE DEGENERATE_CC(ORDER)
          ENDIF
         ENDDO
        ENDDO
-       IF (LDONE) THEN
+       IF (NDEGEN == 0) THEN
         WRITE(6,'(A)') '... ALREADY DONE'
         EXIT
+!do k=1,ndegen
+! write(*,*) 'degenerate ref ',k,'(',refa(k),',',refb(k),')'
+!enddo
        ELSE
         CALL DCC_GEN(ORDER,REFA,REFB,NDEGEN)
        ENDIF
@@ -714,10 +698,8 @@ SUBROUTINE DCC_GEN(ORDER,ICFA,ICFB,NDEGEN)
    INTEGER :: INFO
    CHARACTER(30) :: CBITSA,CBITSB
    CHARACTER(3)  :: APPEND
-   INTEGER,ALLOCATABLE :: REFOCCA(:,:),REFOCCB(:,:)
-   INTEGER,ALLOCATABLE :: REFVIRA(:,:),REFVIRB(:,:)
-   INTEGER :: IOCCA,IVIRA,NORDA
-   INTEGER :: IOCCB,IVIRB,NORDB
+   INTEGER :: REFOCCA(IALL(0,0,0),MAXNDEGEN),REFOCCB(IALL(0,0,0),MAXNDEGEN),IOCCA,IVIRA,NORDA
+   INTEGER :: REFVIRA(IALL(0,0,0),MAXNDEGEN),REFVIRB(IALL(0,0,0),MAXNDEGEN),IOCCB,IVIRB,NORDB
    INTEGER,ALLOCATABLE :: CCO(:,:)
    LOGICAL :: LOCC
    DOUBLE PRECISION :: SUM1,SUM2
@@ -753,8 +735,6 @@ SUBROUTINE DCC_GEN(ORDER,ICFA,ICFB,NDEGEN)
 
    ! DETERMINE OCCUPIED AND VIRTUAL ORBITALS IN REFS
    ALLOCATE(CCO(NDEGEN,NDEGEN))
-   ALLOCATE(REFOCCA(IALL(0,0,0),NDEGEN),REFOCCB(IALL(0,0,0),NDEGEN))
-   ALLOCATE(REFVIRA(IALL(0,0,0),NDEGEN),REFVIRB(IALL(0,0,0),NDEGEN))
    REFOCCA=0
    REFVIRA=0
    REFOCCB=0
@@ -884,12 +864,14 @@ SUBROUTINE DCC_GEN(ORDER,ICFA,ICFB,NDEGEN)
 
 !rewind(100+n)
 !read(100+n) vec2
-!write(*,*) '*** T |icfa,icfb> ',n
-!do ia=1,ncfa
-!do ib=1,ncfb
-!write(*,'(2i3,f20.10)') ia,ib,vec2(ib,ia)
-!enddo
-!enddo
+ write(*,*) '*** T |icfa,icfb> ',n
+ do ia=1,ncfa
+ do ib=1,ncfb
+!if (dabs(vec2(ib,ia))>1.0d-9)&
+ if ((ia==4).and.(ib==9)) &
+ write(*,'(2i3,f20.10)') ia,ib,vec2(ib,ia)
+ enddo
+ enddo
 
      CALL THERMAL_EXPONENTIAL_OPERATOR(ICFA(N),ICFB(N),91,90,200+N,ORDER,.FALSE.,.FALSE.)
 !rewind(200+n)
@@ -903,14 +885,15 @@ SUBROUTINE DCC_GEN(ORDER,ICFA,ICFB,NDEGEN)
 !enddo
 !enddo
      CALL THERMAL_HAMILTONIAN_PRODUCT(200+N,300+N,0,1.0D0)
-!rewind(300+n)
-!read(300+n) vec2
-!write(*,*) '*** H exp(T)|icfa,icfb> ',n
-!do ia=1,ncfa
-!do ib=1,ncfb
-!write(*,'(2i3,f20.10)') ia,ib,vec2(ib,ia)
-!enddo
-!enddo
+ rewind(300+n)
+ read(300+n) vec2
+ write(*,*) '*** H exp(T)|icfa,icfb> ',n
+ do ia=1,ncfa
+ do ib=1,ncfb
+ if ((ia==4).and.(ib==9)) &
+ write(*,'(2i3,f20.10)') ia,ib,vec2(ib,ia)
+ enddo
+ enddo
 
     ENDDO
 
@@ -940,7 +923,7 @@ SUBROUTINE DCC_GEN(ORDER,ICFA,ICFB,NDEGEN)
      ENDDO
     ENDDO
 
-    IF (IOPTN(9) > 1) THEN
+!   IF (IOPTN(9) > 1) THEN
      WRITE(6,'(A)') 'OVERLAP MATRIX'
      CALL DUMP5LONG(CCS,NDEGEN)
      CCE_PRINT=CCE
@@ -949,7 +932,7 @@ SUBROUTINE DCC_GEN(ORDER,ICFA,ICFB,NDEGEN)
      ENDDO
      WRITE(6,'(A)') 'HAMILTONIAN MATRIX'
      CALL DUMP5LONG(CCE_PRINT,NDEGEN)
-    ENDIF
+!   ENDIF
 
 !-------------------------------------
 !   ! SYMMETRIZE CCS AND CCE
@@ -997,7 +980,7 @@ SUBROUTINE DCC_GEN(ORDER,ICFA,ICFB,NDEGEN)
 !   CALL DUMP5(CCE_PRINT,NDEGEN)
 
     ! UPDATE T AMPLITUDES
-    CALL THERMAL_T_UPDATE(ITER,NDEGEN,ICFA,ICFB,100,200,300,400,ORDER,CCE,CCS,DEVSQ1,DEVSQ2,REFOCCA,REFOCCB,REFVIRA,REFVIRB)
+    CALL THERMAL_T_UPDATE(ITER,NDEGEN,ICFA,ICFB,100,200,300,400,ORDER,CCE,CCS,DEVSQ1,DEVSQ2)
 
     ! DIAGONALIZE EFFECTIVE ENERGY MATRIX
     CALL DGEEV('N','V',NDEGEN,CCE,NDEGEN,ER,EI,VL,1,VR,NDEGEN,WK,4*NDEGEN,INFO)
@@ -1056,7 +1039,6 @@ SUBROUTINE DCC_GEN(ORDER,ICFA,ICFB,NDEGEN)
 
    DEALLOCATE(INDX,B,BS,C,CS)
    DEALLOCATE(VEC1,VEC2,VEC3)
-   DEALLOCATE(REFOCCA,REFOCCB,REFVIRA,REFVIRB)
    DEALLOCATE(CCO)
    DEALLOCATE(CCE,CCS,ER,EI,VR,VL,WK)
    DEALLOCATE(CCE_PRINT,DEVSQ1,DEVSQ2)
@@ -1371,8 +1353,7 @@ END SUBROUTINE
 
 
 
-SUBROUTINE THERMAL_T_UPDATE(ITER,NDEGEN,ICFA,ICFB,TFILE,EXPTFILE,HEXPTFILE,DELTAFILE,ORDER,CCE,CCS,DEVSQ1,DEVSQ2,&
-                            REFOCCA,REFOCCB,REFVIRA,REFVIRB)
+SUBROUTINE THERMAL_T_UPDATE(ITER,NDEGEN,ICFA,ICFB,TFILE,EXPTFILE,HEXPTFILE,DELTAFILE,ORDER,CCE,CCS,DEVSQ1,DEVSQ2)
 ! UPDATE T AMPLITUDES AND OVERWRITE TFILE BASED ON THE DIFFERENCES
 ! <A|H EXP(T)|0> - <A|E EXP(T)|0> FOR EXTERNALS <A| OR 
 ! <I|  EXP(T)|0> - <I|        |0> FOR INTERNALS <I|.
@@ -1392,14 +1373,11 @@ SUBROUTINE THERMAL_T_UPDATE(ITER,NDEGEN,ICFA,ICFB,TFILE,EXPTFILE,HEXPTFILE,DELTA
    INTEGER :: ORDER
    DOUBLE PRECISION :: CCE(NDEGEN,NDEGEN),CCS(NDEGEN,NDEGEN)
    DOUBLE PRECISION :: DEVSQ1(NDEGEN),DEVSQ2(NDEGEN)
-   INTEGER :: REFOCCA(IALL(0,0,0),NDEGEN),REFOCCB(IALL(0,0,0),NDEGEN)
-   INTEGER :: REFVIRA(IALL(0,0,0),NDEGEN),REFVIRB(IALL(0,0,0),NDEGEN)
    INTEGER :: I,J,N,M
    INTEGER :: IA,IB,IC,ID
-   INTEGER :: IOCCA,IVIRA,NORDA
-   INTEGER :: IOCCB,IVIRB,NORDB
+   INTEGER :: REFOCCA(IALL(0,0,0)),REFOCCB(IALL(0,0,0)),IOCCA,IVIRA,NORDA
+   INTEGER :: REFVIRA(IALL(0,0,0)),REFVIRB(IALL(0,0,0)),IOCCB,IVIRB,NORDB
    INTEGER :: HOLEA(ORDER),HOLEB(ORDER),PARTA(ORDER),PARTB(ORDER)
-   INTEGER :: D_NORDA(NDEGEN),D_NORDB(NDEGEN)
    INTEGER :: KSIGN(0:2*IALL(0,0,0)),ISIGN,JSIGN
    INTEGER(4) :: CFALPH,CFBETA
    DOUBLE PRECISION :: HA,HB,DEV1,DEV2
@@ -1412,6 +1390,7 @@ SUBROUTINE THERMAL_T_UPDATE(ITER,NDEGEN,ICFA,ICFB,TFILE,EXPTFILE,HEXPTFILE,DELTA
    INTEGER :: INDX(21)
    DOUBLE PRECISION :: D
    DOUBLE PRECISION,ALLOCATABLE :: VEC5(:,:,:)
+double precision :: tmp
 
    LOGICAL :: LCHECK
 
@@ -1446,10 +1425,37 @@ SUBROUTINE THERMAL_T_UPDATE(ITER,NDEGEN,ICFA,ICFB,TFILE,EXPTFILE,HEXPTFILE,DELTA
     DEVSQ1(N)=0.0D0
     DEVSQ2(N)=0.0D0
 
-    IOCCA=NELEA
-    IOCCB=NELEB
-    IVIRA=IALL(0,0,0)-IVIRTCORE-NELEA
-    IVIRB=IALL(0,0,0)-IVIRTCORE-NELEB
+    ! DETERMINE OCCUPIED AND VIRTUAL ORBITALS IN REF
+    REFOCCA=0
+    REFVIRA=0
+    IOCCA=0
+    IVIRA=0
+    REFOCCB=0
+    REFVIRB=0
+    IOCCB=0
+    IVIRB=0
+    DO I=1,IALL(0,0,0)-IVIRTCORE
+     IF (BTEST(CFHALFA(ICFA(N)),I-1)) THEN
+      IOCCA=IOCCA+1
+      REFOCCA(IOCCA)=I
+     ELSE
+      IVIRA=IVIRA+1
+      REFVIRA(IVIRA)=I
+     ENDIF
+     IF (BTEST(CFHALFB(ICFB(N)),I-1)) THEN
+      IOCCB=IOCCB+1
+      REFOCCB(IOCCB)=I
+     ELSE
+      IVIRB=IVIRB+1
+      REFVIRB(IVIRB)=I
+     ENDIF
+    ENDDO
+    IF (IOCCA /= NELEA) CALL PABORT('ERROR')
+    IF (IOCCB /= NELEB) CALL PABORT('ERROR')
+!write(*,*) 'occupied alpha = ',(REFOCCA(I),I=1,IOCCA)
+!write(*,*) 'occupied beta  = ',(REFOCCB(I),I=1,IOCCB)
+!write(*,*) 'virtual  alpha = ',(REFVIRA(I),I=1,IVIRA)
+!write(*,*) 'virtual  beta  = ',(REFVIRB(I),I=1,IVIRB)
 
     ! RETRIEVE T-AMPLITUDES FROM FILE
     REWIND(TFILE+N)
@@ -1468,32 +1474,24 @@ SUBROUTINE THERMAL_T_UPDATE(ITER,NDEGEN,ICFA,ICFB,TFILE,EXPTFILE,HEXPTFILE,DELTA
     D=0.0D0
 
     ! LOOP OVER ALPHA T-AMPLITUDES
-    D_NORDA=0
     DO IA=1,NCFA
      J=0
      DO I=1,IOCCA
-      IF (.NOT.BTEST(CFHALFA(IA),REFOCCA(I,N)-1)) THEN
+      IF (.NOT.BTEST(CFHALFA(IA),REFOCCA(I)-1)) THEN
        J=J+1
-       HOLEA(J)=REFOCCA(I,N)
+       HOLEA(J)=REFOCCA(I)
       ENDIF
      ENDDO
      NORDA=J
      J=0
      DO I=1,IVIRA
-      IF (BTEST(CFHALFA(IA),REFVIRA(I,N)-1)) THEN
+      IF (BTEST(CFHALFA(IA),REFVIRA(I)-1)) THEN
        J=J+1
-       PARTA(J)=REFVIRA(I,N)
+       PARTA(J)=REFVIRA(I)
       ENDIF
      ENDDO
      IF (J /= NORDA) CALL PABORT('ERROR')
      IF (NORDA > ORDER) CYCLE
-     DO M=1,NDEGEN
-      D_NORDA(M)=0
-      DO I=1,IOCCA
-       IF (.NOT.BTEST(CFHALFA(IA),REFOCCA(I,M)-1)) D_NORDA(M)=D_NORDA(M)+1
-      ENDDO
-     ENDDO
-     IF (D_NORDA(N) /= NORDA) CALL PABORT('ERROR 8/29/25')
 
      ! GENERATE ALPHA T|0>
      CFALPH=CFHALFA(ICFA(N))
@@ -1520,34 +1518,26 @@ SUBROUTINE THERMAL_T_UPDATE(ITER,NDEGEN,ICFA,ICFB,TFILE,EXPTFILE,HEXPTFILE,DELTA
      IF (ADDRSSA(CFALPH) /= IA) CALL PABORT('ERROR XYZ')
  
      ! LOOP OVER BETA T-AMPLITUDES
-     D_NORDB=0
      DO IB=1,NCFB
       J=0
       DO I=1,IOCCB
-       IF (.NOT.BTEST(CFHALFB(IB),REFOCCB(I,N)-1)) THEN
+       IF (.NOT.BTEST(CFHALFB(IB),REFOCCB(I)-1)) THEN
         J=J+1
-        HOLEB(J)=REFOCCB(I,N)
+        HOLEB(J)=REFOCCB(I)
        ENDIF
       ENDDO
       NORDB=J
       J=0
       DO I=1,IVIRB
-       IF (BTEST(CFHALFB(IB),REFVIRB(I,N)-1)) THEN
+       IF (BTEST(CFHALFB(IB),REFVIRB(I)-1)) THEN
         J=J+1
-        PARTB(J)=REFVIRB(I,N)
+        PARTB(J)=REFVIRB(I)
        ENDIF
       ENDDO
       IF (J /= NORDB) CALL PABORT('ERROR')
 !if ((ia==1).and.(ib==1).and.(order==2)) write(*,*) '**** CCD is activated!'    
 !if (NORDA+NORDB /= 2) CYCLE
       IF (NORDA+NORDB > ORDER) CYCLE
-      DO M=1,NDEGEN
-       D_NORDB(M)=0
-       DO I=1,IOCCB
-        IF (.NOT.BTEST(CFHALFB(IB),REFOCCB(I,M)-1)) D_NORDB(M)=D_NORDB(M)+1
-       ENDDO
-      ENDDO
-      IF (D_NORDB(N) /= NORDB) CALL PABORT('ERROR 8/29/25-2')
 
       ! GENERATE BETA T|0>
       CFBETA=CFHALFB(ICFB(N))
@@ -1613,27 +1603,23 @@ SUBROUTINE THERMAL_T_UPDATE(ITER,NDEGEN,ICFA,ICFB,TFILE,EXPTFILE,HEXPTFILE,DELTA
        ENDDO
        IF (LCHECK) CALL PABORT('ERROR 22')
        DEV2=VEC3(IB,IA)
-!if ((ia==4).and.(ib==9)) &
-!write(6,'(a,1f20.10)') 'delta fresh',dev2
+ if ((ia==4).and.(ib==9)) &
+ write(6,'(a,1f20.10)') 'delta fresh',dev2
        DO M=1,NDEGEN
-        IF (D_NORDA(M)+D_NORDB(M) <= ORDER) THEN
-!if ((ia==4).and.(ib==9)) &
-!write(6,'(a,i3,3f20.10)') 'delta subtraction',m,dev2,-VEC4(IB,IA)*CCE(M,N),DEV2-VEC4(IB,IA)*CCE(M,N)
-         REWIND(EXPTFILE+M)
-         READ(EXPTFILE+M) VEC4
-         DEV2=DEV2-VEC4(IB,IA)*CCE(M,N)
-!       ELSE
-!        WRITE(6,'(2I3,A,I3,A,I3,A)') IA,IB,' IS ',D_NORDA(M)+D_NORDB(M),' EXCITATIONS FROM ',M,'-TH DEGENERATE STATE'
-        ENDIF
+        REWIND(EXPTFILE+M)
+        READ(EXPTFILE+M) VEC4
+ if ((ia==4).and.(ib==9)) &
+ write(6,'(a,i3,3f20.10)') 'delta subtraction',m,dev2,-VEC4(IB,IA)*CCE(M,N),DEV2-VEC4(IB,IA)*CCE(M,N)
+        DEV2=DEV2-VEC4(IB,IA)*CCE(M,N)
 !if (norda+nordb==1) write(*,'(a,3f20.10)') '   - ',vec4(ib,ia),cce(m,n),VEC4(IB,IA)*CCE(M,N)
 ! debug!!!!!
 !       DEV2=DEV2-VEC4(IB,IA)*CCE(N,M)
        ENDDO
-!      IF (DABS(DEV2) > D) THEN
-!       IC=IA
-!       ID=IB
-!       D=DABS(DEV2)
-!      ENDIF
+       IF (DABS(DEV2) > D) THEN
+        IC=IA
+        ID=IB
+        D=DABS(DEV2)
+       ENDIF
 !write(*,'(3i3,f20.10,a,i3)') n,ia,ib,dev2,'     ext',norda+nordb
 !      DEVVEC(IB,IA,N)=DEV2
 !      PARITYVEC(IB,IA,N)=DFLOAT(ISIGN*JSIGN*KSIGN(NORDA)*KSIGN(NORDB))
@@ -1784,8 +1770,7 @@ SUBROUTINE DEGENERATE_CI
 !integer,parameter :: itarget=2610 ! ionized state, 5-fold degenerate
 !integer,parameter :: itarget=3438 ! 4-alpha,4-beta,2-fold,coupled x 2
 !integer,parameter :: itarget=3440 ! 2-fold, coupled, divergent off the bat!
-!integer,parameter :: itarget=4034 ! excited state, 4-fold
-   LOGICAL :: LALL
+ integer,parameter :: itarget=4034 ! excited state, 4-fold
    INTEGER :: NDEGEN
    INTEGER,PARAMETER :: MAXNDEGEN=99
    INTEGER :: REFA(MAXNDEGEN),REFB(MAXNDEGEN)
@@ -1817,10 +1802,6 @@ SUBROUTINE DEGENERATE_CI
    INTEGER :: REFVIRA(IALL(0,0,0)),REFVIRB(IALL(0,0,0)),IOCCB,IVIRB,NORDB
    DOUBLE PRECISION :: HA,HB
    INTEGER :: ORDER
-   INTEGER :: JTARGET,JDEGEN
-   INTEGER :: NELEA_TARGET,NELEB_TARGET
-   INTEGER,ALLOCATABLE :: ITARGETS(:)
-   DOUBLE PRECISION :: PREVIOUSMIN,CURRENTMIN
 
    WRITE(6,'(/,A)') '***********'
    WRITE(6,'(A)')   '* FULL CI *'
@@ -1829,58 +1810,21 @@ SUBROUTINE DEGENERATE_CI
    IF ((KVCX /= 0).OR.(KVCY /= 0).OR.(KVCZ /= 0)) CALL PABORT('FOR MOLECULES ONLY')
    IF (LOPTN(25)) CALL PABORT('USE NON-DIRECT ALGORITHM')
    IF (IALL(0,0,0)-IOCC-IVIRTCORE <= 0) CALL PABORT('NO VIRTUAL ORBITAL')
+   IF (IALL(0,0,0)-IOCC-IVIRTCORE > 15) THEN
+    WRITE(6,'(A)') 'INTEGER*4 ARGUMENT OVERFLOW'
+    WRITE(6,'(A)') 'SKIPPING FULL CI'
+    RETURN
+   ENDIF
 !if (itarget /= 0) write(*,*) 'debug mode ******************** for state ',itarget
    CALL CPU_TIME(ICPUS)
-
-   IF (IOPTN(59) <= 0) THEN
-    WRITE(6,'(A)') 'ALL ROOTS ARE SOUGHT'
-    WRITE(6,'(A,I10)') 'NUMBER OF ROOTS = ',2**(2*(IALLMAX-IVIRTCORE-ICORE))
-    LALL=.TRUE.
-    IF (IALL(0,0,0)-IOCC-IVIRTCORE > 15) CALL PABORT('INTEGER*4 ARGUMENT OVERFLOW')
-   ELSE IF (LOPTN(60)) THEN
-    NELEA_TARGET=IOCC-1
-    NELEB_TARGET=IOCC
-    WRITE(6,'(A)') 'IP ROOTS ARE SOUGHT'
-    WRITE(6,'(A,2I3)') 'NELEA,NELEB = ',NELEA_TARGET,NELEB_TARGET
-    WRITE(6,'(A,I3)') 'NUMBER OF ROOTS = ',IOPTN(59)
-    LALL=.FALSE.
-   ELSE IF (LOPTN(61)) THEN
-    NELEA_TARGET=IOCC+1
-    NELEB_TARGET=IOCC
-    WRITE(6,'(A)') 'EA ROOTS ARE SOUGHT'
-    WRITE(6,'(A,2I3)') 'NELEA,NELEB = ',NELEA_TARGET,NELEB_TARGET
-    WRITE(6,'(A,I3)') 'NUMBER OF ROOTS = ',IOPTN(59)
-    LALL=.FALSE.
-   ELSE
-    NELEA_TARGET=IOCC
-    NELEB_TARGET=IOCC
-    WRITE(6,'(A)') 'EXCITED ROOTS ARE SOUGHT'
-    WRITE(6,'(A,2I3)') 'NELEA,NELEB = ',NELEA_TARGET,NELEB_TARGET
-    WRITE(6,'(A,I3)') 'NUMBER OF ROOTS = ',IOPTN(59)
-    LALL=.FALSE.
-   ENDIF
 
    ALLOCATE(H(IALLMAX-IVIRTCORE,IALLMAX-IVIRTCORE))
    ALLOCATE(G(IALLMAX-IVIRTCORE,IALLMAX-IVIRTCORE,IALLMAX-IVIRTCORE,IALLMAX-IVIRTCORE))
    CALL THERMAL_ONE_ELECTRON_INTEGRALS
    CALL THERMAL_TWO_ELECTRON_INTEGRALS
-
-   IF (LALL) THEN
-    IF (IALL(0,0,0)-IOCC-IVIRTCORE > 15) THEN
-     WRITE(6,'(A)') 'INTEGER*4 ARGUMENT OVERFLOW'
-     WRITE(6,'(A)') 'SKIPPING FULL CI'
-     RETURN
-    ENDIF
-    NALL=2**(2*(IALL(0,0,0)-IVIRTCORE-ICORE))
-   ELSE
-    CALL THERMAL_GENERATE_CONFIGURATIONSA(NELEA_TARGET,MIN(NELEA_TARGET,IALL(0,0,0)-IVIRTCORE-NELEA_TARGET))
-    CALL THERMAL_GENERATE_CONFIGURATIONSB(NELEB_TARGET,MIN(NELEB_TARGET,IALL(0,0,0)-IVIRTCORE-NELEB_TARGET))
-    NALL=NCFA*NCFB
-    DEALLOCATE(CFHALFA,ADDRSSA,NORDERA)
-    DEALLOCATE(CFHALFB,ADDRSSB,NORDERB)
-   ENDIF
-   WRITE(6,'(A,I10)') 'DIMENSION OF E0 ARRAY = ',NALL
-   ALLOCATE(E0(NALL),ALLE(NALL),ALLN(NALL),ALL_M(NALL))
+   NALL=2**(2*(IALL(0,0,0)-IVIRTCORE-ICORE))
+   ALLOCATE(E0(NALL),ALLE(NALL),ALLN(NALL))
+   ALLOCATE(ALL_M(NALL))
 
    ! SIGNS ASSOCIATED WITH THE PERMUTATION OF THE CLUSTER OPERATORS
    DO I=0,2*IALL(0,0,0)
@@ -1898,7 +1842,6 @@ SUBROUTINE DEGENERATE_CI
    DO NELE=2*ICORE,2*(IALL(0,0,0)-IVIRTCORE)
     DO NELEA=ICORE,NELE
      NELEB=NELE-NELEA
-     IF ((.NOT.LALL).AND.((NELEA /= NELEA_TARGET).OR.(NELEB /= NELEB_TARGET))) CYCLE
      IF (NELEA > IALL(0,0,0)-IVIRTCORE) CYCLE
      IF (NELEB > IALL(0,0,0)-IVIRTCORE) CYCLE
      IF (NELEA < ICORE) CYCLE
@@ -1925,33 +1868,8 @@ SUBROUTINE DEGENERATE_CI
      DEALLOCATE(CFHALFB,ADDRSSB,NORDERB)
     ENDDO
    ENDDO
-   IF (NALL /= NALL_CHECK) CALL PABORT('ERROR IN DEGENERATE_CI')
    NALL=NALL_CHECK
-   !
-   ! POPULATE TARGET STATES
-   ! 
-   IF (.NOT.LALL) THEN
-    ALLOCATE(ITARGETS(IOPTN(59)))
-    PREVIOUSMIN=-1.0D99
-    DO I=1,IOPTN(59)
-     CURRENTMIN=1.0D99
-     DO J=1,NALL
-      IF ((E0(J)-PREVIOUSMIN > 1.0D-9).AND.(E0(J) < CURRENTMIN)) THEN
-       CURRENTMIN=E0(J)
-       ITARGETS(I)=J
-      ENDIF
-     ENDDO
-     PREVIOUSMIN=CURRENTMIN
-    ENDDO
-    DO I=1,IOPTN(59)
-     K=0
-     DO J=1,NALL
-      IF (DABS(E0(J)-E0(ITARGETS(I))) < 1.0D-9) K=K+1
-     ENDDO
-     WRITE(6,'(A,I3,A,I10,A,F15.10,I5,A)') 'TARGET',I,' = STATE',ITARGETS(I),' ZEROTH-ORDER ENERGY = ',E0(ITARGETS(I)),&
-                                            K,'-FOLD DEGENERATE'
-    ENDDO
-   ENDIF
+
    !
    ! SOLVE DEGENERATE CI
    !
@@ -1961,15 +1879,48 @@ SUBROUTINE DEGENERATE_CI
    DO NELE=2*ICORE,2*(IALL(0,0,0)-IVIRTCORE)
     DO NELEA=ICORE,NELE
      NELEB=NELE-NELEA
-     IF ((.NOT.LALL).AND.((NELEA /= NELEA_TARGET).OR.(NELEB /= NELEB_TARGET))) CYCLE
+     WRITE(6,'(A,2I3)') 'No.ELECTRONS',NELEA,NELEB
      IF (NELEA > IALL(0,0,0)-IVIRTCORE) CYCLE
      IF (NELEB > IALL(0,0,0)-IVIRTCORE) CYCLE
      IF (NELEA < ICORE) CYCLE
      IF (NELEB < ICORE) CYCLE
      CALL THERMAL_GENERATE_CONFIGURATIONSA(NELEA,MIN(NELEA,IALL(0,0,0)-IVIRTCORE-NELEA))
      CALL THERMAL_GENERATE_CONFIGURATIONSB(NELEB,MIN(NELEB,IALL(0,0,0)-IVIRTCORE-NELEB))
-!    WRITE(6,'(A,2I3)') 'No.ELECTRONS',NELEA,NELEB
+if ((itarget==0).or.((NALL_CHECK+1 <= itarget).and.(itarget <= NALL_CHECK+NCFA*NCFB))) then
      CALL DCI_GEN(NALL_CHECK)
+!------------------------------- DEGENERATE REFS
+if (itarget /= 0) then
+     NDEGEN=0
+     LIST=0
+     DO J=NALL_CHECK+1,NALL_CHECK+NCFA*NCFB
+      IF (DABS(E0(J)-E0(itarget)) < 1.0D-9) THEN
+       NDEGEN=NDEGEN+1
+       LIST(NDEGEN)=J
+      ENDIF
+     ENDDO
+     IF (NDEGEN > MAXNDEGEN) CALL PABORT('ERROR')
+     DO I=1,NDEGEN
+      IB=MOD(LIST(I)-NALL_CHECK,NCFB)
+      IA=(LIST(I)-NALL_CHECK-MOD(LIST(I)-NALL_CHECK,NCFB))/NCFB+1
+      IF (NALL_CHECK+(IA-1)*NCFB+IB /= LIST(I)) CALL PABORT('ERROR 311')
+      CBITSA=""
+      CBITSB=""
+      DO J=1,IALL(0,0,0)-IVIRTCORE
+       IF (BTEST(CFHALFA(IA),J-1)) THEN
+        CBITSA="1"//CBITSA
+       ELSE
+        CBITSA="0"//CBITSA
+       ENDIF
+       IF (BTEST(CFHALFB(IB),J-1)) THEN
+        CBITSB="1"//CBITSB
+       ELSE
+        CBITSB="0"//CBITSB
+       ENDIF
+      ENDDO
+      WRITE(6,'(I3,A,I5,A,2(I2,A,A,A))') I,'-TH DEGENERATE REF',LIST(I),':',IA,' (',TRIM(CBITSA),')',IB,' (',TRIM(CBITSB),')'
+     ENDDO
+     WRITE(6,'(I2,A,11X,128I10)') NDEGEN,'-FOLD DEGENERATE:',(LIST(J),J=1,NDEGEN)
+endif
 !------------------------------- DIAGONALIZATION
      ALLOCATE(A(NCFA*NCFB,NCFA*NCFB),ER(NCFA*NCFB),EI(NCFA*NCFB),VR(NCFA*NCFB,NCFA*NCFB),&
               VL(1,NCFA*NCFB),WK(4*NCFA*NCFB))
@@ -1985,323 +1936,282 @@ SUBROUTINE DEGENERATE_CI
      IF (INFO /= 0) CALL PABORT('DGEEV FAILED TO DIAGONALIZE A MATRIX')
      CALL PIKSRT(NCFA*NCFB,NCFA*NCFB,ER,VR,EI)
      CALL SCHMIDT_EIGENVECTORS(NCFA*NCFB,VR) ! VERY IMPORTANT !
-!!CHECK OVERLAP
-!A=0.0d0
-!DO I=1,NCFA*NCFB
-! DO J=1,NCFA*NCFB
-!  A(I,J)=0.0d0
-!  do l=1,NCFA*NCFB
-!   A(I,J)=A(I,J)+VR(L,I)*VR(L,J)
-!  enddo
-! ENDDO
-!ENDDO
-!do i=1,ncfa*ncfb
-! if (dabs(a(i,i)-1.0d0) > 1.0d-12) call pabort('error 543')
-! do j=1,ncfa*ncfb
-!  if (i==j) cycle
-!  if (dabs(a(i,j)-0.0d0) > 1.0d-12) call pabort('error 542')
-! enddo
-!enddo
+ ! overlap 
+ A=0.0d0
+ DO I=1,NCFA*NCFB
+  DO J=1,NCFA*NCFB
+   A(I,J)=0.0d0
+   do l=1,NCFA*NCFB
+    A(I,J)=A(I,J)+VR(L,I)*VR(L,J)
+   enddo
+  ENDDO
+ ENDDO
+ do i=1,ncfa*ncfb
+  if (dabs(a(i,i)-1.0d0) > 1.0d-12) call pabort('error 543')
+  do j=1,ncfa*ncfb
+   if (i==j) cycle
+   if (dabs(a(i,j)-0.0d0) > 1.0d-12) call pabort('error 542')
+  enddo
+ enddo
 !WRITE(6,'(A)') 'FULL overlap MATRIX'
 !CALL DUMP5(A,NCFA*NCFB)
 
-!------------------------------- DEGENERATE REFS
-     IF (LALL) THEN
-      WRITE(6,'(A,2I3)') 'No.ELECTRONS',NELEA,NELEB
-      DO J=1,NCFA*NCFB
-       WRITE(*,'(I5,F20.10)') J,ER(J)+NUCLEAR_REPULSION
-      ENDDO
-      CALL CPU_TIME(ICPUE)
-      WRITE(6,'(A,F10.2)') 'CPU/SEC =',ICPUE-ICPUS
-      CALL CPU_TIME(ICPUS)
-      CALL PFLUSH(6)
-     ELSE
-      IF (NALL_CHECK /= 0) CALL PABORT('ERROR 703')
-      DO ISTATE=1,IOPTN(59)
-       NDEGEN=0
-       LIST=0
-       WRITE(6,'(/,A,I5,A,I5)') '***** TARGET ',ISTATE,' = STATE ',ITARGETS(ISTATE)
-       DO J=NALL_CHECK+1,NALL_CHECK+NCFA*NCFB
-        IF (DABS(E0(J)-E0(ITARGETS(ISTATE))) < 1.0D-9) THEN
-         NDEGEN=NDEGEN+1
-         LIST(NDEGEN)=J
+!    =================================================================
+!    GENERATE FULL CC T-AMPLITUDES (Li & Paldus, JCP, 119, 5320, 2003)
+!    =================================================================
+
+!    FIRST DETERMINE THE STATE WITH MAX OVERLAP WITH DEGENERATE REFS
+     ALLOCATE(IFCI(NDEGEN))
+     DO I=1,NDEGEN
+      LUSED=.FALSE.
+      DO IA=1,NCFA
+       DO IB=1,NCFB
+        J=(IA-1)*NCFB+IB
+        IF (J==LIST(I)-NALL_CHECK) THEN
+         ICFA(I)=IA
+         ICFB(I)=IB
+         LUSED=.TRUE.
         ENDIF
        ENDDO
-       IF (NDEGEN > MAXNDEGEN) CALL PABORT('ERROR')
-       DO I=1,NDEGEN
-        IB=MOD(LIST(I)-NALL_CHECK,NCFB)
-        IA=(LIST(I)-NALL_CHECK-MOD(LIST(I)-NALL_CHECK,NCFB))/NCFB+1
-        IF (NALL_CHECK+(IA-1)*NCFB+IB /= LIST(I)) CALL PABORT('ERROR 311')
-        CBITSA=""
-        CBITSB=""
-        DO J=1,IALL(0,0,0)-IVIRTCORE
-         IF (BTEST(CFHALFA(IA),J-1)) THEN
-          CBITSA="1"//CBITSA
-         ELSE
-          CBITSA="0"//CBITSA
-         ENDIF
-         IF (BTEST(CFHALFB(IB),J-1)) THEN
-          CBITSB="1"//CBITSB
-           ELSE
-          CBITSB="0"//CBITSB
-         ENDIF
-        ENDDO
-        WRITE(6,'(I3,A,I5,A,2(I2,A,A,A))') I,'-TH DEGENERATE REF',LIST(I),':',IA,' (',TRIM(CBITSA),')',IB,' (',TRIM(CBITSB),')'
-       ENDDO
-       WRITE(6,'(I2,A,11X,128I10)') NDEGEN,'-FOLD DEGENERATE:',(LIST(J),J=1,NDEGEN)
-
-!      =================================================================
-!      GENERATE FULL CC T-AMPLITUDES (Li & Paldus, JCP, 119, 5320, 2003)
-!      =================================================================
-
-!      FIRST DETERMINE THE STATE WITH MAX OVERLAP WITH DEGENERATE REFS
-       ALLOCATE(IFCI(NDEGEN))
-       DO I=1,NDEGEN
-        LUSED=.FALSE.
-        DO IA=1,NCFA
-         DO IB=1,NCFB
-          J=(IA-1)*NCFB+IB
-          IF (J==LIST(I)-NALL_CHECK) THEN
-           ICFA(I)=IA
-           ICFB(I)=IB
-           LUSED=.TRUE.
-          ENDIF
-         ENDDO
-        ENDDO
-        IF (.NOT.LUSED) CALL PABORT('ERROR 1369')
-        OVLP=0.0D0
-        IFCI(I)=-1
-        DO IA=1,NCFA
-         DO IB=1,NCFB
-          J=(IA-1)*NCFB+IB
-          IF (VR(LIST(I)-NALL_CHECK,J)**2 > OVLP) THEN
-           LUSED=.FALSE.
-           IF (I >= 2) THEN
-            DO L=1,I+1
-             IF (IFCI(L)==J) LUSED=.TRUE.
-            ENDDO
-           ENDIF
-           IF (.NOT.LUSED) THEN
-            OVLP=VR(LIST(I)-NALL_CHECK,J)**2
-            IFCI(I)=J
-           ENDIF
-          ENDIF
-         ENDDO
-        ENDDO
-        IF (IFCI(I)==-1) CALL PABORT('ERROR 1234')
-       ENDDO
-       DO J=1,NCFA*NCFB
-        LUSED=.FALSE.
-        DO I=1,NDEGEN
-         IF (J==IFCI(I)) THEN
-          WRITE(*,'(I5,F20.10,I5,128F10.4:)') J,ER(J)+NUCLEAR_REPULSION,LIST(I),(VR(LIST(L)-NALL_CHECK,J),L=1,NDEGEN)
-          LUSED=.TRUE.
-         ENDIF
-        ENDDO
-        IF (.NOT.LUSED) WRITE(*,'(I5,F20.10,5X,128F10.4:)') J,ER(J)+NUCLEAR_REPULSION,(VR(LIST(L)-NALL_CHECK,J),L=1,NDEGEN)
-       ENDDO
-       CALL CPU_TIME(ICPUE)
-       WRITE(6,'(A,F10.2)') 'CPU/SEC =',ICPUE-ICPUS
-       CALL CPU_TIME(ICPUS)
-       CALL PFLUSH(6)
- 
-!      NEXT DETERMINE THE EXACT WAVE FUNCTION FOR EACH DEGENERATE REF
-       ALLOCATE(INDX(NDEGEN),B(NDEGEN,NDEGEN),BS(NDEGEN,NDEGEN),C(NDEGEN),CS(NDEGEN))
-       ALLOCATE(VEC1(NCFB,NCFA),VEC2(NCFB,NCFA),VEC3(NCFB,NCFA))
-       DO I=1,NDEGEN
-        WRITE(APPEND,'(I3)') I
-        OPEN(100+I,FILE=TRIM(COPTN(1))//'.T.'//APPEND,FORM='UNFORMATTED')
-        OPEN(200+I,FILE=TRIM(COPTN(1))//'.expT.'//APPEND,FORM='UNFORMATTED')
-        OPEN(900+I,FILE=TRIM(COPTN(1))//'.expTexact.'//APPEND,FORM='UNFORMATTED')
-       ENDDO
-       OPEN(90,FILE=TRIM(COPTN(1))//'.tmp1',FORM='UNFORMATTED')
-       DO I=1,NDEGEN
-        DO J=1,NDEGEN
-         B(I,J)=VR(LIST(I)-NALL_CHECK,IFCI(J))
-        ENDDO
-       ENDDO
-       WRITE(6,'(A)') 'FULL CI COEFF MATRIX'
-       CALL DUMP5(B,NDEGEN)
-       BS=B
-       CALL LUDCMP(B,NDEGEN,NDEGEN,INDX,D)
-       DO I=1,NDEGEN
-        C=0.0D0
-        C(I)=1.0D0
-        CS=C
-        CALL LUBKSB(B,NDEGEN,NDEGEN,INDX,C)
-        CALL MPROVE(BS,B,NDEGEN,NDEGEN,INDX,CS,C)
-!write(*,'(i3,128f10.5:)') i,(c(j),j=1,ndegen)
-        VEC1=0.0D0
-        DO J=1,NDEGEN
-         DO IA=1,NCFA
-          DO IB=1,NCFB
-           VEC1(IB,IA)=VEC1(IB,IA)+C(J)*VR((IA-1)*NCFB+IB,IFCI(J))
+      ENDDO
+      IF (.NOT.LUSED) CALL PABORT('ERROR 1369')
+      OVLP=0.0D0
+      IFCI(I)=-1
+      DO IA=1,NCFA
+       DO IB=1,NCFB
+        J=(IA-1)*NCFB+IB
+        IF (VR(LIST(I)-NALL_CHECK,J)**2 > OVLP) THEN
+         LUSED=.FALSE.
+         IF (I >= 2) THEN
+          DO L=1,I+1
+           IF (IFCI(L)==J) LUSED=.TRUE.
           ENDDO
-         ENDDO
-        ENDDO
-        REWIND(900+I)
-        WRITE(900+I) VEC1
+         ENDIF
+         IF (.NOT.LUSED) THEN
+          OVLP=VR(LIST(I)-NALL_CHECK,J)**2
+          IFCI(I)=J
+         ENDIF
+        ENDIF
        ENDDO
- 
-       ! NEXT REVERSE-COMPUTE T AMPLITUDES FROM EXACT WAVE FUNCTION
-       TORDER=2*(IALL(0,0,0)-IVIRTCORE)-NELEA-NELEB
-       WRITE(6,'(A,I3)') 'MAX CC ORDER = ',TORDER
- 
-       DO N=1,NDEGEN
-!write(*,*) 'now working on ref ',n
- 
-        ! DETERMINE OCCUPIED AND VIRTUAL ORBITALS IN REF
-        REFOCCA=0
-        REFVIRA=0
-        IOCCA=0
-        IVIRA=0
-        REFOCCB=0
-        REFVIRB=0
-        IOCCB=0
-        IVIRB=0
-        DO I=1,IALL(0,0,0)-IVIRTCORE
-         IF (BTEST(CFHALFA(ICFA(N)),I-1)) THEN
-          IOCCA=IOCCA+1
-          REFOCCA(IOCCA)=I
-         ELSE
-          IVIRA=IVIRA+1
-          REFVIRA(IVIRA)=I
-         ENDIF
-         IF (BTEST(CFHALFB(ICFB(N)),I-1)) THEN
-          IOCCB=IOCCB+1
-          REFOCCB(IOCCB)=I
-         ELSE
-          IVIRB=IVIRB+1
-          REFVIRB(IVIRB)=I
-         ENDIF
+      ENDDO
+      IF (IFCI(I)==-1) CALL PABORT('ERROR 1234')
+     ENDDO
+     DO J=1,NCFA*NCFB
+      LUSED=.FALSE.
+      DO I=1,NDEGEN
+       IF ((itarget/=0).AND.(J==IFCI(I))) THEN
+        WRITE(*,'(I5,F20.10,I5,128F10.4:)') J,ER(J)+NUCLEAR_REPULSION,LIST(I),(VR(LIST(L)-NALL_CHECK,J),L=1,NDEGEN)
+        LUSED=.TRUE.
+       ENDIF
+      ENDDO
+      IF ((itarget/=0).AND.(.NOT.LUSED)) &
+        WRITE(*,'(I5,F20.10,5X,128F10.4:)') J,ER(J)+NUCLEAR_REPULSION,(VR(LIST(L)-NALL_CHECK,J),L=1,NDEGEN)
+      IF (itarget==0) WRITE(*,'(I5,F20.10)') J,ER(J)+NUCLEAR_REPULSION
+     ENDDO
+
+!    NEXT DETERMINE THE EXACT WAVE FUNCTION FOR EACH DEGENERATE REF
+     ALLOCATE(INDX(NDEGEN),B(NDEGEN,NDEGEN),BS(NDEGEN,NDEGEN),C(NDEGEN),CS(NDEGEN))
+     ALLOCATE(VEC1(NCFB,NCFA),VEC2(NCFB,NCFA),VEC3(NCFB,NCFA))
+     DO I=1,NDEGEN
+      WRITE(APPEND,'(I3)') I
+      OPEN(100+I,FILE=TRIM(COPTN(1))//'.T.'//APPEND,FORM='UNFORMATTED')
+      OPEN(200+I,FILE=TRIM(COPTN(1))//'.expT.'//APPEND,FORM='UNFORMATTED')
+      OPEN(900+I,FILE=TRIM(COPTN(1))//'.expTexact.'//APPEND,FORM='UNFORMATTED')
+     ENDDO
+     OPEN(90,FILE=TRIM(COPTN(1))//'.tmp1',FORM='UNFORMATTED')
+     DO I=1,NDEGEN
+      DO J=1,NDEGEN
+       B(I,J)=VR(LIST(I)-NALL_CHECK,IFCI(J))
+      ENDDO
+     ENDDO
+     WRITE(6,'(A)') 'FULL CI COEFF MATRIX'
+     CALL DUMP5(B,NDEGEN)
+     BS=B
+     CALL LUDCMP(B,NDEGEN,NDEGEN,INDX,D)
+     DO I=1,NDEGEN
+      C=0.0D0
+      C(I)=1.0D0
+      CS=C
+      CALL LUBKSB(B,NDEGEN,NDEGEN,INDX,C)
+      CALL MPROVE(BS,B,NDEGEN,NDEGEN,INDX,CS,C)
+!write(*,'(i3,128f10.5:)') i,(c(j),j=1,ndegen)
+      VEC1=0.0D0
+      DO J=1,NDEGEN
+       DO IA=1,NCFA
+        DO IB=1,NCFB
+         VEC1(IB,IA)=VEC1(IB,IA)+C(J)*VR((IA-1)*NCFB+IB,IFCI(J))
         ENDDO
-        IF (IOCCA /= NELEA) CALL PABORT('ERROR')
-        IF (IOCCB /= NELEB) CALL PABORT('ERROR')
+       ENDDO
+      ENDDO
+      REWIND(900+I)
+      WRITE(900+I) VEC1
+     ENDDO
+
+!    NEXT REVERSE-COMPUTE T AMPLITUDES FROM EXACT WAVE FUNCTION
+     TORDER=2*(IALL(0,0,0)-IVIRTCORE)-NELEA-NELEB
+     WRITE(6,'(A,I3)') 'MAX CC ORDER = ',TORDER
+
+     DO N=1,NDEGEN
+!write(*,*) 'now working on ref ',n
+
+      ! DETERMINE OCCUPIED AND VIRTUAL ORBITALS IN REF
+      REFOCCA=0
+      REFVIRA=0
+      IOCCA=0
+      IVIRA=0
+      REFOCCB=0
+      REFVIRB=0
+      IOCCB=0
+      IVIRB=0
+      DO I=1,IALL(0,0,0)-IVIRTCORE
+       IF (BTEST(CFHALFA(ICFA(N)),I-1)) THEN
+        IOCCA=IOCCA+1
+        REFOCCA(IOCCA)=I
+       ELSE
+        IVIRA=IVIRA+1
+        REFVIRA(IVIRA)=I
+       ENDIF
+       IF (BTEST(CFHALFB(ICFB(N)),I-1)) THEN
+        IOCCB=IOCCB+1
+        REFOCCB(IOCCB)=I
+       ELSE
+        IVIRB=IVIRB+1
+        REFVIRB(IVIRB)=I
+       ENDIF
+      ENDDO
+      IF (IOCCA /= NELEA) CALL PABORT('ERROR')
+      IF (IOCCB /= NELEB) CALL PABORT('ERROR')
 !write(*,*) 'occupied alpha = ',(REFOCCA(I),I=1,IOCCA)
 !write(*,*) 'occupied beta  = ',(REFOCCB(I),I=1,IOCCB)
 !write(*,*) 'virtual  alpha = ',(REFVIRA(I),I=1,IVIRA)
 !write(*,*) 'virtual  beta  = ',(REFVIRB(I),I=1,IVIRB)
- 
-        ! RETRIEVE EXP(T)|0> WAVEFUNCTION FROM FILE
-        REWIND(900+N)
-        READ(900+N) VEC1 ! CONTAINS THE EXACT WAVE FUNCTION
-  
-        VEC2=0.0D0 ! WILL CONTAIN Tn AMPLITUDES
-  
-        ! DETERMINE T1 AMPLITUDES FIRST AND GO UP
-        DO ORDER=1,TORDER
-  
-         ! LOOP OVER ALPHA T-AMPLITUDES
-         DO IA=1,NCFA
-          J=0
-          DO I=1,IOCCA
-           IF (.NOT.BTEST(CFHALFA(IA),REFOCCA(I)-1)) THEN
-            J=J+1
-            HOLEA(J)=REFOCCA(I)
-           ENDIF
-          ENDDO
-          NORDA=J
-          J=0
-          DO I=1,IVIRA
-           IF (BTEST(CFHALFA(IA),REFVIRA(I)-1)) THEN
-            J=J+1
-            PARTA(J)=REFVIRA(I)
-           ENDIF
-          ENDDO
-          IF (J /= NORDA) CALL PABORT('ERROR')
-         
-          ! GENERATE ALPHA T|0>
-          CFALPH=CFHALFA(ICFA(N))
-          HA=0.0D0
-          ISIGN=1
-          DO I=1,NORDA
-           IF (HOLEA(I) /= 1) THEN
-            DO J=1,HOLEA(I)-1
-             IF (BTEST(CFALPH,J-1)) ISIGN=-ISIGN
-            ENDDO
-           ENDIF
-           CFALPH=IBCLR(CFALPH,HOLEA(I)-1)
-           HA=HA+EPSILON(HOLEA(I),0,0,0)
-          ENDDO
-          DO I=1,NORDA
-           DO J=1,PARTA(I)-1
-            IF (BTEST(CFALPH,J-1)) ISIGN=-ISIGN
-           ENDDO
-           CFALPH=IBSET(CFALPH,PARTA(I)-1)
-           HA=HA-EPSILON(PARTA(I),0,0,0)
-          ENDDO
-           
-          ! LOOP OVER BETA T-AMPLITUDES
-          DO IB=1,NCFB
-           J=0
-           DO I=1,IOCCB
-            IF (.NOT.BTEST(CFHALFB(IB),REFOCCB(I)-1)) THEN
-             J=J+1
-             HOLEB(J)=REFOCCB(I)
-            ENDIF
-           ENDDO
-           NORDB=J
-           J=0
-           DO I=1,IVIRB
-            IF (BTEST(CFHALFB(IB),REFVIRB(I)-1)) THEN
-             J=J+1
-             PARTB(J)=REFVIRB(I)
-            ENDIF
-           ENDDO
-           IF (J /= NORDB) CALL PABORT('ERROR')
-           IF (NORDA+NORDB /= ORDER) CYCLE
-   
-           ! GENERATE BETA T|0>
-           CFBETA=CFHALFB(ICFB(N))
-           JSIGN=1
-           HB=0.0D0
-           DO I=1,NORDB
-            IF (HOLEB(I) /= 1) THEN
-             DO J=1,HOLEB(I)-1
-              IF (BTEST(CFBETA,J-1)) JSIGN=-JSIGN
-             ENDDO
-            ENDIF
-            CFBETA=IBCLR(CFBETA,HOLEB(I)-1)
-            HB=HB+EPSILON(HOLEB(I),0,0,0)
-           ENDDO
-           DO I=1,NORDB
-            DO J=1,PARTB(I)-1
-             IF (BTEST(CFBETA,J-1)) JSIGN=-JSIGN
-            ENDDO
-            CFBETA=IBSET(CFBETA,PARTB(I)-1)
-            HB=HB-EPSILON(PARTB(I),0,0,0)
-           ENDDO
-  
-           VEC2(IB,IA)=VEC2(IB,IA)+VEC1(IB,IA)/DFLOAT(ISIGN*JSIGN*KSIGN(NORDA)*KSIGN(NORDB))
-  
-          ENDDO
-         ENDDO
+
+      ! RETRIEVE EXP(T)|0> WAVEFUNCTION FROM FILE
+      REWIND(900+N)
+      READ(900+N) VEC1 ! CONTAINS THE EXACT WAVE FUNCTION
+
+      VEC2=0.0D0 ! WILL CONTAIN Tn AMPLITUDES
+
+      ! DETERMINE T1 AMPLITUDES FIRST AND GO UP
+      DO ORDER=1,TORDER
+
+       ! LOOP OVER ALPHA T-AMPLITUDES
+       DO IA=1,NCFA
+        J=0
+        DO I=1,IOCCA
+         IF (.NOT.BTEST(CFHALFA(IA),REFOCCA(I)-1)) THEN
+          J=J+1
+          HOLEA(J)=REFOCCA(I)
+         ENDIF
+        ENDDO
+        NORDA=J
+        J=0
+        DO I=1,IVIRA
+         IF (BTEST(CFHALFA(IA),REFVIRA(I)-1)) THEN
+          J=J+1
+          PARTA(J)=REFVIRA(I)
+         ENDIF
+        ENDDO
+        IF (J /= NORDA) CALL PABORT('ERROR')
        
-         ! REFERENCE STATE
-         VEC3=0.0D0
-         VEC3(ICFB(N),ICFA(N))=1.0D0
-         REWIND(90)
-         WRITE(90) VEC3
+        ! GENERATE ALPHA T|0>
+        CFALPH=CFHALFA(ICFA(N))
+        HA=0.0D0
+        ISIGN=1
+        DO I=1,NORDA
+         IF (HOLEA(I) /= 1) THEN
+          DO J=1,HOLEA(I)-1
+           IF (BTEST(CFALPH,J-1)) ISIGN=-ISIGN
+          ENDDO
+         ENDIF
+         CFALPH=IBCLR(CFALPH,HOLEA(I)-1)
+!write(*,*) 'ALPH HALF CONFIG ',IA,' HAS A HOLE ',HOLEA(I)
+         HA=HA+EPSILON(HOLEA(I),0,0,0)
+        ENDDO
+        DO I=1,NORDA
+         DO J=1,PARTA(I)-1
+          IF (BTEST(CFALPH,J-1)) ISIGN=-ISIGN
+         ENDDO
+         CFALPH=IBSET(CFALPH,PARTA(I)-1)
+! write(*,*) 'ALPH HALF CONFIG ',IA,' HAS A PART ',PARTA(I)
+         HA=HA-EPSILON(PARTA(I),0,0,0)
+        ENDDO
+         
+        ! LOOP OVER BETA T-AMPLITUDES
+        DO IB=1,NCFB
+         J=0
+         DO I=1,IOCCB
+          IF (.NOT.BTEST(CFHALFB(IB),REFOCCB(I)-1)) THEN
+           J=J+1
+           HOLEB(J)=REFOCCB(I)
+          ENDIF
+         ENDDO
+         NORDB=J
+         J=0
+         DO I=1,IVIRB
+          IF (BTEST(CFHALFB(IB),REFVIRB(I)-1)) THEN
+           J=J+1
+           PARTB(J)=REFVIRB(I)
+          ENDIF
+         ENDDO
+         IF (J /= NORDB) CALL PABORT('ERROR')
+ !if ((ia==1).and.(ib==1).and.(order==2)) write(*,*) '**** CCD is activated!'    
+ !if (NORDA+NORDB /= 2) CYCLE
+         IF (NORDA+NORDB /= ORDER) CYCLE
  
-         REWIND(100+N)
-         WRITE(100+N) VEC2
+         ! GENERATE BETA T|0>
+         CFBETA=CFHALFB(ICFB(N))
+         JSIGN=1
+         HB=0.0D0
+         DO I=1,NORDB
+          IF (HOLEB(I) /= 1) THEN
+           DO J=1,HOLEB(I)-1
+            IF (BTEST(CFBETA,J-1)) JSIGN=-JSIGN
+           ENDDO
+          ENDIF
+          CFBETA=IBCLR(CFBETA,HOLEB(I)-1)
+ !write(*,*) 'BETA HALF CONFIG ',IB,' HAS A HOLE ',HOLEB(I)
+          HB=HB+EPSILON(HOLEB(I),0,0,0)
+         ENDDO
+         DO I=1,NORDB
+          DO J=1,PARTB(I)-1
+           IF (BTEST(CFBETA,J-1)) JSIGN=-JSIGN
+          ENDDO
+          CFBETA=IBSET(CFBETA,PARTB(I)-1)
+ !write(*,*) 'BETA HALF CONFIG ',IB,' HAS A PART ',PARTB(I)
+          HB=HB-EPSILON(PARTB(I),0,0,0)
+         ENDDO
  
-         CALL THERMAL_EXPONENTIAL_OPERATOR(ICFA(N),ICFB(N),100+N,90,200+N,ORDER,.FALSE.,.FALSE.)
+         VEC2(IB,IA)=VEC2(IB,IA)+VEC1(IB,IA)/DFLOAT(ISIGN*JSIGN*KSIGN(NORDA)*KSIGN(NORDB))
  
-         REWIND(200+N)
-         READ(200+N) VEC3
-         REWIND(900+N)
-         READ(900+N) VEC1
+        ENDDO
+       ENDDO
+      
+       ! REFERENCE STATE
+       VEC3=0.0D0
+       VEC3(ICFB(N),ICFA(N))=1.0D0
+       REWIND(90)
+       WRITE(90) VEC3
+
+       REWIND(100+N)
+       WRITE(100+N) VEC2
+
+       CALL THERMAL_EXPONENTIAL_OPERATOR(ICFA(N),ICFB(N),100+N,90,200+N,ORDER,.FALSE.,.FALSE.)
+
+       REWIND(200+N)
+       READ(200+N) VEC3
+       REWIND(900+N)
+       READ(900+N) VEC1
 !write(*,*) '*** partial expT |icfa,icfb>, exact wfn ',n,' at order ',order
 !do ia=1,ncfa
 !do ib=1,ncfb
 !write(*,'(2i3,2f20.10)') ia,ib,vec3(ib,ia),vec1(ib,ia)
 !enddo
 !enddo
- 
-         VEC1=VEC1-VEC3
- 
-        ENDDO
+
+       VEC1=VEC1-VEC3
+
+      ENDDO
 !rewind(100+n)
 !read(100+n) vec3
 !write(*,*) '*** exact T |icfa,icfb> ',n
@@ -2310,28 +2220,27 @@ SUBROUTINE DEGENERATE_CI
 !write(*,'(2i3,f20.10)') ia,ib,vec3(ib,ia)
 !enddo
 !enddo
- 
-       ENDDO
- 
-       DO I=1,NDEGEN
-        CLOSE(100+I)
-        CLOSE(200+I)
-        CLOSE(900+I)
-       ENDDO
- 
-       DEALLOCATE(VEC1,VEC2,VEC3) 
-       DEALLOCATE(INDX,B,BS,C,CS)
-       DEALLOCATE(IFCI)
- 
-      ENDDO
-     ENDIF
- 
+
+     ENDDO
+
+     DO I=1,NDEGEN
+      CLOSE(100+I)
+      CLOSE(200+I)
+      CLOSE(900+I)
+     ENDDO
+     DEALLOCATE(VEC1,VEC2,VEC3) 
+     DEALLOCATE(INDX,B,BS,C,CS)
+     DEALLOCATE(IFCI)
      DEALLOCATE(A,ER,EI,VR,VL,WK)
+!-------------------------------
+endif
      DEALLOCATE(CFHALFA,ADDRSSA,NORDERA)
      DEALLOCATE(CFHALFB,ADDRSSB,NORDERB)
      NALL_CHECK=NALL_CHECK+NCFA*NCFB
     ENDDO
    ENDDO
+   WRITE(6,'(A,F10.2)') 'CPU/SEC =',ICPUE-ICPUS
+   CALL PFLUSH(6)
 
    DEALLOCATE(EDCI)
    DEALLOCATE(ALL_M,E0,ALLE,ALLN)

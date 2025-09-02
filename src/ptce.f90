@@ -517,19 +517,19 @@ SUBROUTINE TCE_DRIVER
     NELEB=IOCC
     WRITE(6,'(A)') 'IP ROOTS ARE SOUGHT'
     WRITE(6,'(A,2I3)') 'NELEA,NELEB = ',NELEA,NELEB
-    WRITE(6,'(A,I5)') 'NUMBER OF ROOTS = ',IOPTN(59)
+    WRITE(6,'(A,I3)') 'NUMBER OF ROOTS = ',IOPTN(59)
    ELSE IF (LOPTN(61)) THEN
     NELEA=IOCC+1
     NELEB=IOCC
     WRITE(6,'(A)') 'EA ROOTS ARE SOUGHT'
     WRITE(6,'(A,2I3)') 'NELEA,NELEB = ',NELEA,NELEB
-    WRITE(6,'(A,I5)') 'NUMBER OF ROOTS = ',IOPTN(59)
+    WRITE(6,'(A,I3)') 'NUMBER OF ROOTS = ',IOPTN(59)
    ELSE
     NELEA=IOCC
     NELEB=IOCC
     WRITE(6,'(A)') 'EXCITED ROOTS ARE SOUGHT'
     WRITE(6,'(A,2I3)') 'NELEA,NELEB = ',NELEA,NELEB
-    WRITE(6,'(A,I5)') 'NUMBER OF ROOTS = ',IOPTN(59)
+    WRITE(6,'(A,I3)') 'NUMBER OF ROOTS = ',IOPTN(59)
    ENDIF
 
    NO=NELEA+NELEB-2*ICORE
@@ -928,6 +928,29 @@ SUBROUTINE TCE_DRIVER
           SMAT(M,N)=D_S2(INTERNAL2(M,N),N)*DFLOAT(INTERNAL3(M)*INTERNAL3(N)*INTERNAL4(M,N))
          ENDIF
         ENDDO
+!do i=no+1,na
+!do k=1,no
+! if (dabs(d_t1((map(i,n)-1)*na+map(k,n),n))>1.0d-9) then
+!  write(*,'(i5,2i3,f20.10)') n,map(i,n),map(k,n),d_t1((map(i,n)-1)*na+map(k,n),n)
+! endif
+!enddo
+!enddo
+ do i=no+1,na
+ do j=no+1,na
+ if (i>j) cycle
+ do k=1,no
+ do l=1,no
+!if (k>l) cycle
+! if (dabs(d_t2((((map(i,n)-1)*na+map(j,n)-1)*na+map(k,n)-1)*na+map(l,n),n))>1.0d-9) then
+ if ((n==1).and.(map(i,n)==11).and.(map(j,n)==14).and.(map(k,n)==4).and.(map(l,n)==8)) &
+  write(*,'(i5,4i3,2f20.10)') n,map(i,n),map(j,n),map(k,n),map(l,n),&
+  d_t2((((map(i,n)-1)*na+map(j,n)-1)*na+map(k,n)-1)*na+map(l,n),n),&
+  d_i0_2((((map(i,n)-1)*na+map(j,n)-1)*na+map(k,n)-1)*na+map(l,n),n)
+! endif
+ enddo
+ enddo
+ enddo
+ enddo
        ELSE
         CALL PABORT('DEGENERATE CC EQUATIONS ARE DISCONNECTED')
 !       IF (LPERMUTATION) THEN
@@ -947,15 +970,15 @@ SUBROUTINE TCE_DRIVER
 
      IF (IOPTN(9) > 1) THEN
       WRITE(6,'(A)') 'OVERLAP MATRIX'
-      CALL DUMP5(SMAT,NDEGEN)
+      CALL DUMP5LONG(SMAT,NDEGEN)
       TMP=HMAT
       DO M=1,NDEGEN
        TMP(M,M)=TMP(M,M)+EHF
       ENDDO
       WRITE(6,'(A)') 'HAMILTONIAN MATRIX'
-      CALL DUMP5(TMP,NDEGEN)
-      WRITE(6,'(A)') 'HAMILTONIAN MATRIX (RAW)'
-      CALL DUMP5(HMAT,NDEGEN)
+      CALL DUMP5LONG(TMP,NDEGEN)
+!     WRITE(6,'(A)') 'HAMILTONIAN MATRIX (RAW)'
+!     CALL DUMP5(HMAT,NDEGEN)
      ENDIF
 
      ! MULTIPLY SMAT-INVERSE WITH HMAT

@@ -12,7 +12,7 @@ SUBROUTINE READ1
    IMPLICIT NONE
 !  INCLUDE "mpif.h"
    INTEGER,PARAMETER :: NOPTN = 110
-   INTEGER,PARAMETER :: NTHEORY = 10
+   INTEGER,PARAMETER :: NTHEORY = 8
    CHARACTER(10),PARAMETER :: CNAME(NOPTN) = &
       (/'JOBNAME   ','BASISSET  ','PERIOD    ','HELIX     ','CHARGE    ',& !   1 -   5
         'KPOINTS   ','JOBTYPE   ','UNITS     ','PRINT     ','CUTOFF1   ',& !   6 -  10
@@ -38,7 +38,7 @@ SUBROUTINE READ1
         'DIAGONAL  ','DYSONCONV ','TEMPHF    ','DEGENERATE','TCE       '/) ! 106 - 110
    CHARACTER(10),PARAMETER :: CTHEORYNAME(NTHEORY) = &
       (/'HF        ','SNULL     ','BNULL     ','SVWN      ','BLYP      ',&
-        'SLYP      ','BVWN      ','B3LYP     ','MP2FC     ','MP2FULL   '/)
+        'SLYP      ','BVWN      ','B3LYP     '                          /)
    ! 1 = INTEGER ; 2 = DOUBLE PRECISION ; 3 = CHARACTER ; 4 = LOGICAL ; NEGATIVE = OMISSIBLE
    INTEGER,PARAMETER :: ITYPE(NOPTN) = (/-3,3,2,-2,-1,1,-1,-3,-1,1,1,-2,-1,-2,-2,-1,-3,-1,-2,-2,-2, &
    -2,-2,-2,-4,-2,-1,-2,-1,-4,-4,-4,-4,-4,-3,-1,-1,-2,-4,-4,-2,-1,-4,-1,-2,-4,-1,-1,-1,-1,-1,-1,-1, &
@@ -368,24 +368,6 @@ SUBROUTINE READ1
     DOPTN(22)=0.72D0
     DOPTN(23)=0.81D0
     DOPTN(24)=0.0D0
-   ELSE IF (ITHEORY(9) == 1) THEN
-    DOPTN(19)=1.0D0
-    DOPTN(20)=0.0D0
-    DOPTN(21)=0.0D0
-    DOPTN(22)=0.0D0
-    DOPTN(23)=0.0D0
-    DOPTN(24)=1.0D0
-    LOPTN(25)=.FALSE.
-    IOPTN(27)=-1
-   ELSE IF (ITHEORY(10) == 1) THEN
-    DOPTN(19)=1.0D0
-    DOPTN(20)=0.0D0
-    DOPTN(21)=0.0D0
-    DOPTN(22)=0.0D0
-    DOPTN(23)=0.0D0
-    DOPTN(24)=1.0D0
-    LOPTN(25)=.FALSE.
-    IOPTN(27)=0
    ENDIF
    IF ((DOPTN(76) == 1.0D99).OR.(DOPTN(77) == 1.0D99).OR.(DOPTN(78) == 1.0D99) &
    .OR.(DOPTN(79) == 1.0D99).OR.(DOPTN(80) == 1.0D99).OR.(DOPTN(84) == 1.0D99)) THEN
