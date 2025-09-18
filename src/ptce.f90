@@ -13,7 +13,7 @@ SUBROUTINE TCE_DRIVER
 !  LOGICAL,PARAMETER :: LPERMUTATION=.FALSE.
    LOGICAL,PARAMETER :: LDISCONNECTED=.TRUE.
 !  LOGICAL,PARAMETER :: LDISCONNECTED=.FALSE.
-   INTEGER,PARAMETER :: MAXITER=1000
+   INTEGER,PARAMETER :: MAXITER=200
    INTEGER :: ITER
    INTEGER :: NA,NO
    INTEGER :: I,J,K,L,M,N
@@ -34,7 +34,7 @@ SUBROUTINE TCE_DRIVER
    INTEGER,ALLOCATABLE :: INDX(:)
    DOUBLE PRECISION :: D
    INTEGER :: IA,IB
-   DOUBLE PRECISION,ALLOCATABLE :: E0(:),EHF
+   DOUBLE PRECISION,ALLOCATABLE :: E0(:),EHF(:)
    INTEGER,ALLOCATABLE :: ITARGETS(:)
    DOUBLE PRECISION :: PREVIOUSMIN,CURRENTMIN
    INTEGER :: ISTATE,JSTATE,NDEGEN
@@ -55,7 +55,9 @@ SUBROUTINE TCE_DRIVER
    INTEGER :: INFO
    CHARACTER(2),PARAMETER :: SPINNAME(2) = (/'A','B'/)
    INTEGER :: IPRTY,JPRTY,KPRTY
+   REAL :: ICPUS,ICPUE
 
+   CALL CPU_TIME(ICPUS)
    WRITE(6,'(A)') '*************************'
    WRITE(6,'(A)') 'TENSOR CONTRACTION ENGINE'
    WRITE(6,'(A)') '*************************'
@@ -200,8 +202,8 @@ SUBROUTINE TCE_DRIVER
     WRITE(6,'(A)') 'ILLEGAL TCE MODULE NAME ; EXITING'
     RETURN
    ENDIF
-   WRITE(6,'(/,A)') '  ITER       RESIDUAL    CORRELATION        TOTAL ENERGY'
-   WRITE(6,'(A)')   '--------------------------------------------------------'
+   WRITE(6,'(/,A)') '  ITER       RESIDUAL    CORRELATION        TOTAL ENERGY      CPU / SEC'
+   WRITE(6,'(A)')   '-----------------------------------------------------------------------'
 
    ALLOCATE(I0_0(1),I0E_0(1))
    IF (LSINGLES) ALLOCATE(I0_1(NA**2),T1(NA**2))
@@ -370,8 +372,11 @@ SUBROUTINE TCE_DRIVER
     IF (LTRIPLES) WRITE(100+1) t3
 
     ECORR=I0_0(1)
-    WRITE(6,'(I6,2F15.10,F20.10)') ITER,DSQRT(R1+R2+R3),ECORR,EHFKS+ECORR
-    WRITE(6,'(A)')   '........................................................'
+    CALL CPU_TIME(ICPUE)
+    WRITE(6,'(I6,2F15.10,F20.10,F15.1)') ITER,DSQRT(R1+R2+R3),ECORR,EHFKS+ECORR,ICPUE-ICPUS
+    WRITE(6,'(A)')   '.......................................................................'
+    CALL PFLUSH(6)
+    CALL CPU_TIME(ICPUS)
     IF (DSQRT(R1+R2+R3) < DOPTN(62)) EXIT
 
     ! DIIS
@@ -457,7 +462,7 @@ SUBROUTINE TCE_DRIVER
     ENDIF
    ENDDO
    IF (ITER>=MAXITER) CALL PABORT('MAXITER REACHED')
-   WRITE(6,'(A)') '--------------------------------------------------------'
+   WRITE(6,'(A)') '------------------------------- TCE ------------------------------'
    WRITE(6,'(A)') 'CC ITERATION CONVERGED'          
  
    DEALLOCATE(I0_0,I0E_0)
@@ -768,7 +773,7 @@ SUBROUTINE TCE_DRIVER
     WRITE(6,'(/,A,I5,100I6:)') 'STATE PARITY',(INTERNAL3(N),N=1,NDEGEN)
 
     ! CONSTRUCT NORMAL-ORDERED HAMILTONIAN
-    ALLOCATE(D_F1(NA,NA,NDEGEN))
+    ALLOCATE(D_F1(NA,NA,NDEGEN),EHF(NDEGEN))
     DO N=1,NDEGEN
      D_F1(:,:,N)=0.0D0
      DO P1=1,NA
@@ -792,27 +797,27 @@ SUBROUTINE TCE_DRIVER
      ENDIF
 !    WRITE(6,'(/,A,I3)') 'FOCK MATRIX FOR DEGENERATE REF ',N
 !    CALL DUMP5(D_F1(:,:,N),NA)
-     EHF=NUCLEAR_REPULSION
+     EHF(N)=NUCLEAR_REPULSION
      DO H1=1,NO
 !write(*,'(2i3,2f20.10)') h1,map(h1,n),F1(MAP(H1,N),MAP(H1,N)),F1(h1,h1)
-      EHF=EHF+HCORE1(MAP(H1,N),MAP(H1,N))
+      EHF(N)=EHF(N)+HCORE1(MAP(H1,N),MAP(H1,N))
       DO H2=1,NO
 !write(*,'(4i3,2f20.10)') h1,h2,map(h1,n),map(h2,n),V2(MAP(H1,N),MAP(H2,N),MAP(H1,N),MAP(H2,N)),v2(h1,h2,h1,h2)
-       EHF=EHF+0.5D0*V2(MAP(H1,N),MAP(H2,N),MAP(H1,N),MAP(H2,N))
+       EHF(N)=EHF(N)+0.5D0*V2(MAP(H1,N),MAP(H2,N),MAP(H1,N),MAP(H2,N))
       ENDDO
      ENDDO
      IF (ICORE > 0) THEN
       DO I=1,ICORE
-       EHF=EHF+2.0D0*H(I,I)
+       EHF(N)=EHF(N)+2.0D0*H(I,I)
        DO J=1,ICORE
-        EHF=EHF+2.0D0*G(I,I,J,J)-G(I,J,J,I)
+        EHF(N)=EHF(N)+2.0D0*G(I,I,J,J)-G(I,J,J,I)
        ENDDO
        DO P1=1,NO
-        EHF=EHF+2.0D0*G(I,I,BACKMAP(P1,N),BACKMAP(P1,N))-G(I,BACKMAP(P1,N),BACKMAP(P1,N),I)
+        EHF(N)=EHF(N)+2.0D0*G(I,I,BACKMAP(P1,N),BACKMAP(P1,N))-G(I,BACKMAP(P1,N),BACKMAP(P1,N),I)
        ENDDO
       ENDDO
      ENDIF
-     WRITE(6,'(/,A,I3,A,F20.10,A)') 'HF ENERGY FOR DEGENERATE REF ',N,' = ',EHF,' HARTREE'
+     WRITE(6,'(/,A,I3,A,F20.10,A)') 'HF ENERGY FOR DEGENERATE REF ',N,' = ',EHF(N),' HARTREE'
     ENDDO
 
 !   DO N=1,NDEGEN
@@ -860,7 +865,7 @@ SUBROUTINE TCE_DRIVER
     ALLOCATE(ER(NDEGEN),EI(NDEGEN),VR(NDEGEN,NDEGEN),VL(1,NDEGEN),WK(4*NDEGEN))
     ALLOCATE(DEVSQ1(NDEGEN),DEVSQ2(NDEGEN),DEVSQ3(NDEGEN))
 
-    WRITE(6,'(/,A)') '  ITER       RESIDUAL    CORRELATION        TOTAL ENERGY'
+    WRITE(6,'(/,A)') '  ITER       RESIDUAL        TOTAL ENERGY      CPU / SEC'
     WRITE(6,'(A)')   '--------------------------------------------------------'
  
     DO ITER=1,MAXITER
@@ -928,29 +933,6 @@ SUBROUTINE TCE_DRIVER
           SMAT(M,N)=D_S2(INTERNAL2(M,N),N)*DFLOAT(INTERNAL3(M)*INTERNAL3(N)*INTERNAL4(M,N))
          ENDIF
         ENDDO
-!do i=no+1,na
-!do k=1,no
-! if (dabs(d_t1((map(i,n)-1)*na+map(k,n),n))>1.0d-9) then
-!  write(*,'(i5,2i3,f20.10)') n,map(i,n),map(k,n),d_t1((map(i,n)-1)*na+map(k,n),n)
-! endif
-!enddo
-!enddo
- do i=no+1,na
- do j=no+1,na
- if (i>j) cycle
- do k=1,no
- do l=1,no
-!if (k>l) cycle
-! if (dabs(d_t2((((map(i,n)-1)*na+map(j,n)-1)*na+map(k,n)-1)*na+map(l,n),n))>1.0d-9) then
- if ((n==1).and.(map(i,n)==11).and.(map(j,n)==14).and.(map(k,n)==4).and.(map(l,n)==8)) &
-  write(*,'(i5,4i3,2f20.10)') n,map(i,n),map(j,n),map(k,n),map(l,n),&
-  d_t2((((map(i,n)-1)*na+map(j,n)-1)*na+map(k,n)-1)*na+map(l,n),n),&
-  d_i0_2((((map(i,n)-1)*na+map(j,n)-1)*na+map(k,n)-1)*na+map(l,n),n)
-! endif
- enddo
- enddo
- enddo
- enddo
        ELSE
         CALL PABORT('DEGENERATE CC EQUATIONS ARE DISCONNECTED')
 !       IF (LPERMUTATION) THEN
@@ -971,14 +953,14 @@ SUBROUTINE TCE_DRIVER
      IF (IOPTN(9) > 1) THEN
       WRITE(6,'(A)') 'OVERLAP MATRIX'
       CALL DUMP5LONG(SMAT,NDEGEN)
+      WRITE(6,'(A)') 'HAMILTONIAN MATRIX (RAW)'
+      CALL DUMP5LONG(HMAT,NDEGEN)
       TMP=HMAT
       DO M=1,NDEGEN
-       TMP(M,M)=TMP(M,M)+EHF
+       TMP(M,M)=TMP(M,M)+EHF(M)
       ENDDO
       WRITE(6,'(A)') 'HAMILTONIAN MATRIX'
       CALL DUMP5LONG(TMP,NDEGEN)
-!     WRITE(6,'(A)') 'HAMILTONIAN MATRIX (RAW)'
-!     CALL DUMP5(HMAT,NDEGEN)
      ENDIF
 
      ! MULTIPLY SMAT-INVERSE WITH HMAT
@@ -994,15 +976,15 @@ SUBROUTINE TCE_DRIVER
       EMAT(:,N)=C
      ENDDO
      DEALLOCATE(INDX,B,BS,C,CS)
-     TMP=EMAT
-     DO M=1,NDEGEN
-      TMP(M,M)=TMP(M,M)+EHF
-     ENDDO
      IF (IOPTN(9) > 1) THEN
-      WRITE(6,'(A)') 'ENERGY MATRIX'
-      CALL DUMP5(TMP,NDEGEN)
       WRITE(6,'(A)') 'ENERGY MATRIX (RAW)'
       CALL DUMP5(EMAT,NDEGEN)
+      TMP=EMAT
+      DO M=1,NDEGEN
+       TMP(M,M)=TMP(M,M)+EHF(M)
+      ENDDO
+      WRITE(6,'(A)') 'ENERGY MATRIX'
+      CALL DUMP5LONG(TMP,NDEGEN)
      ENDIF
 
      ! UPDATE T-AMPLITUDES
@@ -1047,16 +1029,23 @@ SUBROUTINE TCE_DRIVER
      ENDDO
 
      ! DIAGONALIZE EFFECTIVE ENERGY MATRIX
+     DO M=1,NDEGEN
+      EMAT(M,M)=EMAT(M,M)+EHF(M)
+     ENDDO
      CALL DGEEV('N','V',NDEGEN,EMAT,NDEGEN,ER,EI,VL,1,VR,NDEGEN,WK,4*NDEGEN,INFO)
      IF (INFO /= 0) CALL PABORT('DGEEV FAILED TO DIAGONALIZE A MATRIX')
      CALL PIKSRT2(NDEGEN,NDEGEN,ER,EI,VR,WK)
 
+     CALL CPU_TIME(ICPUE)
      LEXIST=.FALSE.
      DO N=1,NDEGEN 
-      WRITE(6,'(I6,2F15.10,F20.10)') ITER,DSQRT(DEVSQ1(N)+DEVSQ2(N)+DEVSQ3(N)),ER(N),EHF+ER(N)
+      IF (N < NDEGEN)  WRITE(6,'(I6,F15.10,F20.10)') ITER,DSQRT(DEVSQ1(N)+DEVSQ2(N)+DEVSQ3(N)),ER(N)
+      IF (N == NDEGEN) WRITE(6,'(I6,F15.10,F20.10,F15.1)') ITER,DSQRT(DEVSQ1(N)+DEVSQ2(N)+DEVSQ3(N)),ER(N),ICPUE-ICPUS
       IF (DSQRT(DEVSQ1(N)+DEVSQ2(N)+DEVSQ3(N)) > DOPTN(62)) LEXIST=.TRUE.
      ENDDO
      WRITE(6,'(A)')   '........................................................'
+     CALL PFLUSH(6)
+     CALL CPU_TIME(ICPUS)
      IF (.NOT.LEXIST) THEN
       EXIT
      ENDIF
@@ -1152,7 +1141,7 @@ SUBROUTINE TCE_DRIVER
 
     ENDDO ! END LOOP OVER ITERATIONS
     IF (ITER>=MAXITER) CALL PABORT('MAXITER REACHED')
-    WRITE(6,'(A)') '------------------------- TCE --------------------------'
+    WRITE(6,'(A)') '-------------------------- TCE -------------------------'
     WRITE(6,'(A)') 'CC ITERATION CONVERGED'
 
     DEALLOCATE(ER,EI,VR,VL,WK)
@@ -1171,7 +1160,7 @@ SUBROUTINE TCE_DRIVER
      CLOSE(400+N)
     ENDDO
  
-    DEALLOCATE(D_F1)
+    DEALLOCATE(D_F1,EHF)
     DEALLOCATE(INTERNAL1,INTERNAL2,INTERNAL3,INTERNAL4)
     DEALLOCATE(MAP,SPINMAP,BACKMAP)
 

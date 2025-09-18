@@ -538,7 +538,7 @@ write(*,*) "\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
      ENDIF
      IF (LOPTN(65)) CALL HIGHORDER_CC(I,.TRUE.,.TRUE.,.TRUE.)
      IF (LOPTN(109)) THEN
-      CALL DEGENERATE_CI(I) ! FULL CI
+      IF (LOPTN(111)) CALL DEGENERATE_CI(I) ! FULL CI
       CALL DEGENERATE_CC(I)
      ENDIF 
     ENDDO
@@ -554,7 +554,7 @@ write(*,*) "\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
      ENDIF
      IF (LOPTN(65)) CALL HIGHORDER_CC(I,.TRUE.,.TRUE.,.TRUE.)
      IF (LOPTN(109)) THEN
-      CALL DEGENERATE_CI(I) ! FULL CI
+      IF (LOPTN(111)) CALL DEGENERATE_CI(I) ! FULL CI
       CALL DEGENERATE_CC(I)
      ENDIF 
     ENDDO
